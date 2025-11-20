@@ -60,8 +60,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ Utilities.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class })
-public class UtilitiesTest {
+@PrepareForTest({ Utility.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utilities.class })
+public class UtilityTest {
 
     @Spy
     @InjectMocks
@@ -79,8 +79,9 @@ public class UtilitiesTest {
     @Mock
     private Logger regProcLogger;
 
+    @Spy
     @InjectMocks
-    private Utility utility;
+    private Utility utility = new Utility();
 
     private InternalRegistrationStatusDto registrationStatusDto;
     private IdVidMetadataResponse idVidMetadataResponse;
@@ -96,12 +97,11 @@ public class UtilitiesTest {
         idVidMetadataResponse.setRid("10049100271000420240319064824");
         idVidMetadataResponse.setUpdatedOn("2024-01-01T12:00:00");
         sdf = new SimpleDateFormat("yyyy/MM/dd");
-        ReflectionTestUtils.setField(utilities, "dobFormat", "yyyy/MM/dd");
-        ReflectionTestUtils.setField(utilities, "ageLimit", "5");
+        ReflectionTestUtils.setField(utility, "dobFormat", "yyyy/MM/dd");
+        ReflectionTestUtils.setField(utility, "ageLimit", "5");
         ReflectionTestUtils.setField(utility, "isVidSupportedForUpdate", false);
-        ReflectionTestUtils.setField(utilities, "utility", utility);
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
+        ReflectionTestUtils.setField(utility, "ageLimitBuffer", 0);
+        ReflectionTestUtils.setField(utility, "expectedPacketProcessingDurationHours", 0);
         String identityMappingjsonString;
         try (InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream("RegistrationProcessorIdentity.json")) {
@@ -131,7 +131,7 @@ public class UtilitiesTest {
     @Test
     public void testParseToLocalDateTime_Valid() {
         String dateStr = "2023-09-15T01:01:01.000Z";
-        LocalDate result = utilities.parseToLocalDate(dateStr, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        LocalDate result = utility.parseToLocalDate(dateStr, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         assertNotNull(result);
         assertEquals(2023, result.getYear());
     }
@@ -139,7 +139,7 @@ public class UtilitiesTest {
     @Test
     public void testParseToLocalDate_Valid() {
         String dateStr = "20230915010101";
-        LocalDate result = utilities.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
+        LocalDate result = utility.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
         assertNotNull(result);
         assertEquals(2023, result.getYear());
     }
@@ -147,7 +147,7 @@ public class UtilitiesTest {
     @Test
     public void testParseToLocalDate_Valid_DOB() {
         String dateStr = "2023/09/15";
-        LocalDate result = utilities.parseToLocalDate(dateStr, "yyyy/MM/dd");
+        LocalDate result = utility.parseToLocalDate(dateStr, "yyyy/MM/dd");
         assertNotNull(result);
         assertEquals(2023, result.getYear());
     }
@@ -155,14 +155,14 @@ public class UtilitiesTest {
     @Test
     public void testParseToLocalDate_FutureDate() {
         String dateStr = LocalDateTime.now().plusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        LocalDate result = utilities.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
+        LocalDate result = utility.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
         assertNull(result);
     }
 
     @Test
     public void testParseToLocalDate_TooOldDate() {
         String dateStr = LocalDateTime.now().minusYears(250).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        LocalDate result = utilities.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
+        LocalDate result = utility.parseToLocalDate(dateStr, "yyyyMMddHHmmss");
         assertNull(result);
     }
 
@@ -170,7 +170,7 @@ public class UtilitiesTest {
     public void testParseToLocalDate_ShouldEnterCatchBlock_ForInvalidDate() {
         String invalidDate = "abccdefgh";
         String pattern = "yyyy-MM-dd'T'HH:mm:ss";
-        LocalDate result = utilities.parseToLocalDate(invalidDate, pattern);
+        LocalDate result = utility.parseToLocalDate(invalidDate, pattern);
         assertNull("Expected null for invalid date string", result);
     }
 
@@ -180,7 +180,7 @@ public class UtilitiesTest {
         LocalDate packetDate = LocalDate.of(2020, 1, 1);
         String rid = "20241211";
 
-        int age = utilities.calculateAgeAtLastPacketProcessing(dob, packetDate, rid);
+        int age = utility.calculateAgeAtLastPacketProcessing(dob, packetDate, rid);
 
         assertEquals(10, age);
     }
@@ -198,7 +198,7 @@ public class UtilitiesTest {
         mockIdVidMetadataResponse.setUpdatedOn("2025-10-25T10:00:00.000Z");
         mockIdVidMetadataResponse.setCreatedOn("2025-10-25T09:00:00.000Z");
 
-        when(utility.getUIn(any(), any(), eq(any()))).thenReturn("123456789012");
+        when(utility.getUIn(any(), any(), any())).thenReturn("123456789012");
         String uin = "12345";
         String dob = "2023/01/01";
 
@@ -209,13 +209,13 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        doReturn(mockIdVidMetadataResponse).when(utilities).getIdVidMetadata(anyString(), any());
+        doReturn(mockIdVidMetadataResponse).when(utility).getIdVidMetadata(anyString(), any());
         doReturn(LocalDate.of(2023, 1, 1))
-                .when(utilities).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
+                .when(utility).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
         doReturn(LocalDate.of(2025, 10, 24))
-                .when(utilities).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
+                .when(utility).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
+        boolean result = utility.wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName);
 
         assertTrue(result);
     }
@@ -223,7 +223,7 @@ public class UtilitiesTest {
     @Test
     public void testGetPacketCreatedDateFromRid_Valid() {
         String rid = "1234567890123420230915010101";
-        LocalDate result = utilities.getPacketCreatedDateFromRid(rid);
+        LocalDate result = utility.getPacketCreatedDateFromRid(rid);
         assertNotNull(result);
         assertEquals(2023, result.getYear());
     }
@@ -231,7 +231,7 @@ public class UtilitiesTest {
     @Test
     public void testGetPacketCreatedDateFromRid_InvalidShortRid() {
         String rid = "12345";
-        LocalDate result = utilities.getPacketCreatedDateFromRid(rid);
+        LocalDate result = utility.getPacketCreatedDateFromRid(rid);
         assertNull(result);
     }
 
@@ -250,7 +250,7 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed(
+        boolean result = utility.wasInfantWhenLastPacketProcessed(
                 "10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
 
         assertTrue(result);
@@ -263,7 +263,7 @@ public class UtilitiesTest {
         Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(null);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
-        utilities.wasInfantWhenLastPacketProcessed(
+        utility.wasInfantWhenLastPacketProcessed(
                 "10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
@@ -278,7 +278,7 @@ public class UtilitiesTest {
         Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
-        utilities.wasInfantWhenLastPacketProcessed(
+        utility.wasInfantWhenLastPacketProcessed(
                 "10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
@@ -293,25 +293,25 @@ public class UtilitiesTest {
         Mockito.when(idRepoService.getIdJsonFromIDRepo(anyString(), any())).thenReturn(identityJson);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
-        utilities.wasInfantWhenLastPacketProcessed(
+        utility.wasInfantWhenLastPacketProcessed(
                 "10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsNull_ReturnsFalse() throws Exception {
 
-        when(utility.getUIn(any(), any(), eq(any()))).thenReturn(null);
+        when(utility.getUIn(any(), any(), any())).thenReturn(null);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
     }
 
     @Test
     public void testWasInfantWhenLastPacketProcessed_WhenUinIsEmpty_ReturnsFalse() throws Exception {
 
-        when(utility.getUIn(any(), any(), eq(any()))).thenReturn("  ");
+        when(utility.getUIn(any(), any(), any())).thenReturn("  ");
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10004133140010820251009123300", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertFalse(result);
     }
 
@@ -331,7 +331,7 @@ public class UtilitiesTest {
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(null);
 
-        utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
     private JSONObject createIdentityJsonWithDob(String dob) throws IOException, com.fasterxml.jackson.core.JsonProcessingException {
@@ -360,7 +360,7 @@ public class UtilitiesTest {
 
         when(idRepoService.searchIdVidMetadata(idVidMetadataRequest)).thenReturn(idVidMetadataResponse);
 
-        boolean result =  utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result =  utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -391,7 +391,7 @@ public class UtilitiesTest {
         syncRegistrationEntityList.add(syncRegistration);
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -422,7 +422,7 @@ public class UtilitiesTest {
         syncRegistrationEntityList.add(syncRegistration);
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -450,7 +450,7 @@ public class UtilitiesTest {
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -477,7 +477,7 @@ public class UtilitiesTest {
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -486,7 +486,7 @@ public class UtilitiesTest {
 
         String uin = "6654433332";
         String dob = "2020/01/01";
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 3);
+        ReflectionTestUtils.setField(utility, "ageLimitBuffer", 3);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
         JSONObject identityJson = createIdentityJsonWithDob(dob);
@@ -505,7 +505,7 @@ public class UtilitiesTest {
         List<SyncRegistrationEntity> syncRegistrationEntityList = new ArrayList<>();
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(syncRegistrationEntityList);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -515,7 +515,7 @@ public class UtilitiesTest {
         String uin = "12345";
         String dob = "2020/01/01";
         String packetCreatedDate = "2020-01-03T10:00:00.000Z";
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 120);
+        ReflectionTestUtils.setField(utility, "expectedPacketProcessingDurationHours", 120);
 
         JSONObject identityJson = new JSONObject();
         identityJson.put("dateOfBirth", dob);
@@ -525,7 +525,7 @@ public class UtilitiesTest {
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
                 .thenReturn(uin);
 
-        boolean result = utilities.wasInfantWhenLastPacketProcessed("10049100271000420250319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        boolean result = utility.wasInfantWhenLastPacketProcessed("10049100271000420250319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
         assertTrue(result);
     }
 
@@ -534,13 +534,13 @@ public class UtilitiesTest {
         IdVidMetadataResponse idVidMetadataResponse = new IdVidMetadataResponse();
         idVidMetadataResponse.setUpdatedOn("2025-10-27T10:00:00.000Z");
 
-        ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 24);
+        ReflectionTestUtils.setField(utility, "expectedPacketProcessingDurationHours", 24);
 
         PowerMockito.mockStatic(DateUtils.class);
         when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
                 .thenReturn(LocalDateTime.of(2025, 10, 27, 10, 0));
 
-        LocalDate result = utilities.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "10049100271000420250319064824");
+        LocalDate result = utility.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "10049100271000420250319064824");
 
         assertEquals(LocalDate.of(2025, 10, 26), result);
     }
@@ -568,26 +568,26 @@ public class UtilitiesTest {
 
         when(syncRegistrationRepository.findByRegistrationId(anyString())).thenReturn(null);
 
-        utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
+        utility.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
     @Test
     public void testGetEffectiveAgeLimit() {
-        ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 1);
-        int limit = utilities.getEffectiveAgeLimit();
+        ReflectionTestUtils.setField(utility, "ageLimitBuffer", 1);
+        int limit = utility.getEffectiveAgeLimit();
         assertEquals(6, limit);
     }
 
     @Test
     public void getPacketCreatedDateFromRid_InvalidShortRid() {
-        LocalDate date = utilities.getPacketCreatedDateFromRid("");
+        LocalDate date = utility.getPacketCreatedDateFromRid("");
         assertNull(date);
     }
 
     @Test
     public void testGetPacketCreatedDateFromRid_AlphanumericRid() {
         String rid = "1001190001ABCD01234567";
-        LocalDate date  = utilities.getPacketCreatedDateFromRid(rid);
+        LocalDate date  = utility.getPacketCreatedDateFromRid(rid);
         assertNull(date);
     }
 
@@ -597,7 +597,7 @@ public class UtilitiesTest {
         String packetCreatedDate = "2025-05-28T10:53:13.973Z";
         metaInfo.put("creationDate",packetCreatedDate);
         when(packetManagerService.getMetaInfo(anyString(),anyString(),any(ProviderStageName.class))).thenReturn(metaInfo);
-        String res = utilities.retrieveCreatedDateFromPacket("10049100271000420250319064824","NEW", ProviderStageName.UIN_GENERATOR);
+        String res = utility.retrieveCreatedDateFromPacket("10049100271000420250319064824","NEW", ProviderStageName.UIN_GENERATOR);
         assertEquals(packetCreatedDate,res);
     }
 
@@ -611,14 +611,14 @@ public class UtilitiesTest {
         Map<String, String> metaInfo = Collections.emptyMap();
         when(packetManagerService.getMetaInfo(rid, process, stageName)).thenReturn(metaInfo);
 
-        String result = utilities.retrieveCreatedDateFromPacket(rid, process, stageName);
+        String result = utility.retrieveCreatedDateFromPacket(rid, process, stageName);
 
         assertNull(result);
     }
 
     @Test(expected = BiometricClassificationException.class)
     public void testAllBiometricHaveException_nullList_throwsException() throws BiometricClassificationException {
-        utilities.allBiometricHaveException(null, null);
+        utility.allBiometricHaveException(null, null);
     }
 
     @Test
@@ -632,18 +632,18 @@ public class UtilitiesTest {
 
         List<BIR> birs = Collections.singletonList(bir);
 
-        boolean result = utilities.allBiometricHaveException(birs, rid);
+        boolean result = utility.allBiometricHaveException(birs, rid);
         assertFalse(result);
     }
 
     @Test
     public void testHasBiometricWithOthers_nullList_returnsFalse() {
-        assertFalse(utilities.hasBiometricWithOthers(null));
+        assertFalse(utility.hasBiometricWithOthers(null));
     }
 
     @Test
     public void testHasBiometricWithOthers_emptyList_returnsFalse() {
-        assertFalse(utilities.hasBiometricWithOthers(Collections.emptyList()));
+        assertFalse(utility.hasBiometricWithOthers(Collections.emptyList()));
     }
 
     @Test(expected = BiometricClassificationException.class)
@@ -655,7 +655,7 @@ public class UtilitiesTest {
         when(packetManagerService.getField(rid, MappingJsonConstants.UIN, registrationType, stageName))
                 .thenThrow(new RuntimeException("Service failure"));
 
-        utilities.allBiometricHaveException(rid, registrationType, stageName);
+        utility.allBiometricHaveException(rid, registrationType, stageName);
     }
 
     @Test(expected = BiometricClassificationException.class)
@@ -663,7 +663,7 @@ public class UtilitiesTest {
         String uin = "66554444";
         String rid = "10049100271000420240319064824";
         doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(uin);
-        utilities.getBiometricRecordfromIdrepo(uin, rid);
+        utility.getBiometricRecordfromIdrepo(uin, rid);
     }
 
     @Test
@@ -691,7 +691,7 @@ public class UtilitiesTest {
         when(bir.getOthers()).thenReturn(othersMap);
         when(CbeffValidator.getBIRFromXML(any(byte[].class))).thenReturn(bir);
 
-        BiometricRecord result = utilities.getBiometricRecordfromIdrepo(uin, rid);
+        BiometricRecord result = utility.getBiometricRecordfromIdrepo(uin, rid);
 
         assertNotNull(result);
         assertEquals("value1", result.getOthers().get("key1"));
@@ -706,7 +706,7 @@ public class UtilitiesTest {
         JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-        Boolean res =  utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res =  utility.allBiometricHaveException(bir.getBirs(), rid);
         assertTrue(res);
     }
 
@@ -718,7 +718,7 @@ public class UtilitiesTest {
         JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-        Boolean res =  utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res =  utility.allBiometricHaveException(bir.getBirs(), rid);
         assertFalse(res);
     }
 
@@ -730,7 +730,7 @@ public class UtilitiesTest {
         JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-        Boolean res =  utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res =  utility.allBiometricHaveException(bir.getBirs(), rid);
         assertTrue(res);
     }
 
@@ -742,7 +742,7 @@ public class UtilitiesTest {
         JAXBContext jaxbContext = JAXBContext.newInstance(BIR.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         BIR bir = (BIR) unmarshaller.unmarshal(resource1.getFile());
-        Boolean res =  utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res =  utility.allBiometricHaveException(bir.getBirs(), rid);
         assertFalse(res);
     }
 
@@ -765,7 +765,7 @@ public class UtilitiesTest {
 
         BIR bir = (BIR) unmarshaller.unmarshal(saxSource);
 
-        Boolean res = utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res = utility.allBiometricHaveException(bir.getBirs(), rid);
         assertFalse(res);
     }
 
@@ -788,7 +788,7 @@ public class UtilitiesTest {
 
         BIR bir = (BIR) unmarshaller.unmarshal(saxSource);
 
-        Boolean res = utilities.allBiometricHaveException(bir.getBirs(), rid);
+        Boolean res = utility.allBiometricHaveException(bir.getBirs(), rid);
         assertFalse(res);
     }
 }

@@ -775,9 +775,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
-		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -816,9 +816,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
-		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -854,9 +854,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(false);
-		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -892,7 +892,7 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utilities.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -974,7 +974,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
-		when(utilities.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
 				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));
 
 		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
