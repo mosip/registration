@@ -1,3 +1,7 @@
+-- Below scripts are required to rollback from 1.3.0 to 1.3.0-beta.1
+
+\c mosip_regprc
+
 -- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
 DROP INDEX IF EXISTS regprc.idx_bio_regtrn_reqtype;
