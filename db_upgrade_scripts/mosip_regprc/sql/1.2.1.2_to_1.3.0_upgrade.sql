@@ -1,3 +1,7 @@
+-- Below scripts are required to upgrade from 1.3.0-beta.1 to 1.3.0
+
+\c mosip_regprc
+
 -- UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
 
 CREATE INDEX idx_bio_regtrn_reqtype ON regprc.abis_request USING btree (bio_ref_id, ref_regtrn_id, request_type);
