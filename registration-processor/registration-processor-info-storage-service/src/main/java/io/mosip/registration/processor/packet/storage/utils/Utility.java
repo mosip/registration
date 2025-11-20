@@ -37,8 +37,8 @@ import io.mosip.registration.processor.packet.storage.exception.ParsingException
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import lombok.Data;
-import static io.mosip.kernel.core.util.DateUtils.*;
-import static io.mosip.kernel.core.util.DateUtils.parseUTCToLocalDateTime;
+import static io.mosip.kernel.core.util.DateUtils2.*;
+import static io.mosip.kernel.core.util.DateUtils2.parseUTCToLocalDateTime;
 
 /**
  * The Class Utility.
