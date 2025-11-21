@@ -6,7 +6,7 @@ import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -60,7 +60,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
-@PrepareForTest({ Utility.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils.class, Utilities.class })
+@PrepareForTest({ Utility.class, CryptoUtil.class, RegProcessorLogger.class, CbeffValidator.class, DateUtils2.class, Utilities.class })
 public class UtilityTest {
 
     @Spy
@@ -536,8 +536,8 @@ public class UtilityTest {
 
         ReflectionTestUtils.setField(utility, "expectedPacketProcessingDurationHours", 24);
 
-        PowerMockito.mockStatic(DateUtils.class);
-        when(DateUtils.parseUTCToLocalDateTime(anyString(), anyString()))
+        PowerMockito.mockStatic(DateUtils2.class);
+        when(DateUtils2.parseUTCToLocalDateTime(anyString(), anyString()))
                 .thenReturn(LocalDateTime.of(2025, 10, 27, 10, 0));
 
         LocalDate result = utility.computePacketCreatedFromIdentityUpdate(idVidMetadataResponse, "10049100271000420250319064824");
