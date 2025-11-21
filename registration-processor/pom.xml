@@ -414,6 +414,7 @@
 							--add-opens java.base/java.text=ALL-UNNAMED 
 							--add-opens java.base/java.util.stream=ALL-UNNAMED
 							--add-opens java.base/java.util.concurrent=ALL-UNNAMED
+							--add-opens java.base/sun.util.calendar=ALL-UNNAMED
 							--add-opens java.xml/com.sun.org.apache.xerces.internal.impl=ALL-UNNAMED
 							--illegal-access=permit
 						</argLine>
