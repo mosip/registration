@@ -1,4 +1,4 @@
-This module describes how to conduct load test packet upload and credential processing using provided JMeter script.
+This module describes how to conduct load test of packet upload and credential processing using provided JMeter script.
 
 # Contains
 * This directory contains 2 different JMeter scripts.
