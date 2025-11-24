@@ -4,7 +4,7 @@ PacketCreator is a support tool developed to generate simulated identity packets
 
 The Jmeter scripts uses this tool to generate new packets that can later be synced and uploaded via Registration Processor APIs.
 
-This document guides users through the installation and setup of the Packet Creator tool for the use of  *`PacketCreator_and_Upload_Test_Script.jmx`*  and *`Regproc_Syncdata_Test_Script.jmx`* scripts.
+This document guides users through the installation and setup of the Packet Creator tool for the use of  *`Credential_Processing_Test_Script.jmx`*  and *`Regproc_Syncdata_Test_Script.jmx`* scripts.
 
 ---
 
@@ -18,7 +18,7 @@ This document guides users through the installation and setup of the Packet Crea
 ### 1.2: Build the Code
 
 1. Navigate to the cloned repository on your local machine.
-2. Open a terminal (or Git Bash) and run the following Maven commands to build the code (Java Version 11 may be required ):
+2. Open a terminal (or Git Bash) and run the following Maven commands to build the code :
 ```
 mvn clean install -Dgpg.skip
 ```
@@ -43,12 +43,8 @@ dslrig-packetcreator-<x.x.x.x>.jar (tested with version 1.3.0.1)
 ```
 
 ### 2.2: Configuration
-Edit the `application.properties` file in the `config` directory. Key settings include:
-* mountPath=/path/to/mountVolume (any valid path)
-* authCertsPath=/path/to/authCerts (path containing Certificates)
-* user.id=<User_ID> (Master data)
-* machine.id=<Machine_ID> (Master data)
-* center.id=<Center_ID> (Master data)
+Create a context detail file contextDetailJSON.txt. This file should contain a valid JSON that will be used as payload for the api - `v1/packetcreator/context/server/${contextKeyValue}`.
+The file content is generated as per documentation in [mosip-packet-creator](https://github.com/mosip/mosip-automation-tests/tree/master/mosip-packet-creator)
 
 Ensure all paths and keys match the specific environment.
 
