@@ -5,7 +5,7 @@ This module describes how to conduct load test of packet upload and credential p
     * Script 1. Packet creator script to create packets [Credential_Processing_Test_Script.jmx](script/Credential_Processing_Test_Script.jmx) - Main Script
     * Script 2. Scenario-based results scripts for Credential Processing [Results_Script.jmx](script/Results_Script.jmx) - For post test result analysis only
 
-* List of API endpoint categories in script 1:
+* List of API endpoint categories in this module:
     01. A00 Auth Token Generation (Preparation)
     02. P01 Packet Generation (Preparation)
     03. P02 Packet Creator Rid Sync (Preparation)
