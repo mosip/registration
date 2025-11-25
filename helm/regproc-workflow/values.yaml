@@ -433,5 +433,3 @@ istio:
         prefix: /registrationprocessor/v1/workflowmanager/workflowaction
     - uri:
         prefix: /registrationprocessor/v1/workflowmanager/workflow/search
-    - uri:
-        prefix: /registrationprocessor/v1/workflowmanager/workflowinstance
