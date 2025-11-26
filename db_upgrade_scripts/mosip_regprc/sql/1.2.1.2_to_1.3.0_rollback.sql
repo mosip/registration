@@ -44,5 +44,4 @@ ALTER TABLE regprc.registration_list RESET (autovacuum_vacuum_scale_factor, auto
 
 ALTER TABLE regprc.reg_demo_dedupe_list RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
 
-
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES

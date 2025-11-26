@@ -44,5 +44,4 @@ ALTER TABLE regprc.registration_list SET (autovacuum_vacuum_scale_factor = 0.05,
 
 ALTER TABLE regprc.reg_demo_dedupe_list SET (autovacuum_vacuum_scale_factor = 0.1, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.05, autovacuum_analyze_threshold = 200);
 
-
 ---END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES--
