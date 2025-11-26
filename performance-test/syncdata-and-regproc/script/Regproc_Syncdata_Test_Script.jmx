@@ -393,7 +393,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint " enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint ">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -410,8 +410,8 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
   &quot;id&quot;: &quot;string&quot;,&#xd;
   &quot;metadata&quot;: {},&#xd;
   &quot;request&quot;: {&#xd;
-    &quot;userName&quot;: &quot;{authUser}&quot;,&#xd;
-    &quot;password&quot;: &quot;{authpassword}&quot;,&#xd;
+    &quot;userName&quot;: &quot;${authUser}&quot;,&#xd;
+    &quot;password&quot;: &quot;${authPassword}&quot;,&#xd;
     &quot;clientId&quot;: &quot;mosip-syncdata-client&quot;,&#xd;
     &quot;clientSecret&quot;: &quot;${syncdataClientSecret}&quot;,&#xd;
     &quot;appId&quot;: &quot;admin&quot;&#xd;
@@ -482,7 +482,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count">
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count" enabled="true">
           <stringProp name="CounterConfig.start">100</stringProp>
           <stringProp name="CounterConfig.end"></stringProp>
           <stringProp name="CounterConfig.incr">1</stringProp>
@@ -504,7 +504,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create User and Center For Zones">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create User and Center For Zones" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
