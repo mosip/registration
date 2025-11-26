@@ -38,4 +38,9 @@ DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
 DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
 
+ALTER TABLE regprc.abis_request RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+ALTER TABLE regprc.registration_list RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+ALTER TABLE regprc.reg_demo_dedupe_list RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+
+
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES

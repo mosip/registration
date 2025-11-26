@@ -38,4 +38,11 @@ CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (w
 
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
 
+ALTER TABLE regprc.abis_request SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
+
+ALTER TABLE regprc.registration_list SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
+
+ALTER TABLE regprc.reg_demo_dedupe_list SET (autovacuum_vacuum_scale_factor = 0.1, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.05, autovacuum_analyze_threshold = 200);
+
+
 ---END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES--
