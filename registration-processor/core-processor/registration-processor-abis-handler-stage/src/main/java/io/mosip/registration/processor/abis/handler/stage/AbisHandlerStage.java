@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.util.DateUtils2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -104,6 +105,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * 
  * @author M1048358 Alok
  */
+@Slf4j
 @RefreshScope
 @Service
 @Configuration
@@ -593,7 +595,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
 				policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
-
+        regProcLogger.info(biometricRecord + "---------biometric record fetched for datashare");
 		Map<String, String> tags = packetManagerService.getAllTags(id);
 		String ageGroup = tags.get("AGE_GROUP");
 		Map<String, List<String>> ageGroupModalitySegmentMap;
@@ -608,7 +610,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				policyTypeAndSubTypeMap);
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
-
+        regProcLogger.info(content + "---------biometric content fetched for datashare");
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
 		map.add("filename", individualBiometricsLabel);
