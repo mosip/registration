@@ -147,6 +147,16 @@
             <stringProp name="Argument.value">admin-cli</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="iamUsername" elementType="Argument">
+            <stringProp name="Argument.name">iamUsername</stringProp>
+            <stringProp name="Argument.value">admin</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="iamPassword" elementType="Argument">
+            <stringProp name="Argument.name">iamPassword</stringProp>
+            <stringProp name="Argument.value">mosip123</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
           <elementProp name="syncdataClientSecret" elementType="Argument">
             <stringProp name="Argument.name">syncdataClientSecret</stringProp>
             <stringProp name="Argument.value">test_secret_key</stringProp>
@@ -163,6 +173,12 @@
             <stringProp name="Argument.name">authPassword</stringProp>
             <stringProp name="Argument.value">test_password</stringProp>
             <stringProp name="Argument.desc">used to generate syncdata auth token</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="contextFileName" elementType="Argument">
+            <stringProp name="Argument.name">contextFileName</stringProp>
+            <stringProp name="Argument.value">contextDetailJSON.txt</stringProp>
+            <stringProp name="Argument.desc">Multiple Environment details in this file. Consult Mosip Packet Creator documentation</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -400,8 +416,8 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
   &quot;id&quot;: &quot;string&quot;,&#xd;
   &quot;metadata&quot;: {},&#xd;
   &quot;request&quot;: {&#xd;
-    &quot;userName&quot;: &quot;{authUser}&quot;,&#xd;
-    &quot;password&quot;: &quot;{authpassword}&quot;,&#xd;
+    &quot;userName&quot;: &quot;${authUser}&quot;,&#xd;
+    &quot;password&quot;: &quot;${authPassword}&quot;,&#xd;
     &quot;clientId&quot;: &quot;mosip-syncdata-client&quot;,&#xd;
     &quot;clientSecret&quot;: &quot;${syncdataClientSecret}&quot;,&#xd;
     &quot;appId&quot;: &quot;admin&quot;&#xd;
@@ -1268,7 +1284,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint">
           <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
           <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1693,7 +1709,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1754,7 +1770,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <intProp name="Assertion.test_type">2</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Registration Id">
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Registration Id" enabled="true">
             <stringProp name="RegexExtractor.useHeaders">false</stringProp>
             <stringProp name="RegexExtractor.refname">regId</stringProp>
             <stringProp name="RegexExtractor.regex">&quot;registrationId&quot; : &quot;(.*?)&quot;</stringProp>
@@ -1764,7 +1780,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
           </RegexExtractor>
           <hashTree/>
-          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Reg Id To File">
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Reg Id To File" enabled="true">
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
             <boolProp name="resetInterpreter">false</boolProp>
@@ -2636,7 +2652,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg Id From File">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg Id From File" enabled="true">
           <stringProp name="filename">${supportFilePath}/S03_reg_id.txt</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">regId</stringProp>
@@ -2648,7 +2664,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S03 Get Transaction Details From Reg Id">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S03 Get Transaction Details From Reg Id" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
