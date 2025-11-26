@@ -147,6 +147,16 @@
             <stringProp name="Argument.value">admin-cli</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="iamUsername" elementType="Argument">
+            <stringProp name="Argument.name">iamUsername</stringProp>
+            <stringProp name="Argument.value">admin</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="iamPassword" elementType="Argument">
+            <stringProp name="Argument.name">iamPassword</stringProp>
+            <stringProp name="Argument.value">mosip123</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
           <elementProp name="syncdataClientSecret" elementType="Argument">
             <stringProp name="Argument.name">syncdataClientSecret</stringProp>
             <stringProp name="Argument.value">test_secret_key</stringProp>
@@ -204,7 +214,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Preparation)">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Preparation)" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -472,7 +482,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count" enabled="true">
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Load Random number count">
           <stringProp name="CounterConfig.start">100</stringProp>
           <stringProp name="CounterConfig.end"></stringProp>
           <stringProp name="CounterConfig.incr">1</stringProp>
@@ -494,11 +504,11 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create User and Center For Zones" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="A01 Create User and Center For Zones">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint">
             <stringProp name="HTTPSampler.domain">${serverIAM}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1693,7 +1703,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Sync Registration Packet Endpoint" enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1754,7 +1764,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <intProp name="Assertion.test_type">2</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Registration Id">
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract Registration Id" enabled="true">
             <stringProp name="RegexExtractor.useHeaders">false</stringProp>
             <stringProp name="RegexExtractor.refname">regId</stringProp>
             <stringProp name="RegexExtractor.regex">&quot;registrationId&quot; : &quot;(.*?)&quot;</stringProp>
@@ -1764,7 +1774,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
             <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
           </RegexExtractor>
           <hashTree/>
-          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Reg Id To File">
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Store Reg Id To File" enabled="true">
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
             <boolProp name="resetInterpreter">false</boolProp>
@@ -2636,7 +2646,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg Id From File">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Load Reg Id From File" enabled="true">
           <stringProp name="filename">${supportFilePath}/S03_reg_id.txt</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">regId</stringProp>
@@ -2648,7 +2658,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
           <stringProp name="shareMode">shareMode.all</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S03 Get Transaction Details From Reg Id">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="S03 Get Transaction Details From Reg Id" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
