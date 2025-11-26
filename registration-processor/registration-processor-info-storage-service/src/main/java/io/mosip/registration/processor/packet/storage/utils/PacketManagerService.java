@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
 
+import io.mosip.registration.processor.core.spi.webclient.RegistrationProcessorWebClientService;
 import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -59,7 +60,7 @@ public class PacketManagerService {
     private static final List<String> PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES = Arrays.asList("KER-PUT-019");
 
     @Autowired
-    private RegistrationProcessorRestClientService<Object> restApi;
+    private RegistrationProcessorWebClientService<Object> restApi;
 
     @Autowired
     private ObjectMapper objectMapper;

@@ -35,7 +35,7 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 
     /** The rest api client. */
     @Autowired
-    private WebApiClient restApiClient;
+    private RestApiClient restApiClient;
 
     /** The env. */
     @Autowired
