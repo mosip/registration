@@ -175,6 +175,12 @@
             <stringProp name="Argument.desc">used to generate syncdata auth token</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="contextFileName" elementType="Argument">
+            <stringProp name="Argument.name">contextFileName</stringProp>
+            <stringProp name="Argument.value">contextDetailJSON.txt</stringProp>
+            <stringProp name="Argument.desc">Multiple Environment details in this file. Consult Mosip Packet Creator documentation</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </Arguments>
       <hashTree/>
@@ -214,7 +220,7 @@
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Preparation)" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="A00 Auth Token Generation (Preparation)">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -393,7 +399,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           </BeanShellPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint ">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate Auth Token Syncdata with userid Endpoint " enabled="true">
           <stringProp name="HTTPSampler.domain">${serverIPInternal}</stringProp>
           <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -508,7 +514,7 @@ vars.put(&quot;utcTime&quot;, utcTime);</stringProp>
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Generate access token Endpoint" enabled="true">
             <stringProp name="HTTPSampler.domain">${serverIAM}</stringProp>
             <stringProp name="HTTPSampler.port">${serverPortNo}</stringProp>
             <stringProp name="HTTPSampler.protocol">${protocol}</stringProp>
@@ -1278,7 +1284,7 @@ vars.put(&quot;pubKey&quot;, cleaned)
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Context Endpoint">
           <stringProp name="HTTPSampler.domain">${packetUtilityServerIP}</stringProp>
           <stringProp name="HTTPSampler.port">${packetUtilityPortNo}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
