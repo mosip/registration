@@ -358,6 +358,10 @@
 			<artifactId>activemq-client</artifactId>
 			<version>${activemq.client.version}</version>
 		</dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-webflux</artifactId>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 
