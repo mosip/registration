@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.rest.client.config;
 
+import io.mosip.registration.processor.core.spi.webclient.RegistrationProcessorWebClientService;
+import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorWebClientServiceImpl;
+import io.mosip.registration.processor.rest.client.utils.WebApiClient;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +19,21 @@ public class RestConfigBean {
 	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();
 	}
+    
+    @Bean
+    public RegistrationProcessorWebClientService<Object> getRegistrationProcessorWebClientService() {
+        return new RegistrationProcessorWebClientServiceImpl();
+    }
 
 	@Bean
 	public RestApiClient getRestApiClient() {
 		return new RestApiClient();
 	}
+    
+    @Bean
+    public WebApiClient getWebApiClient() {
+        return new WebApiClient();
+    }
 	
 	@Bean 
 	public AuditLogRequestBuilder getAuditLogRequestBuilder() {
