@@ -41,5 +41,10 @@ public class MappingJsonConstants {
 	public static final String UIN = "uin";
 	public static final String LOCATION_HIERARCHY_FOR_PROFILING = "locationHierarchyForProfiling";
 	public static final String LANG_CODE = "langCodes";
+	public static final String PACKET_CREATED_ON = "packetCreatedOn";
+
+
+
+
 
 }

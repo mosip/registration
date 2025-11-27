@@ -538,7 +538,7 @@ public class Utilities {
 	 * @return the latest transaction id
 	 */
 	public String getLatestTransactionId(String registrationId, String process, int iteration,
-			String workflowInstanceId) {
+										 String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getLatestTransactionId()::entry");
 		RegistrationStatusEntity entity = registrationStatusDao.find(registrationId, process, iteration,
@@ -723,7 +723,7 @@ public class Utilities {
 		return centerId + "_" + machineId;
 	}
 
-public String getInternalProcess(Map<String, String> additionalProcessMap, String externalProcess){
+	public String getInternalProcess(Map<String, String> additionalProcessMap, String externalProcess){
 		if (externalProcess == null) return "";
 		String internalProcess = additionalProcessMap.get(externalProcess);
 		return internalProcess != null ? internalProcess : "";
