@@ -47,6 +47,7 @@ import io.mosip.registration.processor.status.service.InternalAuthDelegateServic
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -59,6 +60,10 @@ public class InternalAuthDelegateServicesControllerTest {
 	@MockBean
 	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
+
+    @MockBean
+    @Qualifier("selfTokenWebClient")
+    private WebClient webClient;
 
 	@InjectMocks
 	InternalAuthDelegateServicesController internalAuthDelegateServicesController = new InternalAuthDelegateServicesController();
