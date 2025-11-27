@@ -56,4 +56,5 @@ CREATE INDEX idx_additional_info_req_id ON regprc.registration_list USING btree 
 CREATE INDEX idx_packet_id ON regprc.registration_list USING btree (packet_id);
 CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING btree (reg_id, additional_info_req_id) WHERE (is_deleted = false);
 CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
+ALTER TABLE regprc.registration_list SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
 --END PERFORMANCE INDEXES--
