@@ -33,7 +33,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
 
     /** The web api client. */
     @Autowired
-    private WebApiClient restApiClient;
+    private WebApiClient webApiClient;
 
     /** The env. */
     @Autowired
@@ -79,7 +79,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             try {
                 uriComponents = builder.build(false).encode();
                 regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
-                obj = restApiClient.getApi(uriComponents.toUri(), responseType);
+                obj = webApiClient.getApi(uriComponents.toUri(), responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -124,7 +124,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             try {
                 uriComponents = builder.build(false).encode();
                 regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
-                obj = restApiClient.getApi(uriComponents.toUri(), responseType);
+                obj = webApiClient.getApi(uriComponents.toUri(), responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -162,7 +162,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
+                obj = webApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -230,7 +230,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.postApi(builder.toUriString(), null, requestedData, responseType);
+                obj = webApiClient.postApi(builder.toUriString(), null, requestedData, responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -273,7 +273,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
+                obj = webApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -325,7 +325,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.patchApi(builder.toUriString(), requestedData, responseType);
+                obj = webApiClient.patchApi(builder.toUriString(), requestedData, responseType);
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), "",
@@ -376,7 +376,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.putApi(builder.toUriString(), requestedData, responseType, mediaType);
+                obj = webApiClient.putApi(builder.toUriString(), requestedData, responseType, mediaType);
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), "",
@@ -427,7 +427,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             }
 
             try {
-                obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
+                obj = webApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -472,7 +472,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             try {
                 uriComponents = builder.build(false).encode();
                 regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
-                obj = restApiClient.headApi(uriComponents.toUri());
+                obj = webApiClient.headApi(uriComponents.toUri());
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -521,7 +521,7 @@ public class RegistrationProcessorWebClientServiceImpl implements RegistrationPr
             try {
                 uriComponents = builder.build(false).encode();
                 regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
-                obj = restApiClient.deleteApi(uriComponents.toUri(), responseType);
+                obj = webApiClient.deleteApi(uriComponents.toUri(), responseType);
 
             } catch (Exception e) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
