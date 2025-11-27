@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.workflowmanager.config;
 
+import io.mosip.registration.processor.core.spi.webclient.RegistrationProcessorWebClientService;
+import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorWebClientServiceImpl;
 import io.mosip.registration.processor.workflowmanager.service.WorkflowInstanceService;
 import io.mosip.registration.processor.workflowmanager.validator.WorkflowInstanceRequestValidator;
 import io.mosip.registration.processor.workflowmanager.verticle.*;
@@ -93,6 +95,11 @@ public class WorkflowManagerConfigBeans {
 	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();
 	}
+
+    @Bean
+    public RegistrationProcessorWebClientService<Object> getRegistrationProcessorWebClientService() {
+        return new RegistrationProcessorWebClientServiceImpl();
+    }
 
 	@Bean
 	public WorkflowActionJob getWorkflowActionJob() {

@@ -2,6 +2,8 @@ package io.mosip.registration.processor.util;
 
 import java.io.InputStream;
 
+import io.mosip.registration.processor.core.spi.webclient.RegistrationProcessorWebClientService;
+import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorWebClientServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,5 +46,10 @@ public class LandingZoneConfig {
 	public FileManager<DirectoryPathDto, InputStream> filemanager() {
 		return new FileManagerImpl();
 	}
+
+    @Bean
+    public RegistrationProcessorWebClientService<Object> getRegistrationProcessorWebClientService() {
+        return new RegistrationProcessorWebClientServiceImpl();
+    }
 
 }

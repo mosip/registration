@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.reprocessor.config;
 
+import io.mosip.registration.processor.core.spi.webclient.RegistrationProcessorWebClientService;
+import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorWebClientServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -29,6 +31,11 @@ public class ReprocessorConfigBeans {
 	public RegistrationProcessorRestClientService<Object> getRegistrationProcessorRestClientService() {
 		return new RegistrationProcessorRestClientServiceImpl();
 	}
+
+    @Bean
+    public RegistrationProcessorWebClientService<Object> getRegistrationProcessorWebClientService() {
+        return new RegistrationProcessorWebClientServiceImpl();
+    }
 
 	@Bean
 	public PacketManagerService getPacketManagerService() {
