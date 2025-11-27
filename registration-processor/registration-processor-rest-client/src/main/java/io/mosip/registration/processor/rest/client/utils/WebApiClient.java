@@ -33,6 +33,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,7 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The Class RestApiClient.
+ * The Class WebApiClient.
  *
  * @author Rishabh Keshari
  */
@@ -118,6 +119,19 @@ public class WebApiClient {
                             (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY))
                     .bodyValue(requestType)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is2xxSuccessful, clientResponse -> {
+                        // Log the status, headers, and body for 2xx codes (like 200 OK)
+                        // This is where you would inspect the problematic 200 response
+                        return clientResponse.bodyToMono(String.class) // Read the body as a String
+                                .flatMap(body -> {
+                                    logger.error(LoggerFileConstant.SESSIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            "200 OK received, but body deserialization failed. Raw Body: " + body);
+                                    // Return an error to stop processing
+                                    return Mono.error(new RuntimeException("WebClient 200 OK Deserialization Error. See logs for raw body."));
+                                });
+                    })
                     .bodyToMono(responseClass)
                     .block(TIMEOUT);
         } catch (Exception e) {
@@ -163,6 +177,19 @@ public class WebApiClient {
                             (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY))
                     .bodyValue(requestType)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is2xxSuccessful, clientResponse -> {
+                        // Log the status, headers, and body for 2xx codes (like 200 OK)
+                        // This is where you would inspect the problematic 200 response
+                        return clientResponse.bodyToMono(String.class) // Read the body as a String
+                                .flatMap(body -> {
+                                    logger.error(LoggerFileConstant.SESSIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            "200 OK received, but body deserialization failed. Raw Body: " + body);
+                                    // Return an error to stop processing
+                                    return Mono.error(new RuntimeException("WebClient 200 OK Deserialization Error. See logs for raw body."));
+                                });
+                    })
                     .bodyToMono(responseClass)
                     .block(TIMEOUT);
         } catch (Exception e) {
@@ -201,6 +228,19 @@ public class WebApiClient {
                             (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY))
                     .bodyValue(requestType)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is2xxSuccessful, clientResponse -> {
+                        // Log the status, headers, and body for 2xx codes (like 200 OK)
+                        // This is where you would inspect the problematic 200 response
+                        return clientResponse.bodyToMono(String.class) // Read the body as a String
+                                .flatMap(body -> {
+                                    logger.error(LoggerFileConstant.SESSIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            "200 OK received, but body deserialization failed. Raw Body: " + body);
+                                    // Return an error to stop processing
+                                    return Mono.error(new RuntimeException("WebClient 200 OK Deserialization Error. See logs for raw body."));
+                                });
+                    })
                     .bodyToMono(responseClass)
                     .block(TIMEOUT);
         } catch (Exception e) {
@@ -236,6 +276,19 @@ public class WebApiClient {
             return (T) webClient.delete()
                     .uri(uri)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is2xxSuccessful, clientResponse -> {
+                        // Log the status, headers, and body for 2xx codes (like 200 OK)
+                        // This is where you would inspect the problematic 200 response
+                        return clientResponse.bodyToMono(String.class) // Read the body as a String
+                                .flatMap(body -> {
+                                    logger.error(LoggerFileConstant.SESSIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            LoggerFileConstant.APPLICATIONID.toString(),
+                                            "200 OK received, but body deserialization failed. Raw Body: " + body);
+                                    // Return an error to stop processing
+                                    return Mono.error(new RuntimeException("WebClient 200 OK Deserialization Error. See logs for raw body."));
+                                });
+                    })
                     .bodyToMono(responseType)
                     .block(TIMEOUT);
         } catch (Exception e) {
