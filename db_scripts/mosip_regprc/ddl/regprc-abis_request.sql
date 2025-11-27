@@ -71,7 +71,10 @@ CREATE INDEX idx_bio_regtrn_reqtype ON regprc.abis_request USING btree (bio_ref_
 CREATE INDEX idx_bio_reqtype_status ON regprc.abis_request USING btree (bio_ref_id, request_type, status_code);
 CREATE INDEX idx_refregtrn_reqtype ON regprc.abis_request USING btree (ref_regtrn_id, request_type);
 CREATE INDEX idx_req_batch_id ON regprc.abis_request USING btree (req_batch_id);
-ALTER TABLE regprc.abis_request SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
 --PERFORMANCE INDEXES END--
 
 CREATE INDEX IF NOT EXISTS idx_abis_search on regprc.abis_request(bio_ref_id, ref_regtrn_id);
+
+-- autovacuum tuning section starts --
+ALTER TABLE regprc.abis_request SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
+-- autovacuum tuning section ends --
