@@ -134,13 +134,13 @@ resources:
     cpu: 800m
     memory: 3000Mi
   requests:
-    cpu: 100m
-    memory: 1000Mi
+    cpu: 400m
+    memory: 1800Mi
 
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms1950M -Xmx1950M"
+  javaOpts: "-Xms1350M -Xmx2250M"
 
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
