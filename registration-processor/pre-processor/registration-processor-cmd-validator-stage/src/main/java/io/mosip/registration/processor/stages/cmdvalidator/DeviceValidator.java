@@ -101,6 +101,32 @@ public class DeviceValidator {
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.biometric.correction.process:}')}")
 	private List<String> biometricCorrectionProcess;
 
+	// cached formatters (lazy init to avoid repeated DateTimeFormatter.ofPattern)
+	private volatile DateTimeFormatter packetCreationTimestampFormatter;
+	private volatile DateTimeFormatter digitalIdTimestampFormatter;
+
+	private DateTimeFormatter getPacketCreationTimestampFormatter() {
+		if (packetCreationTimestampFormatter == null) {
+			synchronized (this) {
+				if (packetCreationTimestampFormatter == null) {
+					packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+				}
+			}
+		}
+		return packetCreationTimestampFormatter;
+	}
+
+	private DateTimeFormatter getDigitalIdTimestampFormatter() {
+		if (digitalIdTimestampFormatter == null) {
+			synchronized (this) {
+				if (digitalIdTimestampFormatter == null) {
+					digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
+				}
+			}
+		}
+		return digitalIdTimestampFormatter;
+	}
+
 	/**
 	 * Checks if is device active.
 	 *
@@ -160,9 +186,9 @@ public class DeviceValidator {
 
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
-					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+					JSONObject jsonObject = jsonArray.getJSONObject(i);
 					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(fileName)) {
+					if (fileName.equalsIgnoreCase(fieldValue.getLabel())) {
 						value = fieldValue.getValue();
 						break;
 					}
@@ -176,50 +202,50 @@ public class DeviceValidator {
 			throws IOException, BaseCheckedException, JSONException {
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
-		for(BIR bir : birs) {
-			if(MapUtils.isNotEmpty(bir.getOthers())) {
-				boolean exception = false;
-				String payload = "";
-				for(Map.Entry<String, String> entry: bir.getOthers().entrySet()) {
-					if(entry.getKey().equals("EXCEPTION") && entry.getValue().equals("true") ) {
-						exception = true;
-						break;
-					}
-					if(entry.getKey().equals("PAYLOAD")) {
-						payload = entry.getValue();
-					}
+		for (BIR bir : birs) {
+			Map<String, String> others = bir.getOthers();
+			if (MapUtils.isNotEmpty(others)) {
+				// slightly simplified logic, same behavior
+				boolean exception = "true".equals(others.get("EXCEPTION"));
+				if (exception) {
+					continue;
 				}
-				if(!exception)
+				String payload = others.get("PAYLOAD");
+				if (payload != null) {
 					payloads.add(new JSONObject(payload));
-			} else if(!regClientVersionsBeforeCbeffOthersAttritube.contains(regOsi.getRegClientVersion())) {
+				}
+			} else if (!regClientVersionsBeforeCbeffOthersAttritube.contains(regOsi.getRegClientVersion())) {
 				throw new BaseCheckedException(
-					StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
-					StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() +
-						"-->Others info is not prsent in packet");
+						StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+						StatusUtil.DEVICE_VALIDATION_FAILED.getMessage() +
+								"-->Others info is not prsent in packet");
 			}
 		}
 		Set<String> signatures = new HashSet<>();
 		Set<String> deviceCodeTimestamps = new HashSet<>();
-		for(JSONObject payload : payloads) {
-			String digitalIdString = null;
+		for (JSONObject payload : payloads) {
+			String digitalIdString;
+			String jwt = payload.getString("digitalId");
+			String[] parts = jwt.split("\\.");
+			String midPart = parts.length > 1 ? parts[1] : "";
 			try {
-				digitalIdString= new String(CryptoUtil.decodeURLSafeBase64(payload.getString("digitalId").split("\\.")[1]));
+				digitalIdString = new String(CryptoUtil.decodeURLSafeBase64(midPart));
 			} catch (IllegalArgumentException exception) {
-				digitalIdString= new String(CryptoUtil.decodePlainBase64(payload.getString("digitalId").split("\\.")[1]));
+				digitalIdString = new String(CryptoUtil.decodePlainBase64(midPart));
 			}
 			NewDigitalId newDigitalId = mapper.readValue(digitalIdString, NewDigitalId.class);
-			if(!signatures.contains(digitalIdString)) {
+			if (!signatures.contains(digitalIdString)) {
 				validateDigitalId(payload);
 				signatures.add(digitalIdString);
 			}
-			signatures.add(digitalIdString);
 			validateTimestamp(rid, regOsi.getPacketCreationDate(), newDigitalId.getDateTime());
 			validateTimestamp(rid, regOsi.getPacketCreationDate(), payload.getString("timestamp"));
 			// the device id combination of serial no make and model in hotlist table
 			String deviceId = newDigitalId.getSerialNo() + newDigitalId.getMake() + newDigitalId.getModel();
-			if(!deviceCodeTimestamps.contains(deviceId + newDigitalId.getDateTime())) {
+			String deviceKey = deviceId + newDigitalId.getDateTime();
+			if (!deviceCodeTimestamps.contains(deviceKey)) {
 				validateDeviceForHotlist(deviceId, newDigitalId.getDateTime());
-				deviceCodeTimestamps.add(deviceId + newDigitalId.getDateTime());
+				deviceCodeTimestamps.add(deviceKey);
 			}
 
 		}
@@ -260,7 +286,7 @@ public class DeviceValidator {
 			// if there are multiple correction then search for biometric correction
 			additionalInfos.sort(Comparator.comparing(AdditionalInfoRequestDto::getTimestamp).reversed());
 			if (additionalInfos.size() > 1) {
-				List<AdditionalInfoRequestDto> tempInfos = additionalInfos.stream().filter(add->
+				List<AdditionalInfoRequestDto> tempInfos = additionalInfos.stream().filter(add ->
 						biometricCorrectionProcess.contains(add.getAdditionalInfoProcess())).collect(Collectors.toList());
 				if (CollectionUtils.isEmpty(tempInfos))
 					tempInfos = additionalInfos;
@@ -274,36 +300,35 @@ public class DeviceValidator {
 	}
 
 	private void validateDeviceForHotlist(String deviceCode, String digitalIdTimestamp) throws JsonParseException, JsonMappingException, JsonProcessingException, IOException, JSONException, BaseCheckedException {
-		List<String> pathSegments=new ArrayList<>();
+		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add("DEVICE");
 		pathSegments.add(deviceCode);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
-				.getApi(ApiName.DEVICEHOTLIST, pathSegments,"", "", ResponseWrapper.class);
-		if(responseWrapper.getResponse() !=null) {
-			HotlistRequestResponseDTO hotListResponse=mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+				.getApi(ApiName.DEVICEHOTLIST, pathSegments, "", "", ResponseWrapper.class);
+		if (responseWrapper.getResponse() != null) {
+			HotlistRequestResponseDTO hotListResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 					HotlistRequestResponseDTO.class);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
 
-		LocalDateTime payloadTime = LocalDateTime.parse(digitalIdTimestamp, format);
-		if(hotListResponse.getExpiryTimestamp()!=null) {
+			DateTimeFormatter format = getDigitalIdTimestampFormatter();
 
-		if(hotListResponse.getStatus().equalsIgnoreCase("BLOCKED") &&
-				payloadTime.isBefore(hotListResponse.getExpiryTimestamp())) {
-			throw new BaseCheckedException(
-					StatusUtil.DEVICE_HOTLISTED.getCode(),
-					StatusUtil.DEVICE_HOTLISTED.getMessage());
-		}
-		}
-		else {
-			if(hotListResponse.getStatus().equalsIgnoreCase("BLOCKED")) {
-				throw new BaseCheckedException(
-						StatusUtil.DEVICE_HOTLISTED.getCode(),
-						StatusUtil.DEVICE_HOTLISTED.getMessage());
+			LocalDateTime payloadTime = LocalDateTime.parse(digitalIdTimestamp, format);
+			if (hotListResponse.getExpiryTimestamp() != null) {
+
+				if (hotListResponse.getStatus().equalsIgnoreCase("BLOCKED") &&
+						payloadTime.isBefore(hotListResponse.getExpiryTimestamp())) {
+					throw new BaseCheckedException(
+							StatusUtil.DEVICE_HOTLISTED.getCode(),
+							StatusUtil.DEVICE_HOTLISTED.getMessage());
+				}
+			} else {
+				if (hotListResponse.getStatus().equalsIgnoreCase("BLOCKED")) {
+					throw new BaseCheckedException(
+							StatusUtil.DEVICE_HOTLISTED.getCode(),
+							StatusUtil.DEVICE_HOTLISTED.getMessage());
+				}
 			}
-		}
 
-		}
-		else {
+		} else {
 			throw new BaseCheckedException(
 					responseWrapper.getErrors().get(0).getErrorCode(),
 					responseWrapper.getErrors().get(0).getMessage());
@@ -312,35 +337,34 @@ public class DeviceValidator {
 
 	private void validateTimestamp(String rid, String packetCreationDate, String dateTime)
 			throws BaseCheckedException, IOException, JSONException {
-		DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
+		DateTimeFormatter packetCreationTimestampFormatter = getPacketCreationTimestampFormatter();
+		DateTimeFormatter digitalIdTimestampFormatter = getDigitalIdTimestampFormatter();
+
 		LocalDateTime packetCreationDateTime = LocalDateTime
 				.parse(packetCreationDate, packetCreationTimestampFormatter);
 		LocalDateTime timestamp = LocalDateTime
 				.parse(dateTime, digitalIdTimestampFormatter);
 
-			if (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
-							packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
-				String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
-				if (validateCorrectionTimestamp(correctionPacketCreationTime, dateTime))
-					throw new BaseCheckedException(
-							StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
-							StatusUtil.TIMESTAMP_NOT_VALID.getMessage());
-			}
-
-
+		if (timestamp.isAfter(packetCreationDateTime) || timestamp.isBefore(
+				packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES))) {
+			String correctionPacketCreationTime = getCorrectionPacketDateTime(rid);
+			if (validateCorrectionTimestamp(correctionPacketCreationTime, dateTime))
+				throw new BaseCheckedException(
+						StatusUtil.TIMESTAMP_NOT_VALID.getCode(),
+						StatusUtil.TIMESTAMP_NOT_VALID.getMessage());
+		}
 	}
 
 	private boolean validateCorrectionTimestamp(String correctionPacketCreationTime, String dateTime) {
 		if (correctionPacketCreationTime != null) {
-			DateTimeFormatter packetCreationTimestampFormatter = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-			DateTimeFormatter digitalIdTimestampFormatter = DateTimeFormatter.ofPattern(digitalIdTimestampFormat);
+			DateTimeFormatter packetCreationTimestampFormatter = getPacketCreationTimestampFormatter();
+			DateTimeFormatter digitalIdTimestampFormatter = getDigitalIdTimestampFormatter();
 			LocalDateTime packetCreationDateTime = LocalDateTime
 					.parse(correctionPacketCreationTime, packetCreationTimestampFormatter);
 			LocalDateTime timestamp = LocalDateTime
 					.parse(dateTime, digitalIdTimestampFormatter);
 
-			return (timestamp.isAfter(packetCreationDateTime)|| timestamp.isBefore(
+			return (timestamp.isAfter(packetCreationDateTime) || timestamp.isBefore(
 					packetCreationDateTime.minus(allowedDigitalIdTimestampVariation, ChronoUnit.MINUTES)));
 		}
 		return true;
@@ -358,35 +382,31 @@ public class DeviceValidator {
 
 		request.setRequest(jwtSignatureVerifyRequestDto);
 		request.setVersion("1.0");
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		DateTimeFormatter format = getPacketCreationTimestampFormatter();
 		LocalDateTime localdatetime = LocalDateTime
 				.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 		request.setRequesttime(localdatetime);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);
-		if(responseWrapper.getResponse() !=null) {
-		JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-				JWTSignatureVerifyResponseDto.class);
+		if (responseWrapper.getResponse() != null) {
+			JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+					JWTSignatureVerifyResponseDto.class);
 
-		if( !jwtResponse.isSignatureValid()) {
-			throw new BaseCheckedException(
-					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
-		}
-		else {
-		if(!disableTrustValidation && !jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
-			throw new BaseCheckedException(
-					StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(),StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage()+"-->"+jwtResponse.getTrustValid());
-		}
-		}
-		}
-		else {
+			if (!jwtResponse.isSignatureValid()) {
+				throw new BaseCheckedException(
+						StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(), StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage());
+			} else {
+				if (!disableTrustValidation && !jwtResponse.getTrustValid().contentEquals(SignatureConstant.TRUST_VALID)) {
+					throw new BaseCheckedException(
+							StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getCode(), StatusUtil.DEVICE_SIGNATURE_VALIDATION_FAILED.getMessage() + "-->" + jwtResponse.getTrustValid());
+				}
+			}
+		} else {
 			throw new BaseCheckedException(
 					responseWrapper.getErrors().get(0).getErrorCode(),
 					responseWrapper.getErrors().get(0).getMessage());
 		}
 
 	}
-
-
 
 }
