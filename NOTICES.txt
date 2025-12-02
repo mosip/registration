@@ -1,0 +1,61 @@
+Copyright (c) 2022 Modular Open Source Identity Platform (MOSIP)
+All rights reserved.
+
+This project includes third-party software requiring attribution under
+their respective open-source licenses. Notices for these components
+are provided below.
+
+===========================
+ Mozilla Public License 2.0
+===========================
+• MOSIP Kernel Libraries
+• MOSIP Registration Processor Libraries
+• MOSIP Commons Libraries
+• MOSIP Biometrics APIs
+• H2 Database (dual-licensed; MPL 2.0 path used)
+
+===========================
+ Apache License 2.0
+===========================
+• Spring Boot & Spring Framework
+• Spring Security
+• Spring Cloud Config
+• SpringDoc OpenAPI
+• Springfox Swagger
+• Jackson JSON Processor (FasterXML)
+• Micrometer Metrics
+• Eclipse Vert.x
+• Hazelcast Kubernetes
+• Apache ActiveMQ
+• Apache Camel
+• Apache Hadoop Client
+• Apache Velocity
+• Zipkin
+• Apache Commons (IO, Codec, Pool)
+• Caffeine Cache
+• Apache HttpComponents Mime
+• MVEL2
+• Awaitility
+• Byte Buddy
+• Javassist (Apache option)
+• Apache Maven Plugins (Compiler, Jar, War, Surefire, Javadoc, Source, GPG)
+• Sonatype Central Publishing Plugin
+
+========================================
+ PostgreSQL License (BSD-style Notice)
+========================================
+• PostgreSQL JDBC Driver
+
+======================
+ JSON.org License
+======================
+• org.json:json
+
+=================================================================
+ Additional BSD-style Notices (required to be listed if modified)
+=================================================================
+• Scala Standard Library (BSD-3-Clause)
+• JSch (BSD-style, attribution recommended)
+
+Full license texts for the above components are available in the
+`license/` directory of this repository.
