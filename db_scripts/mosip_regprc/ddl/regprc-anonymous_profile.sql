@@ -15,7 +15,3 @@ CREATE TABLE regprc.anonymous_profile(
     	CONSTRAINT pk_anonymous_id PRIMARY KEY (id)
 );
 -- ddl-end --
-
---PERFORMANCE INDEXES--
-CREATE UNIQUE INDEX pk_anonymous_id ON regprc.anonymous_profile USING btree (id);
---PERFORMANCE INDEXES END--
