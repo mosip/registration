@@ -38,6 +38,19 @@ DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
 DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
 
+DROP INDEX IF EXISTS regprc.idx_bio_ref_regtrn;
+DROP INDEX IF EXISTS regprc.idx_bio_request_status;
+DROP INDEX IF EXISTS regprc.pk_abisreq;
+DROP INDEX IF EXISTS regprc.pk_abisrdt;
+DROP INDEX IF EXISTS regprc.pk_anonymous_id;
+DROP INDEX IF EXISTS regprc.pk_rides;
+DROP INDEX IF EXISTS regprc.pk_idemogd_id;
+DROP INDEX IF EXISTS regprc.idx_regbio_bio_wf;
+DROP INDEX IF EXISTS regprc.pk_regded;
+DROP INDEX IF EXISTS regprc.idx_workflow_active_true;
+DROP INDEX IF EXISTS regprc.pk_reg_id;
+DROP INDEX IF EXISTS regprc.pk_regtrn_id;
+
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
 -- autovacuum tuning section starts --

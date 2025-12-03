@@ -37,6 +37,18 @@ CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING 
 CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
 
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
+CREATE INDEX idx_bio_ref_regtrn ON regprc.abis_request USING btree (bio_ref_id, ref_regtrn_id);
+CREATE INDEX idx_bio_request_status ON regprc.abis_request USING btree (bio_ref_id, request_type, status_code);
+CREATE UNIQUE INDEX pk_abisreq ON regprc.abis_request USING btree (id);
+CREATE UNIQUE INDEX pk_abisrdt ON regprc.abis_response_det USING btree (matched_bio_ref_id, abis_resp_id);
+CREATE UNIQUE INDEX pk_anonymous_id ON regprc.anonymous_profile USING btree (id);
+CREATE UNIQUE INDEX pk_rides ON regprc.crypto_salt USING btree (id);
+CREATE UNIQUE INDEX pk_idemogd_id ON regprc.individual_demographic_dedup USING btree (workflow_instance_id, lang_code);
+CREATE INDEX idx_regbio_bio_wf ON regprc.reg_bio_ref USING btree (bio_ref_id, workflow_instance_id);
+CREATE UNIQUE INDEX pk_regded ON regprc.reg_demo_dedupe_list USING btree (matched_reg_id, regtrn_id);
+CREATE INDEX idx_workflow_active_true ON regprc.registration USING btree (workflow_instance_id) WHERE ((is_active = true) AND (is_deleted = false));
+CREATE UNIQUE INDEX pk_reg_id ON regprc.registration USING btree (workflow_instance_id);
+CREATE UNIQUE INDEX pk_regtrn_id ON regprc.registration_transaction USING btree (id)
 
 ---END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES--
 
