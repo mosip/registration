@@ -22,6 +22,7 @@ import java.util.Map;
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
 import io.mosip.registration.processor.adjudication.request.dto.Source;
+import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.groups.Tuple;
@@ -811,5 +812,89 @@ public class ManualAdjudicationServiceTest {
 		MessageDTO messageDTO=manualAdjudicationService.process(object,queue);
 		assertFalse(messageDTO.getIsValid());
 		assertTrue(messageDTO.getInternalError());
+	}
+
+	@Test
+	public void testProcess_ShouldInvalidateMessage_WhenDataShareUrlPresent() throws Exception {
+
+		ShareableAttributes shareableAttributes1 = new ShareableAttributes();
+		shareableAttributes1.setAttributeName("biometrics");
+		shareableAttributes1.setEncrypted(true);
+
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("biometrics");
+		List<Filter> filterlist = new ArrayList<>();
+		Filter filter11 = new Filter();
+		filter11.setLanguage("lang");
+		filter11.setType("type");
+		filterlist.add(filter11);
+		source1.setFilter(filterlist);
+		sourceList.add(source1);
+
+		shareableAttributes1.setSource(sourceList);
+		shareableAttributes1.setFormat("");
+		shareableAttributes1.setGroup("");
+
+		MessageDTO object = new MessageDTO();
+		object.setReg_type("NEW");
+		object.setRid("92379526572940");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("26fa3eff-f3b9-48f7-b365-d7f7c2e56e00");
+		setDataShareDetails();
+
+		Map<String, String> identity = new HashMap<String, String>();
+		identity.put("fullName", "Satish");
+		Mockito.when(packetManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(identity);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("");
+		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(shareableAttributes1).thenReturn(shareableAttributes1).thenReturn(shareableAttributes1);
+
+		MessageDTO messageDTO = manualAdjudicationService.process(object,queue);
+
+		assertFalse(messageDTO.getIsValid());
+		assertFalse(messageDTO.getInternalError());
+	}
+
+	@Test
+	public void updatePacketStatus_SuccessFlow_WhenStatusRejected() {
+
+		ManualAdjudicationResponseDTO adjudicationResponseDTO = new ManualAdjudicationResponseDTO();
+		adjudicationResponseDTO.setReturnValue(4);
+		adjudicationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
+		adjudicationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
+		adjudicationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
+		CandidateList candidateList = new CandidateList();
+		candidateList.setCount(0);
+		adjudicationResponseDTO.setCandidateList(candidateList);
+
+		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString())).thenReturn(entities);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
+		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
+				.thenReturn(manualVerificationEntity);
+		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(manualVerificationEntity));
+		manualVerificationDTO.setStatusCode(ManualVerificationStatus.REJECTED.name());
+
+		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(any(MessageDTO.class));
+
+		boolean result = manualAdjudicationService.updatePacketStatus(adjudicationResponseDTO, stageName, queue);
+		assertTrue(result);
+	}
+
+	@Test
+	public void testProcess_ShouldHandleInvalidRidException() {
+
+		MessageDTO object = new MessageDTO();
+		object.setRid("");
+		object.setReg_type("NEW");
+		object.setIteration(1);
+		object.setWorkflowInstanceId("wf-123");
+
+		Mockito.when(registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.MANUAL_VERIFICATION_FAILED))
+				.thenReturn("FAILED_CODE");
+
+		MessageDTO response = manualAdjudicationService.process(object, queue);
+		assertTrue(response.getInternalError());
+		assertFalse(response.getIsValid());
 	}
 }

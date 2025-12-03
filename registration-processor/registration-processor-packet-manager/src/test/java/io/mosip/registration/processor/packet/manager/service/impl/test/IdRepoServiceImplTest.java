@@ -2,6 +2,7 @@ package io.mosip.registration.processor.packet.manager.service.impl.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -9,6 +10,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import javax.swing.text.Utilities;
 
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.http.RequestWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -33,6 +39,9 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.impl.IdRepoServiceImpl;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * The Class IdRepoServiceImplTest.
@@ -185,5 +194,53 @@ public class IdRepoServiceImplTest {
 				.thenReturn(response);
 		ResponseDTO result = idRepoService.getIdResponseFromIDRepo("123");
 		assertNull(result);
+	}
+
+	@Test
+	public void testSearchIdVidMetadata_Success() throws ApisResourceAccessException, IOException {
+
+		IdVidMetadataRequest request = new IdVidMetadataRequest();
+		request.setIndividualId("12345");
+		IdVidMetadataResponse expectedResponse = new IdVidMetadataResponse();
+		expectedResponse.setRid("12345");
+
+		ResponseWrapper<IdVidMetadataResponse> wrapper = new ResponseWrapper<>();
+		wrapper.setResponse(expectedResponse);
+
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), Mockito.any(RequestWrapper.class),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(wrapper);
+
+		IdVidMetadataResponse response = idRepoService.searchIdVidMetadata(request);
+		assertNotNull(response);
+		assertEquals("12345", response.getRid());
+	}
+
+	@Test
+	public void testSearchIdVidMetadata_NullResponse() throws ApisResourceAccessException, IOException {
+
+		IdVidMetadataRequest request = new IdVidMetadataRequest();
+		request.setIndividualId("12345");
+		ResponseWrapper<IdVidMetadataResponse> wrapper = new ResponseWrapper<>();
+		wrapper.setResponse(null);
+
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), Mockito.any(RequestWrapper.class),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(wrapper);
+
+		IdVidMetadataResponse response = idRepoService.searchIdVidMetadata(request);
+		assertNull(response);
+	}
+
+	@Test
+	public void testSearchIdVidMetadata_ErrorResponse() throws ApisResourceAccessException, IOException {
+		IdVidMetadataRequest request = new IdVidMetadataRequest();
+		request.setIndividualId("12345");
+		ResponseWrapper<IdVidMetadataResponse> wrapper = new ResponseWrapper<>();
+		wrapper.setErrors(List.of(new ErrorDTO()));
+
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), Mockito.any(RequestWrapper.class),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(wrapper);
+
+		IdVidMetadataResponse response = idRepoService.searchIdVidMetadata(request);
+		assertNull(response);
 	}
 }
