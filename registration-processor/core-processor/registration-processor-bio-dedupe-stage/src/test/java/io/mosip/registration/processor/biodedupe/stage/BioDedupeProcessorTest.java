@@ -19,6 +19,7 @@ import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerific
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.code.*;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.packet.dto.abis.ProcessedMatchedResult;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -945,6 +946,59 @@ public class BioDedupeProcessorTest {
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
+	}
+
+	@Test
+	public void testProcess_WhenCbeffNotFoundException_ShouldSetInternalErrorTrue() throws Exception {
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("RID123");
+		messageDTO.setReg_type("LOST");
+		messageDTO.setIteration(0);
+		messageDTO.setWorkflowInstanceId("WF1");
+
+		InternalRegistrationStatusDto registrationStatus = new InternalRegistrationStatusDto();
+		registrationStatus.setRegistrationId("RID123");
+		registrationStatus.setRegistrationType(SyncTypeDto.LOST.toString());
+
+		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatus);
+		when(abisHandlerUtil.getPacketStatus(any())).thenThrow(new CbeffNotFoundException("CBEFF missing"));
+
+		MessageDTO result = bioDedupeProcessor.process(messageDTO, stageName);
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testLostAndUpdateUin_WhenExceptionOccurs_ShouldSetValidStatusFalseAndInternalErrorTrue() {
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		when(abisHandlerUtil.getPacketStatus(any()))
+				.thenThrow(new RuntimeException("test exception"));
+		MessageDTO result = bioDedupeProcessor.process(messageDTO, stageName);
+
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testNewPacketPreAbisIdentification_WhenCbeffAbsent_ShouldSetDedupeSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+
+		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(3);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.CBEFF_NOT_PRESENT_EXCEPTION)).thenReturn("FAILED");
+		MessageDTO messageDto = bioDedupeProcessor.process(messageDTO, stageName);
+		assertTrue(messageDto.getIsValid());
+		assertEquals(MessageBusAddress.BIO_DEDUPE_BUS_IN, messageDTO.getMessageBusAddress());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.name(), registrationStatusDto.getLatestTransactionStatusCode());
 	}
 
 }

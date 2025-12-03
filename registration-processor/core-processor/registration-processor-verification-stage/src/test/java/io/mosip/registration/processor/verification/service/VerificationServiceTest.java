@@ -535,4 +535,32 @@ public class VerificationServiceTest {
 		assertTrue(response.getInternalError());
 	}
 
+	@Test
+	public void testSuccessFlow_WhenManualVerificationRejected_ShouldSetRejectedStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+		String response = objectMapper.writeValueAsString(resp);
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+		resp.setReturnValue(4);
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+		assertTrue(result);
+	}
+
+	@Test
+	public void testSuccessFlow_WhenManualVerificationApproved_ShouldSetSuccessStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+		String response = objectMapper.writeValueAsString(resp);
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+		resp.setReturnValue(1);
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+		assertTrue(result);
+	}
+
 }
