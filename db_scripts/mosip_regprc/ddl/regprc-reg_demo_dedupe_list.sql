@@ -40,7 +40,3 @@ COMMENT ON COLUMN regprc.reg_demo_dedupe_list.del_dtimes IS 'Deleted DateTimesta
 -- autovacuum tuning section starts --
 ALTER TABLE regprc.reg_demo_dedupe_list SET (autovacuum_vacuum_scale_factor = 0.1, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.05, autovacuum_analyze_threshold = 200);
 -- autovacuum tuning section ends --
-
---PERFORMANCE INDEXES--
-CREATE UNIQUE INDEX pk_regded ON regprc.reg_demo_dedupe_list USING btree (matched_reg_id, regtrn_id);
---END PERFORMANCE INDEXES--
