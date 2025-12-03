@@ -820,7 +820,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SetTemplateType_LOST() throws Exception {
+	public void testProcess_LostWorkflow_UsesEmailWhenSmsFails() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -856,7 +856,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SetTemplateType_UIN_CREATED() throws Exception {
+	public void testProcess_UinCreatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -900,7 +900,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SetTemplateType_UIN_UPDATE() throws Exception {
+	public void testProcess_ActivatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -944,7 +944,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SetTemplateType_DEACTIVATED() throws Exception {
+	public void testProcess_DeactivatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -988,7 +988,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SetTemplateType_RES_UPDATE() throws Exception {
+	public void testProcess_ResUpdateWorkflow_FallbackToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -1032,7 +1032,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_NONE() throws Exception {
+	public void testProcess_WhenNotificationTypeIsNone() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "NONE");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1095,7 +1095,6 @@ public class NotificationServiceTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
-
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
@@ -1134,7 +1133,6 @@ public class NotificationServiceTest {
 		String s = templateResponseDto.toString();
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
-
 
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
@@ -1175,7 +1173,6 @@ public class NotificationServiceTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
-
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
@@ -1214,7 +1211,6 @@ public class NotificationServiceTest {
 		String s = templateResponseDto.toString();
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
-
 
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
@@ -1255,7 +1251,6 @@ public class NotificationServiceTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
-
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
@@ -1294,7 +1289,6 @@ public class NotificationServiceTest {
 		String s = templateResponseDto.toString();
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
-
 
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
@@ -1335,7 +1329,6 @@ public class NotificationServiceTest {
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
-
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");
 		completedEventDTO.setResultCode("PROCESSED");
@@ -1374,7 +1367,6 @@ public class NotificationServiceTest {
 		String s = templateResponseDto.toString();
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
-
 
 		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
 		completedEventDTO.setInstanceId("85425022110000120190117110505");

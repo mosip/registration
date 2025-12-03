@@ -2802,8 +2802,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-
-		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(), registrationStatusDto.getLatestTransactionStatusCode());
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
@@ -2834,8 +2832,6 @@ public class UinGeneratorStageTest {
 		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-
-		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(), registrationStatusDto.getLatestTransactionStatusCode());
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}

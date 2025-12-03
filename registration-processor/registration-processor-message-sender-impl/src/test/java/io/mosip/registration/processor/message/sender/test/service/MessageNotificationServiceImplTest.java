@@ -535,7 +535,7 @@ public class MessageNotificationServiceImplTest {
 	}
 
 	@Test
-	public void testSendSmsNotification_WhenPreferredLanguagesFail_ShouldThrowApisResourceAccessException() throws IOException, ApisResourceAccessException,
+	public void testSendSmsNotification_WhenPreferredLanguagesFail_ShouldStillSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
 
 		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenThrow(new ApisResourceAccessException());
