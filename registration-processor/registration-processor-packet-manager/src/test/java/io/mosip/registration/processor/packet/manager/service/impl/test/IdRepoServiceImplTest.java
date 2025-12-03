@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -7,6 +8,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import javax.swing.text.Utilities;
 
+import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -128,5 +131,59 @@ public class IdRepoServiceImplTest {
 		String matchedDemographicIdentity = idRepoService.findUinFromIdrepo("", "Identity");
 		assertNull(matchedDemographicIdentity);
 
+	}
+
+	@Test
+	public void testGetIdJsonFromIDRepo_WhenResponseNotNull() throws Exception {
+		IdResponseDTO dto = new IdResponseDTO();
+		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper<>();
+		response.setResponse(dto);
+
+		Mockito.when(restClientService.getApi(
+						Mockito.eq(ApiName.RETRIEVEIDENTITYFROMRID),
+						anyList(),
+						anyString(),
+						anyString(),
+						Mockito.eq(ResponseWrapper.class)))
+				.thenReturn(response);
+
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn("{\"Identity\":{\"UIN\":\"1234\"}}");
+
+		JSONObject identity = new JSONObject();
+		JSONObject demo = new JSONObject();
+		demo.put("UIN", "1234");
+		identity.put("Identity", demo);
+
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.when(JsonUtil.objectMapperReadValue(anyString(), Mockito.eq(JSONObject.class)))
+				.thenReturn(identity);
+
+		PowerMockito.when(JsonUtil.getJSONObject(identity, "Identity"))
+				.thenReturn(demo);
+		JSONObject result = idRepoService.getIdJsonFromIDRepo("123", "Identity");
+		assertEquals("1234", result.get("UIN"));
+	}
+
+	@Test
+	public void testGetIdJsonFromIDRepo_WhenResponseNull() throws Exception {
+
+		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper<>();
+		response.setResponse(null);
+
+		Mockito.when(restClientService.getApi(any(), anyList(), anyString(), anyString(), any()))
+				.thenReturn(response);
+		JSONObject result = idRepoService.getIdJsonFromIDRepo("123", "Identity");
+		assertNull(result);
+	}
+
+	@Test
+	public void testGetIdResponseFromIDRepo_WhenResponseNull() throws Exception {
+		ResponseWrapper<ResponseDTO> response = new ResponseWrapper<>();
+		response.setResponse(null);
+
+		Mockito.when(restClientService.getApi(any(), anyList(), anyString(), anyString(), any()))
+				.thenReturn(response);
+		ResponseDTO result = idRepoService.getIdResponseFromIDRepo("123");
+		assertNull(result);
 	}
 }
