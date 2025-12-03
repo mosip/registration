@@ -11,7 +11,3 @@ CREATE TABLE regprc.crypto_salt(
 	upd_dtimes timestamp ,
 	CONSTRAINT pk_rides PRIMARY KEY (id));
 -- ddl-end --
-
---PERFORMANCE INDEXES--
-CREATE UNIQUE INDEX pk_rides ON regprc.crypto_salt USING btree (id);
---PERFORMANCE INDEXES END--
