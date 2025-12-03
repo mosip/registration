@@ -69,5 +69,4 @@ COMMENT ON COLUMN regprc.registration_transaction.del_dtimes IS 'Deleted DateTim
 
 --PERFORMANCE INDEXES--
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
-CREATE UNIQUE INDEX pk_regtrn_id ON regprc.registration_transaction USING btree (id)
 --END PERFORMANCE INDEXES--
