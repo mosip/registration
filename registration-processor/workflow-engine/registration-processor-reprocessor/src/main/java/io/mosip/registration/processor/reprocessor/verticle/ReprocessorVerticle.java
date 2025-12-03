@@ -244,6 +244,7 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 			}
 
 			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
+				isBatchSuccessful = true;
 				regProcLogger.info("Reprocess count - {}", reprocessorDtoList.size());
 				List<Future> futures = new ArrayList<>();
 				reprocessorDtoList.forEach(dto -> {
@@ -251,12 +252,21 @@ public class ReprocessorVerticle extends MosipVerticleAPIManager {
 					vertx.executeBlocking(p -> {
 						processDTO(reprocessRestartTriggerMap, dto);
 						p.complete();
-					}, false, res -> {promise.complete();});
+					}, false, res -> {
+						if (res.succeeded()) {
+							promise.complete();
+						} else {
+							promise.fail(res.cause());
+						}
+					});
 					futures.add(promise.future());
 				});
 				CompositeFuture.all(futures).onComplete(ar -> {
-					regProcLogger.info("Successfully processed count - {}", futures.size());
-					isBatchSuccessful = true;
+					if (ar.succeeded()) {
+						regProcLogger.info("Successfully processed count - {}", futures.size());
+					} else {
+						regProcLogger.error("Failed to process some DTOs", ar.cause());
+					}
 				});
 			}
 		} catch (TablenotAccessibleException e) {
