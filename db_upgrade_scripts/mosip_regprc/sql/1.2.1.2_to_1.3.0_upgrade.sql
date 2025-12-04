@@ -37,6 +37,14 @@ CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING 
 CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
 
 CREATE INDEX idx_registration_transaction_status ON regprc.registration_transaction USING btree (status_code);
+CREATE INDEX IF NOT EXISTS idx_addlinforeq_regid_proc_iter ON regprc.additional_info_request USING btree (reg_id, additional_info_process, additional_info_iteration);
+CREATE INDEX IF NOT EXISTS idx_regbio_bio_wf ON regprc.reg_bio_ref USING btree (bio_ref_id, workflow_instance_id);
+CREATE INDEX IF NOT EXISTS idx_rlost_regid ON regprc.reg_lost_uin_det USING btree (reg_id);
+CREATE INDEX IF NOT EXISTS idx_reg_status_active_deleted ON regprc.registration USING btree (reg_id, status_code, is_active, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_workflow_active_true ON regprc.registration USING btree (workflow_instance_id) WHERE ((is_active = true) AND (is_deleted = false));
+CREATE INDEX IF NOT EXISTS idx_reglist_reg_id ON regprc.registration_list USING btree (reg_id);
+CREATE INDEX IF NOT EXISTS idx_registration_id_type ON regprc.registration_list USING btree (reg_id, process);
+CREATE INDEX IF NOT EXISTS idx_reg_trn_regid_status ON regprc.registration_transaction USING btree (reg_id, status_code);
 
 ---END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES--
 
