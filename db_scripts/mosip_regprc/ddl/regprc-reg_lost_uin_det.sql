@@ -35,3 +35,6 @@ COMMENT ON COLUMN regprc.reg_lost_uin_det.is_deleted IS 'IS_Deleted : Flag to ma
 COMMENT ON COLUMN regprc.reg_lost_uin_det.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
 
+--PERFORMANCE INDEXES--
+CREATE INDEX IF NOT EXISTS idx_rlost_regid ON regprc.reg_lost_uin_det USING btree (reg_id);
+--END PERFORMANCE INDEXES--
