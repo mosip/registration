@@ -52,10 +52,9 @@ COMMENT ON COLUMN regprc.registration_list.del_dtimes IS 'Deleted DateTimestamp 
 
 
 --PERFORMANCE INDEXES--
-CREATE INDEX idx_additional_info_req_id ON regprc.registration_list USING btree (additional_info_req_id);
-CREATE INDEX idx_packet_id ON regprc.registration_list USING btree (packet_id);
 CREATE INDEX idx_reglist_regid_aireqid_active ON regprc.registration_list USING btree (reg_id, additional_info_req_id) WHERE (is_deleted = false);
 CREATE INDEX idx_workflow_instance_id ON regprc.registration_list USING btree (workflow_instance_id);
+CREATE INDEX IF NOT EXISTS idx_registration_id_type ON regprc.registration_list USING btree (reg_id, process);
 --END PERFORMANCE INDEXES--
 
 -- autovacuum tuning section starts --
