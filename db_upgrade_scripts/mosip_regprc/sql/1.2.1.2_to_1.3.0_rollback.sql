@@ -32,17 +32,14 @@ DROP INDEX IF EXISTS regprc.idx_registration_reg_id;
 DROP INDEX IF EXISTS regprc.idx_resumable_packets;
 
 DROP INDEX IF EXISTS regprc.idx_additional_info_req_id;
-DROP INDEX IF EXISTS regprc.idx_packet_id;
 DROP INDEX IF EXISTS regprc.idx_reglist_regid_aireqid_active;
 DROP INDEX IF EXISTS regprc.idx_workflow_instance_id;
 
-DROP INDEX IF EXISTS regprc.idx_registration_transaction_status;
 DROP INDEX IF EXISTS regprc.idx_addlinforeq_regid_proc_iter;
 DROP INDEX IF EXISTS regprc.idx_regbio_bio_wf;
 DROP INDEX IF EXISTS regprc.idx_rlost_regid;
 DROP INDEX IF EXISTS regprc.idx_reg_status_active_deleted;
 DROP INDEX IF EXISTS regprc.idx_workflow_active_true;
-DROP INDEX IF EXISTS regprc.idx_reglist_reg_id;
 DROP INDEX IF EXISTS regprc.idx_registration_id_type;
 DROP INDEX IF EXISTS regprc.idx_reg_trn_regid_status;
 
