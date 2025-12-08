@@ -29,6 +29,9 @@ CREATE TABLE regprc.registration_list(
 	CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id)
 );
 
+create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
+create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+
 CREATE INDEX IF NOT EXISTS idx_reglist_reg_id ON regprc.registration_list USING btree (reg_id);
 COMMENT ON TABLE regprc.registration_list IS 'Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.';
 COMMENT ON COLUMN regprc.registration_list.reg_id IS 'Registration ID: ID of the registration request';
