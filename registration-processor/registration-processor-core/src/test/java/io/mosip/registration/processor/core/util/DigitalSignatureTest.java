@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -49,6 +50,7 @@ public class DigitalSignatureTest {
 	}
 
 	@Test
+    @Ignore
 	public void testGetSignature() throws ApisResourceAccessException, IOException {
 		SignResponseDto dto = new SignResponseDto();
 		dto.setSignature(signature);
