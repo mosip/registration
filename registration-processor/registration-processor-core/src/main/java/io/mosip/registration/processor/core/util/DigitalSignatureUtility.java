@@ -58,6 +58,8 @@ public class DigitalSignatureUtility {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"DigitalSignatureUtility::getDigitalSignature()::entry");
 
+        String encodedData = CryptoUtil.encodeToURLSafeBase64(data.getBytes(StandardCharsets.UTF_8));
+        regProcLogger.info("DigitalSignatureUtility::getDigitalSignature() :: Encoded data: " + encodedData);
         RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
         JWTSignatureRequestDto jwtSignatureRequestDto = new JWTSignatureRequestDto();
         jwtSignatureRequestDto.setApplicationId(signApplicationid);
@@ -87,6 +89,8 @@ public class DigitalSignatureUtility {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"DigitalSignatureUtility::getDigitalSignature()::exit");
 
+            String signature = jwtSignatureResponseDto.getJwtSignedData();
+            regProcLogger.info("DigitalSignatureUtility::getDigitalSignature():: Signature data : " + signature);
             return jwtSignatureResponseDto.getJwtSignedData();
 		} catch (ApisResourceAccessException | IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
