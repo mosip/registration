@@ -2,9 +2,9 @@ package io.mosip.registration.processor.core.util;
 
 import java.io.IOException;
 
+import io.mosip.registration.processor.core.digital.signature.dto.JWTSignatureResponseDto;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,11 +50,10 @@ public class DigitalSignatureTest {
 	}
 
 	@Test
-    @Ignore
 	public void testGetSignature() throws ApisResourceAccessException, IOException {
-		SignResponseDto dto = new SignResponseDto();
-		dto.setSignature(signature);
-		ResponseWrapper<SignResponseDto> response = new ResponseWrapper<SignResponseDto>();
+        JWTSignatureResponseDto dto = new JWTSignatureResponseDto();
+		dto.setJwtSignedData(signature);
+		ResponseWrapper<JWTSignatureResponseDto> response = new ResponseWrapper<JWTSignatureResponseDto>();
 		response.setResponse(dto);
 		Mockito.when(registrationProcessorRestService.postApi(Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any(), Matchers.any())).thenReturn(response);
