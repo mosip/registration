@@ -815,7 +815,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
-	public void testProcess_ShouldInvalidateMessage_WhenDataShareUrlPresent() throws Exception {
+	public void testProcessShouldInvalidateMessageWhenDataShareUrlPresent() throws Exception {
 
 		ShareableAttributes shareableAttributes1 = new ShareableAttributes();
 		shareableAttributes1.setAttributeName("biometrics");
@@ -856,7 +856,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
-	public void updatePacketStatus_SuccessFlow_WhenStatusRejected() {
+	public void updatePacketStatusSuccessFlowWhenStatusRejected() {
 
 		ManualAdjudicationResponseDTO adjudicationResponseDTO = new ManualAdjudicationResponseDTO();
 		adjudicationResponseDTO.setReturnValue(4);
@@ -882,7 +882,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
-	public void testProcess_ShouldHandleInvalidRidException() {
+	public void testProcessShouldHandleInvalidRidException() {
 
 		MessageDTO object = new MessageDTO();
 		object.setRid("");

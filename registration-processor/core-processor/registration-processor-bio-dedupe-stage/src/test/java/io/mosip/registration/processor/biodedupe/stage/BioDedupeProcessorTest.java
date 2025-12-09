@@ -949,7 +949,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testProcess_WhenCbeffNotFoundException_ShouldSetInternalErrorTrue() throws Exception {
+	public void testProcessWhenCbeffNotFoundExceptionShouldSetInternalErrorTrue() {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("RID123");
@@ -971,7 +971,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testLostAndUpdateUin_WhenExceptionOccurs_ShouldSetValidStatusFalseAndInternalErrorTrue() {
+	public void testLostAndUpdateUinWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
@@ -984,7 +984,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testNewPacketPreAbisIdentification_WhenCbeffAbsent_ShouldSetDedupeSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+	public void testNewPacketPreAbisIdentificationWhenCbeffAbsentShouldSetDedupeSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
 
 		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
 		MessageDTO messageDTO = new MessageDTO();

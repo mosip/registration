@@ -507,7 +507,7 @@ public class MessageNotificationServiceImplTest {
 	}
 
 	@Test(expected = ApisResourceAccessException.class)
-	public void testSendSmsNotification_WhenTemplateGeneratorFails_ShouldThrowApisResourceAccessException() throws IOException, ApisResourceAccessException,
+	public void testSendSmsNotificationWhenTemplateGeneratorFailsShouldThrowApisResourceAccessException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, JSONException {
 
 		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString())).thenThrow(new ApisResourceAccessException());
@@ -517,7 +517,7 @@ public class MessageNotificationServiceImplTest {
 	}
 
 	@Test
-	public void testSendSmsNotification_WhenPreferredLanguagesSet_ShouldSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
+	public void testSendSmsNotificationWhenPreferredLanguagesSetShouldSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
 
 		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenReturn("EN");
@@ -535,7 +535,7 @@ public class MessageNotificationServiceImplTest {
 	}
 
 	@Test
-	public void testSendSmsNotification_WhenPreferredLanguagesFail_ShouldStillSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
+	public void testSendSmsNotificationWhenPreferredLanguagesFailShouldStillSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
 
 		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenThrow(new ApisResourceAccessException());
@@ -554,7 +554,7 @@ public class MessageNotificationServiceImplTest {
 	}
 
 	@Test
-	public void testSendSmsNotification_ShouldThrowJsonParseException() throws IOException, ApisResourceAccessException,
+	public void testSendSmsNotificationShouldThrowJsonParseException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
 		SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
 		syncEntity.setAdditionalInfoReqId(null);

@@ -143,7 +143,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testGetIdJsonFromIDRepo_WhenResponseNotNull() throws Exception {
+	public void testGetIdJsonFromIDRepoWhenResponseNotNull() throws Exception {
 		IdResponseDTO dto = new IdResponseDTO();
 		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper<>();
 		response.setResponse(dto);
@@ -174,7 +174,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testGetIdJsonFromIDRepo_WhenResponseNull() throws Exception {
+	public void testGetIdJsonFromIDRepoWhenResponseNull() throws Exception {
 
 		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper<>();
 		response.setResponse(null);
@@ -186,7 +186,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testGetIdResponseFromIDRepo_WhenResponseNull() throws Exception {
+	public void testGetIdResponseFromIDRepoWhenResponseNull() throws Exception {
 		ResponseWrapper<ResponseDTO> response = new ResponseWrapper<>();
 		response.setResponse(null);
 
@@ -197,7 +197,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testSearchIdVidMetadata_Success() throws ApisResourceAccessException, IOException {
+	public void testSearchIdVidMetadataSuccess() throws ApisResourceAccessException, IOException {
 
 		IdVidMetadataRequest request = new IdVidMetadataRequest();
 		request.setIndividualId("12345");
@@ -216,7 +216,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testSearchIdVidMetadata_NullResponse() throws ApisResourceAccessException, IOException {
+	public void testSearchIdVidMetadataNullResponse() throws ApisResourceAccessException, IOException {
 
 		IdVidMetadataRequest request = new IdVidMetadataRequest();
 		request.setIndividualId("12345");
@@ -231,7 +231,7 @@ public class IdRepoServiceImplTest {
 	}
 
 	@Test
-	public void testSearchIdVidMetadata_ErrorResponse() throws ApisResourceAccessException, IOException {
+	public void testSearchIdVidMetadataErrorResponse() throws ApisResourceAccessException, IOException {
 		IdVidMetadataRequest request = new IdVidMetadataRequest();
 		request.setIndividualId("12345");
 		ResponseWrapper<IdVidMetadataResponse> wrapper = new ResponseWrapper<>();

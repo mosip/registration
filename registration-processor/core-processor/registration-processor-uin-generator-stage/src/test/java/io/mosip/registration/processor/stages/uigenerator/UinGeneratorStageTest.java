@@ -2777,7 +2777,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testProcess_UinGenerationReprocess_ShouldSetReprocessStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
+	public void testProcessUinGenerationReprocessShouldSetReprocessStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
 			IdrepoDraftReprocessableException, IdrepoDraftException {
 		List<ErrorDTO> errors = new ArrayList<>();
 		ErrorDTO errorDTO = new ErrorDTO();
@@ -2807,7 +2807,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testProcess_UinGenerationFailed_ShouldSetReprocessStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
+	public void testProcessUinGenerationFailedShouldSetReprocessStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
 			IdrepoDraftReprocessableException, IdrepoDraftException {
 
 		List<ErrorDTO> errors = new ArrayList<>();
@@ -2837,7 +2837,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testLostAndUpdateUin_WhenIdRepoDraftReturnsNull_ShouldSetValidStatusFalse() throws Exception {
+	public void testLostAndUpdateUinWhenIdRepoDraftReturnsNullShouldSetValidStatusFalse() throws Exception {
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
 		fieldMap.put("name", "mono");
@@ -2876,7 +2876,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testReactivateUin_WhenStatusActivated() throws Exception {
+	public void testReactivateUinWhenStatusActivated() throws Exception {
 
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");
@@ -2930,7 +2930,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testUinUpdate_WhenIdRepoStatusDrafted_ShouldReturnTrue() throws ApisResourceAccessException, IOException, JsonProcessingException,
+	public void testUinUpdateWhenIdRepoStatusDraftedShouldReturnTrue() throws ApisResourceAccessException, IOException, JsonProcessingException,
 			PacketManagerException, JSONException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put("UIN", "123456");

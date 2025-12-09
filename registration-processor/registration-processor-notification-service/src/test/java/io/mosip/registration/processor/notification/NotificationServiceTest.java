@@ -5,13 +5,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -820,7 +823,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_LostWorkflow_UsesEmailWhenSmsFails() throws Exception {
+	public void testProcessLostWorkflowUsesEmailWhenSmsFails() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -856,7 +859,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_UinCreatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
+	public void testProcessUinCreatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -900,7 +903,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_ActivatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
+	public void testProcessActivatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -944,7 +947,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_DeactivatedWorkflow_FallbacksToEmailWhenSmsFails() throws Exception {
+	public void testProcessDeactivatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -988,7 +991,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_ResUpdateWorkflow_FallbackToEmailWhenSmsFails() throws Exception {
+	public void testProcessResUpdateWorkflowFallbackToEmailWhenSmsFails() throws Exception {
 
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put("CAT1", "PROC1");
@@ -1032,7 +1035,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_WhenNotificationTypeIsNone() throws Exception {
+	public void testProcessWhenNotificationTypeIsNone() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "NONE");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1066,7 +1069,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendSMS_Success() throws Exception {
+	public void testProcessNotificationTypesSendSMSSuccess() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1105,7 +1108,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendSMS_Failed() throws Exception {
+	public void testProcessNotificationTypesSendSMSFailed() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1144,7 +1147,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendSMS_ThrowApisResourceAccessException() throws Exception {
+	public void testProcessNotificationTypesSendSMSThrowApisResourceAccessException() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1183,7 +1186,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendSMS_ThrowPhoneNumberNotFoundException() throws Exception {
+	public void testProcessNotificationTypesSendSMSThrowPhoneNumberNotFoundException() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1222,7 +1225,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendEmail_Success() throws Exception {
+	public void testProcessNotificationTypesSendEmailSuccess() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1261,7 +1264,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendEmail_Failed() throws Exception {
+	public void testProcessNotificationTypesSendEmailFailed() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1300,7 +1303,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendEmail_ThrowApisResourceAccessException() throws Exception {
+	public void testProcessNotificationTypesSendEmailThrowApisResourceAccessException() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1339,7 +1342,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_notificationTypes_SendEmail_ThrowEmailIdNotFoundException() throws Exception {
+	public void testProcessNotificationTypesSendEmailThrowEmailIdNotFoundException() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
@@ -1378,7 +1381,7 @@ public class NotificationServiceTest {
 	}
 
 	@Test
-	public void testProcess_SendNotification_ThrowTemplateNotFoundException() throws Exception {
+	public void testProcessSendNotificationThrowTemplateNotFoundException() throws Exception {
 
 		ReflectionTestUtils.setField(notificationService, "notificationTypes", "FAX");
 		List<TemplateDto> templates = new ArrayList<TemplateDto>();
