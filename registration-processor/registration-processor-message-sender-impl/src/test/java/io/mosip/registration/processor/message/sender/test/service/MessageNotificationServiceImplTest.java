@@ -531,8 +531,9 @@ public class MessageNotificationServiceImplTest {
 		Mockito.when(restClientService.postApi(any(), any(), any(), Mockito.any(RequestWrapper.class),
 				Mockito.eq(ResponseWrapper.class))).thenReturn(mockWrapper);
 
-		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+		SmsResponseDto result = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
 				RegistrationType.NEW.name());
+		assertEquals("OK", result.getStatus());
 	}
 
 	@Test
