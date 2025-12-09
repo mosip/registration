@@ -1,11 +1,16 @@
 package io.mosip.registration.processor.core.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils2;
+import io.mosip.registration.processor.core.digital.signature.dto.JWTSignatureRequestDto;
+import io.mosip.registration.processor.core.digital.signature.dto.JWTSignatureResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +43,13 @@ public class DigitalSignatureUtility {
 	@Autowired
 	ObjectMapper mapper;
 
+    @Value("${mosip.sign-certificate-refid:SIGN}")
+    private String signRefID;
+
+    /** The sign applicationid. */
+    @Value("${mosip.sign.applicationid:KERNEL}")
+    private String signApplicationid;
+
 	private static final String DIGITAL_SIGNATURE_ID = "mosip.registration.processor.digital.signature.id";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
@@ -46,20 +58,22 @@ public class DigitalSignatureUtility {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"DigitalSignatureUtility::getDigitalSignature()::entry");
 
-		SignRequestDto dto=new SignRequestDto();
-		dto.setData(data);
-		RequestWrapper<SignRequestDto> request=new RequestWrapper<>();
-		request.setRequest(dto);
-		request.setId(env.getProperty(DIGITAL_SIGNATURE_ID));
-		request.setMetadata(null);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		request.setRequesttime(localdatetime);
-		request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+        RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
+        JWTSignatureRequestDto jwtSignatureRequestDto = new JWTSignatureRequestDto();
+        jwtSignatureRequestDto.setApplicationId(signApplicationid);
+        jwtSignatureRequestDto.setReferenceId(signRefID);
+        jwtSignatureRequestDto.setDataToSign(CryptoUtil.encodeToURLSafeBase64(data.getBytes(StandardCharsets.UTF_8)));
+        request.setRequest(jwtSignatureRequestDto);
+        request.setId(env.getProperty(DIGITAL_SIGNATURE_ID));
+        request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+        LocalDateTime localdatetime = LocalDateTime
+                .parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+        request.setRequesttime(localdatetime);
+        request.setMetadata(null);
 
 		try {
-			ResponseWrapper<SignResponseDto> response = (ResponseWrapper) registrationProcessorRestService.postApi(ApiName.DIGITALSIGNATURE, "", "", request, ResponseWrapper.class);
+			ResponseWrapper<JWTSignatureResponseDto> response = (ResponseWrapper) registrationProcessorRestService.postApi(ApiName.DIGITALSIGNATURE, "", "", request, ResponseWrapper.class);
 
 			if (response.getErrors() != null && response.getErrors().size() > 0) {
 				response.getErrors().stream().forEach(r -> {
@@ -68,12 +82,12 @@ public class DigitalSignatureUtility {
 				});
 			}
 
-			SignResponseDto signResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()), SignResponseDto.class);
+			JWTSignatureResponseDto jwtSignatureResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()), JWTSignatureResponseDto.class);
 			
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"DigitalSignatureUtility::getDigitalSignature()::exit");
 
-			return signResponseDto.getSignature();
+            return jwtSignatureResponseDto.getJwtSignedData();
 		} catch (ApisResourceAccessException | IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"DigitalSignatureUtility::getDigitalSignature():: error with error message " + e.getMessage());
