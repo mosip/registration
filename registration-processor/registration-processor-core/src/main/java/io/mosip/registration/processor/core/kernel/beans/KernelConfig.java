@@ -37,7 +37,6 @@ public class KernelConfig {
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
 		objectMapper.registerModule(javaTimeModule);
 		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		return objectMapper;
 	}

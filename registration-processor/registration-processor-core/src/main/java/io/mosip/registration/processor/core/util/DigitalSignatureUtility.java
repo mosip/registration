@@ -59,7 +59,7 @@ public class DigitalSignatureUtility {
 				"DigitalSignatureUtility::getDigitalSignature()::entry");
 
         String encodedData = CryptoUtil.encodeToURLSafeBase64(data.getBytes(StandardCharsets.UTF_8));
-        regProcLogger.info("DigitalSignatureUtility::getDigitalSignature() :: Encoded data: " + encodedData);
+        regProcLogger.info("#DigitalSignatureUtility::getDigitalSignature() :: Encoded data: " + encodedData);
         RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
         JWTSignatureRequestDto jwtSignatureRequestDto = new JWTSignatureRequestDto();
         jwtSignatureRequestDto.setApplicationId(signApplicationid);
