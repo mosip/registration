@@ -578,19 +578,14 @@ public class MessageNotificationServiceImplTest {
 			Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(is);
 
 			ResponseWrapper<SmsResponseDto> mockWrapper = new ResponseWrapper<>();
-			SmsResponseDto smsResp = new SmsResponseDto();
-			smsResp.setStatus("OK");
-			mockWrapper.setResponse(smsResp);
+			mockWrapper.setResponse(new SmsResponseDto());
 
 			Mockito.when(restClientService.postApi(any(), any(), any(), Mockito.any(RequestWrapper.class),
 					Mockito.eq(ResponseWrapper.class))).thenReturn(mockWrapper);
 
 			SmsResponseDto result = messageNotificationServiceImpl.sendSmsNotification(
 					"RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes, RegistrationType.NEW.name());
-			assertNull("OK", result.getStatus());
-		} catch (IOException e) {
-			// Handle exception if necessary
-			e.printStackTrace();
+			assertNull(result.getStatus());
 		}
 	}
 
