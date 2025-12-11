@@ -971,7 +971,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testLostAndUpdateUinWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
+	public void testProcessWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
@@ -990,10 +990,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
-		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(3);
-		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.CBEFF_NOT_PRESENT_EXCEPTION)).thenReturn("FAILED");
 		MessageDTO messageDto = bioDedupeProcessor.process(messageDTO, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertEquals(MessageBusAddress.BIO_DEDUPE_BUS_IN, messageDTO.getMessageBusAddress());
