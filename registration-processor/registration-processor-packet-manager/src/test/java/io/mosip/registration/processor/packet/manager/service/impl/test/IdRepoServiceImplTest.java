@@ -139,8 +139,6 @@ public class IdRepoServiceImplTest {
 		dto.setVersion("v1");
 		dto.setTimestamp("2025-12-11T18:10:00Z");
 		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setEntity("entity");
-		responseDTO.setStatus("Pass");
 		dto.setResponse(responseDTO);
 		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper<>();
 		response.setResponse(dto);

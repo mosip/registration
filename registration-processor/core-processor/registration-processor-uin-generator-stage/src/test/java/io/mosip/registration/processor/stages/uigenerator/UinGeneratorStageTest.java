@@ -2807,7 +2807,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testProcessUinGenerationFailedShouldSetReprocessStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
+	public void testProcessUinGenerationFailedShouldSetFailedStatus() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException,
 			IdrepoDraftReprocessableException, IdrepoDraftException {
 
 		List<ErrorDTO> errors = new ArrayList<>();
@@ -2913,7 +2913,7 @@ public class UinGeneratorStageTest {
 		ResponseDTO responseDTO1 = new ResponseDTO();
 		idResponseDTO1.setErrors(null);
 		idResponseDTO1.setId("mosip.id.update");
-		responseDTO1.setStatus("ANY");
+		responseDTO1.setStatus("DEACTIVATED");
 		idResponseDTO1.setResponse(responseDTO1);
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
