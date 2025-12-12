@@ -16,9 +16,9 @@ The registration packet structure is available here : [Packet structure](https:/
 Vertx is the framework used to run the stages, and each stage operates as a Vertx component.
 
 ### Event Bus:
-Regprocessor stages are connected with eventbus.  MOSIP supports two types of eventbus:
+Registration processor stages are connected with eventbus. MOSIP supports two types of eventbus:
 - Vertx Eventbus
-- Kafka (default) - provides persistence across restarts (more robust), throttling capacity, better debugging 
+- Kafka (default) : Provides persistence across restarts (more robust), throttling capacity and better debugging. 
 
 Kafka offers certain advantages over Vertx eventbus hence it is recommended as the default eventbus mechanism. All events between stages pass through Kafka queues. There is a separate Kafka topic for each stage.
 
