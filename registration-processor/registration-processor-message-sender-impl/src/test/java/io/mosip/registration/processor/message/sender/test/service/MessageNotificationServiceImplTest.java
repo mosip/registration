@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.message.sender.test.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -15,9 +16,15 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.registration.processor.core.constant.VidType;
+import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
 import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -123,6 +130,12 @@ public class MessageNotificationServiceImplTest {
 	/** The env. */
 	@Mock
 	private Environment env;
+
+	@Mock
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
+
+	@Mock
+	private Decryptor decryptor;
 
 	/** The attributes. */
 	private Map<String, Object> attributes = new HashMap<>();
@@ -487,6 +500,89 @@ public class MessageNotificationServiceImplTest {
 				"CRVS_DEATH",IdType.UIN, attributes, "CRVS_DEATH");
 		assertEquals("Test for SMS Notification Success", "Success", resultResponse.getMessage());
 		verify(packetManagerService,never()).getFields(anyString(),anyList(),anyString(),any());
+	}
+
+	@Test(expected = ApisResourceAccessException.class)
+	public void testSendSmsNotificationWhenTemplateGeneratorFailsShouldThrowApisResourceAccessException() throws IOException, ApisResourceAccessException,
+			PacketDecryptionFailureException, JSONException {
+
+		Mockito.when(templateGenerator.getTemplate(anyString(), any(), anyString())).thenThrow(new ApisResourceAccessException());
+
+		messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+				RegistrationType.NEW.name());
+	}
+
+	@Test
+	public void testSendSmsNotificationWhenPreferredLanguagesSetShouldSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
+			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
+
+		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenReturn("EN");
+
+		ResponseWrapper<SmsResponseDto> mockWrapper = new ResponseWrapper<>();
+		SmsResponseDto smsResp = new SmsResponseDto();
+		smsResp.setStatus("OK");
+		mockWrapper.setResponse(smsResp);
+
+		Mockito.when(restClientService.postApi(any(), any(), any(), Mockito.any(RequestWrapper.class),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(mockWrapper);
+
+		SmsResponseDto result = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+				RegistrationType.NEW.name());
+		assertEquals("OK", result.getStatus());
+	}
+
+	@Test
+	public void testSendSmsNotificationWhenPreferredLanguagesFailShouldStillSendSmsSuccessfully() throws IOException, ApisResourceAccessException,
+			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
+
+		Mockito.when(packetManagerService.getField(any(), any(), anyString(), any())).thenThrow(new ApisResourceAccessException());
+
+		ResponseWrapper<SmsResponseDto> mockWrapper = new ResponseWrapper<>();
+		SmsResponseDto smsResp = new SmsResponseDto();
+		smsResp.setStatus("OK");
+		mockWrapper.setResponse(smsResp);
+
+		Mockito.when(restClientService.postApi(any(), any(), any(), Mockito.any(RequestWrapper.class),
+				Mockito.eq(ResponseWrapper.class))).thenReturn(mockWrapper);
+
+		SmsResponseDto result = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes,
+				RegistrationType.NEW.name());
+		assertEquals("OK", result.getStatus());
+	}
+
+	@Test
+	public void testSendSmsNotificationShouldHandleJsonParseExceptionGracefully() throws IOException, ApisResourceAccessException,
+			PacketDecryptionFailureException, JSONException, PacketManagerException, JsonProcessingException {
+
+		SyncRegistrationEntity syncEntity = new SyncRegistrationEntity();
+		syncEntity.setAdditionalInfoReqId(null);
+		syncEntity.setRegistrationType("NEW");
+		syncEntity.setPacketId("2018701130000410092018110735");
+		syncEntity.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130004");
+		syncEntity.setOptionalValues(new byte[] {1, 2, 3, 4, 5});
+		List<SyncRegistrationEntity> entities = new ArrayList<>();
+		entities.add(syncEntity);
+		SyncRegistrationEntity entity = new SyncRegistrationEntity();
+		entities.add(entity);
+
+		Mockito.when(syncRegistrationService.findByRegistrationId(any())).thenReturn(entities);
+		when(packetManagerService.getFields(anyString(), anyList(), any(), any())).thenReturn(null);
+
+		// Use try-with-resources to ensure FileInputStream is properly closed
+		try (FileInputStream is = new FileInputStream("src/test/resources/1001.zip")) {
+			IOUtils.toByteArray(is);
+			Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(is);
+
+			ResponseWrapper<SmsResponseDto> mockWrapper = new ResponseWrapper<>();
+			mockWrapper.setResponse(new SmsResponseDto());
+
+			Mockito.when(restClientService.postApi(any(), any(), any(), Mockito.any(RequestWrapper.class),
+					Mockito.eq(ResponseWrapper.class))).thenReturn(mockWrapper);
+
+			SmsResponseDto result = messageNotificationServiceImpl.sendSmsNotification(
+					"RPR_UIN_GEN_SMS", "12345", "NEW", IdType.RID, attributes, RegistrationType.NEW.name());
+			assertNull(result.getStatus());
+		}
 	}
 
 }
