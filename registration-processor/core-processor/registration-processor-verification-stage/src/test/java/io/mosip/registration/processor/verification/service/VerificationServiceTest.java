@@ -2,6 +2,8 @@ package io.mosip.registration.processor.verification.service;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -31,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.ArgumentCaptor;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
@@ -534,6 +537,46 @@ public class VerificationServiceTest {
 		MessageDTO response = verificationService.process(object, queue, stageName);
 		assertFalse(response.getIsValid());
 		assertTrue(response.getInternalError());
+	}
+
+	@Test
+	public void testSuccessFlowWhenManualVerificationRejectedShouldSetRejectedStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+		String response = objectMapper.writeValueAsString(resp);
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+		resp.setReturnValue(4);
+		ArgumentCaptor<MessageDTO> messageCaptor = ArgumentCaptor.forClass(MessageDTO.class);
+		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(messageCaptor.capture());
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+		assertTrue(result);
+		MessageDTO capturedMessage = messageCaptor.getValue();
+		assertNotNull(capturedMessage);
+		assertEquals(Boolean.FALSE, capturedMessage.getIsValid());
+		assertEquals(Boolean.FALSE, capturedMessage.getInternalError());
+	}
+
+	@Test
+	public void testSuccessFlowWhenManualVerificationApprovedShouldSetSuccessStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+
+		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
+		String response = objectMapper.writeValueAsString(resp);
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(response.getBytes());
+		amq.setContent(byteSeq);
+		resp.setReturnValue(1);
+		ArgumentCaptor<MessageDTO> messageCaptor = ArgumentCaptor.forClass(MessageDTO.class);
+		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(messageCaptor.capture());
+		boolean result = verificationService.updatePacketStatus(resp, stageName, queue);
+		assertTrue(result);
+		MessageDTO capturedMessage = messageCaptor.getValue();
+		assertNotNull(capturedMessage);
+		assertEquals(Boolean.TRUE, capturedMessage.getIsValid());
+		assertEquals(Boolean.FALSE, capturedMessage.getInternalError());
 	}
 
 }

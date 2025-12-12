@@ -24,6 +24,9 @@ import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerific
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.exception.*;
+import io.mosip.registration.processor.core.packet.dto.abis.ProcessedMatchedResult;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -689,4 +692,33 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getIsValid());
 		assertTrue(messageDto.getInternalError());
 	}
+
+	@Test
+	public void testProcessWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		when(abisHandlerUtil.getPacketStatus(any()))
+				.thenThrow(new RuntimeException("test exception"));
+		MessageDTO result = bioDedupeProcessor.process(messageDTO, stageName);
+
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testNewPacketPreAbisIdentificationWhenInfantDedupeDisabledSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+
+		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(3);
+		MessageDTO messageDto = bioDedupeProcessor.process(messageDTO, stageName);
+		assertTrue(messageDto.getIsValid());
+		assertEquals(MessageBusAddress.BIO_DEDUPE_BUS_IN, messageDTO.getMessageBusAddress());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.name(), registrationStatusDto.getLatestTransactionStatusCode());
+	}
+
 }
