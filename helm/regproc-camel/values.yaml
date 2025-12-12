@@ -346,12 +346,12 @@ volumePermissions:
     ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
     ##
     limits: {}
-    ##   cpu: 100m
-    ##   memory: 128Mi
+    ##   cpu: 1000m
+    ##   memory: 4000Mi
     ##
     requests: {}
-    ##   cpu: 100m
-    ##   memory: 128Mi
+    ##   cpu: 500m
+    ##   memory: 1200Mi
     ##
 
 ## Specifies whether RBAC resources should be created
