@@ -2,11 +2,19 @@ package io.mosip.registration.processor.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.message.sender.exception.TemplateNotFoundException;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +95,9 @@ public class NotificationServiceTest {
 	
 	@Mock
 	private Environment env;
+
+	@Mock
+	private Utilities utilities;
 	
 
 	@Before
@@ -810,4 +821,598 @@ public class NotificationServiceTest {
 		ResponseEntity<Void> res = notificationService.process(workflowPausedForAdditionalInfoEventDTO);
 		assertEquals(200, res.getStatusCodeValue());
 	}
+
+	@Test
+	public void testProcessLostWorkflowUsesEmailWhenSmsFails() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessUinCreatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
+
+		Map<String, String> mockMap = new HashMap<>();
+		mockMap.put("CAT1", "PROC1");
+		mockMap.put("CAT2", "PROC2");
+
+		ReflectionTestUtils.setField(notificationService,"additionalProcessCategoryForNotification",mockMap);
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(utilities.getInternalProcess(mockMap, "UIN_CREATED")).thenReturn("NEW");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("UIN_CREATED");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessActivatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
+
+		Map<String, String> mockMap = new HashMap<>();
+		mockMap.put("CAT1", "PROC1");
+		mockMap.put("CAT2", "PROC2");
+
+		ReflectionTestUtils.setField(notificationService,"additionalProcessCategoryForNotification",mockMap);
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(utilities.getInternalProcess(mockMap, "ACTIVATED")).thenReturn("UPDATE");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("ACTIVATED");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessDeactivatedWorkflowFallbacksToEmailWhenSmsFails() throws Exception {
+
+		Map<String, String> mockMap = new HashMap<>();
+		mockMap.put("CAT1", "PROC1");
+		mockMap.put("CAT2", "PROC2");
+
+		ReflectionTestUtils.setField(notificationService,"additionalProcessCategoryForNotification",mockMap);
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(utilities.getInternalProcess(mockMap, "DEACTIVATED")).thenReturn("UPDATE");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("DEACTIVATED");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessResUpdateWorkflowFallbackToEmailWhenSmsFails() throws Exception {
+
+		Map<String, String> mockMap = new HashMap<>();
+		mockMap.put("CAT1", "PROC1");
+		mockMap.put("CAT2", "PROC2");
+
+		ReflectionTestUtils.setField(notificationService,"additionalProcessCategoryForNotification",mockMap);
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(utilities.getInternalProcess(mockMap, "RES_UPDATE")).thenReturn("UPDATE");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("RES_UPDATE");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessWhenNotificationTypeIsNone() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "NONE");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> res = notificationService.process(completedEventDTO);
+		assertEquals(200, res.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendSMSSuccess() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendSMSFailed() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendSMSThrowApisResourceAccessException() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendSMSThrowPhoneNumberNotFoundException() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "SMS");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new PhoneNumberNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendEmailSuccess() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendEmailFailed() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("failed");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendEmailThrowApisResourceAccessException() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new ApisResourceAccessException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessNotificationTypesSendEmailThrowEmailIdNotFoundException() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "EMAIL");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("failed");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponse);
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenThrow(new EmailIdNotFoundException());
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+		String s = templateResponseDto.toString();
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
+	@Test
+	public void testProcessSendNotificationThrowTemplateNotFoundException() throws Exception {
+
+		ReflectionTestUtils.setField(notificationService, "notificationTypes", "FAX");
+		List<TemplateDto> templates = new ArrayList<TemplateDto>();
+		TemplateDto templateEmail = new TemplateDto();
+		TemplateDto templateSMS = new TemplateDto();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+		templateSMS.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		templates.add(templateSMS);
+		templateEmail.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		templates.add(templateEmail);
+		templateResponseDto.setTemplates(templates);
+		ResponseWrapper<TemplateResponseDto> responseWrapper=new ResponseWrapper<>();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		SmsResponseDto smsResponse = new SmsResponseDto();
+		smsResponse.setStatus("success");
+		ResponseDto responseDto = new ResponseDto();
+		responseDto.setStatus("success");
+		Mockito.when(env.getProperty(any())).thenReturn("RPR_LOST_UIN_SMS").thenReturn("RPR_LOST_UIN_EMAIL")
+				.thenReturn("RPR_UIN_GEN_EMAIL_SUB");
+
+		when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenThrow(new TemplateNotFoundException());
+		when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(responseDto);
+		when(restClientService.getApi(Mockito.eq(ApiName.TEMPLATES), any(), Mockito.eq(""), Mockito.eq(""), Mockito.eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+		WorkflowCompletedEventDTO completedEventDTO = new WorkflowCompletedEventDTO();
+		completedEventDTO.setInstanceId("85425022110000120190117110505");
+		completedEventDTO.setResultCode("PROCESSED");
+		completedEventDTO.setWorkflowType("LOST");
+
+		ResponseEntity<Void> result = notificationService.process(completedEventDTO);
+		assertEquals(200, result.getStatusCodeValue());
+	}
+
 	}
