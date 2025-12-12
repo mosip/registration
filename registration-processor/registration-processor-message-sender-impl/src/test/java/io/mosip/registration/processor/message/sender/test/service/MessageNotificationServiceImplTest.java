@@ -137,9 +137,6 @@ public class MessageNotificationServiceImplTest {
 	@Mock
 	private Decryptor decryptor;
 
-	@Mock
-	private InputStream is;
-
 	/** The attributes. */
 	private Map<String, Object> attributes = new HashMap<>();
 
@@ -181,7 +178,6 @@ public class MessageNotificationServiceImplTest {
 
 	private VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
 
-	private File file1;
 
 	/**
 	 * Setup.

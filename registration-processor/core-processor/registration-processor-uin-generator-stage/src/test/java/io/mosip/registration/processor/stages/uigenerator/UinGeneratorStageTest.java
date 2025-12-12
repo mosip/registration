@@ -2787,7 +2787,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.UPDATE.name());
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		idResponseDTO.setErrors(errors);
 
@@ -2817,14 +2817,14 @@ public class UinGeneratorStageTest {
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.UPDATE.name());
+		messageDTO.setReg_type(RegistrationType.NEW.name());
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		idResponseDTO.setErrors(errors);
 
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 		Mockito.when(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED)).thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+				.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED)).thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
 
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(new HashMap<>());
 		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
@@ -2833,7 +2833,7 @@ public class UinGeneratorStageTest {
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test

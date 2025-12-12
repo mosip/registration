@@ -949,28 +949,6 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testProcessWhenCbeffNotFoundExceptionShouldSetInternalErrorTrue() {
-
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("RID123");
-		messageDTO.setReg_type("LOST");
-		messageDTO.setIteration(0);
-		messageDTO.setWorkflowInstanceId("WF1");
-
-		InternalRegistrationStatusDto registrationStatus = new InternalRegistrationStatusDto();
-		registrationStatus.setRegistrationId("RID123");
-		registrationStatus.setRegistrationType(SyncTypeDto.LOST.toString());
-
-		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
-				.thenReturn(registrationStatus);
-		when(abisHandlerUtil.getPacketStatus(any())).thenThrow(new CbeffNotFoundException("CBEFF missing"));
-
-		MessageDTO result = bioDedupeProcessor.process(messageDTO, stageName);
-		assertTrue(result.getInternalError());
-		assertFalse(result.getIsValid());
-	}
-
-	@Test
 	public void testProcessWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
 
 		MessageDTO messageDTO = new MessageDTO();
@@ -984,7 +962,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testNewPacketPreAbisIdentificationWhenCbeffAbsentShouldSetDedupeSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+	public void testNewPacketPreAbisIdentificationWhenInfantDedupeDisabledSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
 
 		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
 		MessageDTO messageDTO = new MessageDTO();

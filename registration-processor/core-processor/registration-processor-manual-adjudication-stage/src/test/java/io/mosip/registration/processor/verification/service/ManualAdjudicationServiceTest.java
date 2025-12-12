@@ -3,6 +3,8 @@ package io.mosip.registration.processor.verification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 
 import java.io.File;
@@ -32,6 +34,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -867,18 +870,23 @@ public class ManualAdjudicationServiceTest {
 		candidateList.setCount(0);
 		adjudicationResponseDTO.setCandidateList(candidateList);
 
-		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString())).thenReturn(entities);
-		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(),any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(), anyString())).thenReturn(entities);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
-		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
-				.thenReturn(manualVerificationEntity);
+		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class))).thenReturn(manualVerificationEntity);
 		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(manualVerificationEntity));
+
 		manualVerificationDTO.setStatusCode(ManualVerificationStatus.REJECTED.name());
 
-		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(any(MessageDTO.class));
+		ArgumentCaptor<MessageDTO> messageCaptor = ArgumentCaptor.forClass(MessageDTO.class);
 
+		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(messageCaptor.capture());
 		boolean result = manualAdjudicationService.updatePacketStatus(adjudicationResponseDTO, stageName, queue);
 		assertTrue(result);
+		MessageDTO capturedMessage = messageCaptor.getValue();
+		assertNotNull(capturedMessage);
+		assertEquals(Boolean.FALSE, capturedMessage.getInternalError());
+		assertEquals(Boolean.FALSE, capturedMessage.getIsValid());
 	}
 
 	@Test

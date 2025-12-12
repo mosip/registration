@@ -2,7 +2,6 @@ package io.mosip.registration.processor.packet.manager.service.impl.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -10,11 +9,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import javax.swing.text.Utilities;
 
 import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.http.RequestWrapper;
-import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
-import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -30,7 +24,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -39,9 +32,6 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.impl.IdRepoServiceImpl;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * The Class IdRepoServiceImplTest.
