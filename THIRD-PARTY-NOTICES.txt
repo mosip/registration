@@ -392,14 +392,6 @@ Homepage: https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/sc
 ================================================================================
 
 ================================================================================
-Package: Git Commit ID Maven Plugin
-(pl.project13.maven:git-commit-id-plugin)
-Version: 3.0.1 (from SBOM)
-License: Apache License 2.0 (Inferred from project’s official repository)
-Homepage: https://github.com/git-commit-id/git-commit-id-maven-plugin
-================================================================================
-
-================================================================================
 Package: Sonatype Central Publishing Maven Plugin
 (org.sonatype.central:central-publishing-maven-plugin)
 Version: 0.7.0 (from SBOM)
