@@ -23,8 +23,10 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.biodedupe.service.CbeffValidateAndVerificatonService;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -51,6 +53,7 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -688,5 +691,33 @@ public class BioDedupeProcessorTest {
 
 		assertTrue(messageDto.getIsValid());
 		assertTrue(messageDto.getInternalError());
+	}
+
+	@Test
+	public void testProcessWhenExceptionOccursShouldSetValidStatusFalseAndInternalErrorTrue() {
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		when(abisHandlerUtil.getPacketStatus(any()))
+				.thenThrow(new RuntimeException("test exception"));
+		MessageDTO result = bioDedupeProcessor.process(messageDTO, stageName);
+
+		assertFalse(result.getIsValid());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testNewPacketPreAbisIdentificationWhenInfantDedupeDisabledSuccessStatus() throws ApisResourceAccessException, PacketManagerException, IOException, JsonProcessingException {
+
+		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(3);
+		MessageDTO messageDto = bioDedupeProcessor.process(messageDTO, stageName);
+		assertTrue(messageDto.getIsValid());
+		assertEquals(MessageBusAddress.BIO_DEDUPE_BUS_IN, messageDTO.getMessageBusAddress());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.SUCCESS.name(), registrationStatusDto.getLatestTransactionStatusCode());
 	}
 }
