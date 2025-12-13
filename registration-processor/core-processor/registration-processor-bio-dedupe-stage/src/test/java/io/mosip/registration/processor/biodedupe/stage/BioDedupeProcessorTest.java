@@ -26,7 +26,6 @@ import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.*;
-import io.mosip.registration.processor.core.packet.dto.abis.ProcessedMatchedResult;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
