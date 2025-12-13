@@ -54,7 +54,6 @@ Hazelcast is used as a distributed cache for packet manager.
     - Reprint
     - CRVS New
     - CRVS Death
-    - An overview of various enrollment scenarios (or flows) is described in [ID Lifecycle Management](https://docs.mosip.io/1.2.0/id-lifecycle-management).
     - The stage sequence against each flow refer [here](docs/flows.md)
 
 ## Services 
