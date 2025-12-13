@@ -7,8 +7,6 @@
 
 This repository contains source code and design documents for the MOSIP Registration Processor, a server-side module used to manage the ID lifecycle. The module exposes API endpoints and follows the SEDA architecture, where data flows through multiple stages.
 
-[Overview of Registration Processor](https://docs.mosip.io/1.2.0/modules/registration-processor)
-
 The front end UI application called Registration Client is available in a separate repository [here](https://github.com/mosip/registration-client)
 
 The registration packet structure is available here : [Packet structure](https://docs.mosip.io/1.2.0/id-lifecycle-management/supporting-components/packet-manager/registration-packet-structure)
@@ -91,7 +89,7 @@ The Registration Processor organizes its processing flow into distinct stage gro
 The control and data flow in the stages is controlled by [Workflow engine](registration-processor/workflow-engine)
 
 Supporting services:
-- [Registration status service](registration-processor/init/registration-processor-registration-status-service): Responsible for sync the registration packets from field. 
+- [Registration status service](registration-processor/init/registration-processor-registration-status-service): Responsible for syncing the registration packets from field. 
 - [Notification service](registration-processor/registration-processor-notification-service) : Responsible for sending email/SMS notifications as the packet progresses through the stages.
 - [Transaction Service](registration-processor/init/registration-processor-registration-status-service) : Responsible for proving the transaction status of registration packets.
 
@@ -102,7 +100,7 @@ Before starting the local setup, execute the required SQL scripts to initialize 
 
 All database SQL scripts are available in the [db scripts](./db_scripts) directory.
 
-## Project Setup
+## Local Setup
 
 The project can be set up in two ways:
 
@@ -132,7 +130,7 @@ Please refer to the required released tagged version for configuration.
 
 1. Ensure the Config Server is running. For setup and startup instructions, refer to the  [MOSIP Config Server Setup Guide](https://docs.mosip.io/1.2.0/modules/registration-processor/registration-processor-developers-guide#environment-setup).
    
-    **Note:** Verify that all required configuration properties (e.g., DB credentials, IAM credentials, URLs) are correctly updated with your environment-specific values.
+    **Note:** Verify that all required configuration properties (e.g., DB credentials, IAM credentials, URLs) are correctly updated with your environment-specific values in configuration files.
 
 2. Clone the repository:
 
@@ -204,15 +202,21 @@ docker ps
 
 Access the services at `http://localhost:<port>` using the port mappings listed above.
 
+## Deployment
+
+To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
+
 ## Documentation
 
 ### API Documentation:
-API endpoints, base URL (Registration Processor), and mock server details are available via Stoplight
+
+API endpoints and mock server details are available via Stoplight
 and Swagger documentation: API documentation is available [here](https://mosip.github.io/documentation/1.2.0/1.2.0.html)
 
-## Sanbox deployment
+### Product Documentation
 
-To deploy Registration Processor services on Kubernetes cluster using Dockers refer to [Sandbox Deployment](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
+To learn more about registration processor from a functional perspective and use case scenarios, refer to our main documentation: [Click here](https://docs.mosip.io/1.2.0/id-lifecycle-management/identity-issuance/registration-processor).
+
 
 ## Testing
 
