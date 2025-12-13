@@ -81,7 +81,7 @@ The Registration Processor organizes its processing flow into distinct stage gro
 -   Group 6
     -   [Packet uploader](registration-processor/pre-processor/registration-processor-packet-uploader-stage) : Uploads sanitized registration packets for processing in MOSIP.
     -   [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage) : Classifies packets into categories, such as by age or exceptional biometrics, to ensure proper handling in subsequent stages.
-    -   [Verification](registration-processor/core-processor/registration-processor-verification-stage) : Asynchronously sends cases to the external manual verification system and receives decisions for applications requiring human review of documents.
+    -   [Verification](registration-processor/core-processor/registration-processor-verification-stage) : Asynchronously sends cases to the external manual verification system and receives decisions for applications requiring human review of documents in cases such as INFANT flows.
 -   Group 7 – Final Processing
     -   [UIN generator](registration-processor/core-processor/registration-processor-uin-generator-stage) : Creates or updates a UIN draft using the applicant’s biometric and demographic data.
     -   [Biometric extraction](registration-processor/core-processor/registration-processor-biometric-extraction-stage) : Performs biometric extraction to extract biometric templates from raw biometric data for storage and matching.  
