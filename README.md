@@ -22,7 +22,7 @@ Kafka offers certain advantages over Vertx eventbus hence it is recommended as t
 
 One of the power features is to enable throttling in the pipeline.  See [Throttling](docs/throttling.md)
 
-### Distributes Cache:
+### Distributed Cache:
 Hazelcast is used as a distributed cache for packet manager.
 
 
@@ -210,8 +210,7 @@ To deploy Registration Processor services on Kubernetes cluster using Dockers re
 
 ### API Documentation:
 
-API endpoints and mock server details are available via Stoplight
-and Swagger documentation: API documentation is available [here](https://mosip.github.io/documentation/1.2.0/1.2.0.html)
+API documentation is available [here](https://mosip.github.io/documentation/1.2.0/1.2.0.html)
 
 ### Product Documentation
 
