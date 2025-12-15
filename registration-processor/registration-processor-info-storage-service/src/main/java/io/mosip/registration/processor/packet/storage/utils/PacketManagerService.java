@@ -69,227 +69,178 @@ public class PacketManagerService {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-	public String getField(String id, String field, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-        FieldDto fieldDto = new FieldDto(id, field, source, process, false);
+    /*
+     * Internal helpers – no functional change, just de-duplication and small
+     * micro-optimizations.
+     */
 
-        RequestWrapper<FieldDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELD, "", "", request, ResponseWrapper.class);
-
+    private void handleErrors(String id, ResponseWrapper<?> response) throws PacketManagerException, JsonProcessingException {
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), id,
+                    response.toString());
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
+            if (PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
                 throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
+    }
 
-        FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
+    private <T> T convert(Object source, Class<T> type) {
+        return source == null ? null : objectMapper.convertValue(source, type);
+    }
 
-        String responseField = fieldResponseDto.getFields().get(field);
+    private <T> RequestWrapper<T> createRequest(T body) {
+        RequestWrapper<T> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
+        request.setRequest(body);
+        return request;
+    }
+
+    public String getField(String id, String field, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        FieldDto fieldDto = new FieldDto(id, field, source, process, false);
+
+        RequestWrapper<FieldDto> request = createRequest(fieldDto);
+        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_FIELD, "", "", request, ResponseWrapper.class);
+
+        handleErrors(id, response);
+
+        FieldResponseDto fieldResponseDto = convert(response.getResponse(), FieldResponseDto.class);
+
+        String responseField = fieldResponseDto != null && fieldResponseDto.getFields() != null
+                ? fieldResponseDto.getFields().get(field)
+                : null;
         if (StringUtils.isNotEmpty(responseField) && responseField.equalsIgnoreCase("null"))
             responseField = null;
         return responseField;
     }
 
-	public Map<String, String> getFields(String id, List<String> fields, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Map<String, String> getFields(String id, List<String> fields, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDtos fieldDto = new FieldDtos(id, fields, source, process, false);
 
-        RequestWrapper<FieldDtos> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
+        RequestWrapper<FieldDtos> request = createRequest(fieldDto);
+        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, response);
 
-        FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
+        FieldResponseDto fieldResponseDto = convert(response.getResponse(), FieldResponseDto.class);
 
-        return fieldResponseDto.getFields();
+        return fieldResponseDto != null ? fieldResponseDto.getFields() : null;
     }
 
-	public Document getDocument(String id, String documentName, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Document getDocument(String id, String documentName, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         return getDocument(id, documentName, null, process);
     }
 
-	public Document getDocument(String id, String documentName, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Document getDocument(String id, String documentName, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         DocumentDto fieldDto = new DocumentDto(id, documentName, source, process);
 
-        RequestWrapper<DocumentDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<Document> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT, "", "", request, ResponseWrapper.class);
+        RequestWrapper<DocumentDto> request = createRequest(fieldDto);
+        ResponseWrapper<Document> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_DOCUMENT, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, response);
 
-        Document document = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), Document.class);
+        Document document = convert(response.getResponse(), Document.class);
 
         return document;
     }
 
-	public ValidatePacketResponse validate(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public ValidatePacketResponse validate(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
-        RequestWrapper<InfoDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<ValidatePacketResponse> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_VALIDATE, "", "", request, ResponseWrapper.class);
+        RequestWrapper<InfoDto> request = createRequest(fieldDto);
+        ResponseWrapper<ValidatePacketResponse> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_VALIDATE, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
-        ValidatePacketResponse validatePacketResponse = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), ValidatePacketResponse.class);
+        handleErrors(id, response);
+
+        ValidatePacketResponse validatePacketResponse = convert(response.getResponse(), ValidatePacketResponse.class);
 
         return validatePacketResponse;
     }
 
-	public List<FieldResponseDto> getAudits(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public List<FieldResponseDto> getAudits(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         InfoDto fieldDto = new InfoDto(id, source, process, false);
         List<FieldResponseDto> response = new ArrayList<>();
 
-        RequestWrapper<InfoDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<List<FieldResponseDto>> responseObj = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_AUDITS, "", "", request, ResponseWrapper.class);
+        RequestWrapper<InfoDto> request = createRequest(fieldDto);
+        ResponseWrapper<List<FieldResponseDto>> responseObj = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_AUDITS, "", "", request, ResponseWrapper.class);
 
-        if (responseObj.getErrors() != null && responseObj.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(responseObj));
-            ErrorDTO errorDTO = responseObj.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, responseObj);
 
-        for (Object o : responseObj.getResponse()) {
-            FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(o), FieldResponseDto.class);
-            response.add(fieldResponseDto);
+        if (responseObj.getResponse() != null) {
+            for (Object o : responseObj.getResponse()) {
+                FieldResponseDto fieldResponseDto = convert(o, FieldResponseDto.class);
+                response.add(fieldResponseDto);
+            }
         }
 
         return response;
     }
 
-	public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source,
-			String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source,
+                                         String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         BiometricRequestDto fieldDto = new BiometricRequestDto(id, person, modalities, source, process, false);
 
-        RequestWrapper<BiometricRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<BiometricRecord> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, "", "", request, ResponseWrapper.class);
+        RequestWrapper<BiometricRequestDto> request = createRequest(fieldDto);
+        ResponseWrapper<BiometricRecord> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, response);
+
         if (response.getResponse() != null) {
-            BiometricRecord biometricRecord = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), BiometricRecord.class);
+            BiometricRecord biometricRecord = convert(response.getResponse(), BiometricRecord.class);
             return biometricRecord;
         }
         return null;
 
     }
 
-	public Map<String, String> getMetaInfo(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Map<String, String> getMetaInfo(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
-        RequestWrapper<InfoDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO, "", "", request, ResponseWrapper.class);
+        RequestWrapper<InfoDto> request = createRequest(fieldDto);
+        ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_SEARCH_METAINFO, "", "", request, ResponseWrapper.class);
 
         if (CollectionUtils.isNotEmpty(response.getErrors())) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            handleErrors(id, response);
         }
 
-        FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
+        FieldResponseDto fieldResponseDto = convert(response.getResponse(), FieldResponseDto.class);
 
-        return fieldResponseDto.getFields();
+        return fieldResponseDto != null ? fieldResponseDto.getFields() : null;
     }
 
-	public InfoResponseDto info(String id)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public InfoResponseDto info(String id)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
-        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(infoRequestDto);
-        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+        RequestWrapper<InfoRequestDto> request = createRequest(infoRequestDto);
+        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, response);
 
-        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+        InfoResponseDto infoResponseDto = convert(response.getResponse(), InfoResponseDto.class);
 
         return infoResponseDto;
     }
@@ -297,50 +248,24 @@ public class PacketManagerService {
     public void addOrUpdateTags(String id, Map<String, String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         UpdateTagRequestDto updateTagRequestDto = new UpdateTagRequestDto(id, tags);
 
-        RequestWrapper<UpdateTagRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(updateTagRequestDto);
-        ResponseWrapper<Void> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_UPDATE_TAGS, "", "", request, ResponseWrapper.class);
+        RequestWrapper<UpdateTagRequestDto> request = createRequest(updateTagRequestDto);
+        ResponseWrapper<Void> response = (ResponseWrapper) restApi.postApi(
+                ApiName.PACKETMANAGER_UPDATE_TAGS, "", "", request, ResponseWrapper.class);
 
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
+        handleErrors(id, response);
     }
 
-	@SuppressWarnings("unchecked")
-	public void deleteTags(String id, List<String> tags)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
-		RequestWrapper<DeleteTagRequestDTO> request = new RequestWrapper<>();
-		request.setId(ID);
-		request.setVersion(VERSION);
-		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-		request.setRequest(deleteTagREquestDto);
-		ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) restApi
-				.postApi(ApiName.PACKETMANAGER_DELETE_TAGS, "", "",
-				request, ResponseWrapper.class);
+    @SuppressWarnings("unchecked")
+    public void deleteTags(String id, List<String> tags)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+        DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
+        RequestWrapper<DeleteTagRequestDTO> request = createRequest(deleteTagREquestDto);
+        ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) restApi
+                .postApi(ApiName.PACKETMANAGER_DELETE_TAGS, "", "",
+                        request, ResponseWrapper.class);
 
-		if (response.getErrors() != null && response.getErrors().size() > 0) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-		}
-
-
-	}
+        handleErrors(id, response);
+    }
 
     public Map<String, String> getAllTags(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         return getTags(id, null);
@@ -348,36 +273,30 @@ public class PacketManagerService {
 
     public Map<String, String> getTags(String id, List<String> tagNames) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         TagRequestDto tagRequestDto = new TagRequestDto(id, tagNames);
-        RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(tagRequestDto);
+        RequestWrapper<TagRequestDto> request = createRequest(tagRequestDto);
         ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) restApi
                 .postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "",
                         request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-        	ErrorDTO error=response.getErrors().get(0);
+            ErrorDTO error = response.getErrors().get(0);
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    id, JsonUtils.javaObjectToJsonString(response));
+                    id, response.toString());
             //This error code will return if requested tag is not present ,so returning null for that
-            if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
-        		return null;
+            if (error.getErrorCode().equalsIgnoreCase("KER-PUT-024"))
+                return null;
             else {
-                ErrorDTO errorDTO = response.getErrors().iterator().next();
-                if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                    throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-                if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
-                    throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
-                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
+                if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(error.getErrorCode()))
+                    throw new ObjectDoesnotExistsException(error.getErrorCode(), error.getMessage());
+                if (PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(error.getErrorCode()))
+                    throw new PacketManagerNonRecoverableException(error.getErrorCode(), error.getMessage());
+                throw new PacketManagerException(error.getErrorCode(), error.getMessage());
             }
         }
 
         TagResponseDto tagResponseDto = null;
         if (response.getResponse() != null) {
-            tagResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), TagResponseDto.class);
-
+            tagResponseDto = convert(response.getResponse(), TagResponseDto.class);
         }
 
         return tagResponseDto != null ? tagResponseDto.getTags() : null;
