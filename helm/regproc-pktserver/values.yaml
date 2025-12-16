@@ -65,6 +65,7 @@ springServicePort: 8082
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ##
 ## TODO: enable probes once health urls are available
+
 startupProbe:
   enabled: true
   exec:
