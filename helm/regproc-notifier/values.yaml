@@ -80,7 +80,7 @@ startupProbe:
   initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
-  failureThreshold: 90
+  failureThreshold: 30
   successThreshold: 1
 
 livenessProbe:
@@ -104,7 +104,6 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
-
 ##
 # existingConfigmap:
 

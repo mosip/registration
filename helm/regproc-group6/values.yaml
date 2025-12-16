@@ -74,12 +74,12 @@ startupProbe:
   enabled: true
   exec:
     command:
-    - /bin/bash
-    - -c
-    - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - /bin/bash
+      - -c
+      - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 90
-  timeoutSeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
   failureThreshold: 30
   successThreshold: 1
 
@@ -87,12 +87,12 @@ livenessProbe:
   enabled: true
   exec:
     command:
-    - /bin/bash
-    - -c
-    - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - /bin/bash
+      - -c
+      - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 20
-  periodSeconds: 90
-  timeoutSeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
 
@@ -100,15 +100,14 @@ readinessProbe:
   enabled: true
   exec:
     command:
-    - /bin/bash
-    - -c
-    - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - /bin/bash
+      - -c
+      - MY_PROBE_CHECK_PATHS="http://localhost:8087/registrationprocessor/v1/uploader/actuator/health,http://localhost:8092/registrationprocessor/v1/packetclassifier/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
-  periodSeconds: 90
-  timeoutSeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
-
 ##
 # existingConfigmap:
 
