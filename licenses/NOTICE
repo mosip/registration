@@ -94,7 +94,7 @@ Awaitility
 
 Javassist (when used under Apache-2.0 terms)
   Copyright 1999-2024 Shigeru Chiba, All rights reserved
-  License: Apache-2.0 OR LGPL-2.1-or-later OR MPL-1.1
+  License: Apache-2.0 
 
 MVEL2
   Copyright The MVEL Project
@@ -163,7 +163,7 @@ SonarQube Maven Scanner Plugin
 
 Logback (when used under LGPL terms)
   Copyright (C) 1999-2015 QOS.ch
-  License: LGPL-2.1 OR EPL-1.0 (dual-licensed)
+  License: EPL-1.0 (dual-licensed)
 
 
 --------------------------------------------------------------------------------
@@ -172,16 +172,15 @@ CDDL-1.1 / GPL-2.0 with Classpath Exception Components
 
 JAXB API (javax.xml.bind:jaxb-api)
   Copyright (c) 2003-2021 Oracle and/or its affiliates
-  License: CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0
+  License: CDDL-1.1 
 
 JAXB Implementation (com.sun.xml.bind)
   Copyright (c) 1997-2021 Oracle and/or its affiliates
-  License: CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0
+  License: CDDL-1.1 
 
 Java Servlet API
   Copyright (c) 1997-2018 Oracle and/or its affiliates
-  License: CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0
-
+  License: CDDL-1.1 
 
 --------------------------------------------------------------------------------
 Mozilla Public License 2.0 (MPL-2.0) Components
@@ -193,7 +192,7 @@ MOSIP Kernel, Commons, Registration Processor Modules
 
 H2 In-Memory Database (dual-licensed)
   Copyright Thomas Mueller and H2 contributors
-  License: MPL-2.0 OR EPL-1.0
+  License: MPL-2.0 
 
 
 --------------------------------------------------------------------------------
