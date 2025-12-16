@@ -189,7 +189,7 @@ Homepage: https://zipkin.io
 Package: H2 In-Memory Database
 (com.h2database:h2)
 Version: 1.4.195 (from SBOM)
-License: Mozilla Public License 2.0 OR Eclipse Public License 1.0
+License: Eclipse Public License 1.0
 Homepage: https://h2database.com
 ================================================================================
 
@@ -292,7 +292,7 @@ Homepage: https://javax-inject.github.io/javax-inject
 Package: JAXB API
 (javax.xml.bind:jaxb-api)
 Version: 2.3.1 (from SBOM)
-License: CDDL 1.1 OR GPL 2.0 with Classpath Exception
+License: CDDL 1.1 
 Homepage: https://github.com/eclipse-ee4j/jaxb-api
 ================================================================================
 
@@ -300,7 +300,7 @@ Homepage: https://github.com/eclipse-ee4j/jaxb-api
 Package: Java Servlet API
 (javax.servlet:javax.servlet-api)
 Version: 4.0.1 (from SBOM)
-License: CDDL 1.1 OR GPL 2.0 with Classpath Exception
+License: CDDL 1.1 
 Homepage: https://github.com/eclipse-ee4j/servlet-api
 ================================================================================
 
@@ -371,7 +371,7 @@ Homepage: https://bytebuddy.net
 Package: Javassist
 (org.javassist:javassist)
 Version: 3.27.0-GA (from SBOM)
-License: Apache License 2.0 OR LGPL 2.1+ OR MPL 1.1
+License: Apache License 2.0 
 Homepage: https://www.javassist.org
 ================================================================================
 
