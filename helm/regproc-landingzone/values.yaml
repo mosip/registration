@@ -79,7 +79,7 @@ startupProbe:
   httpGet:
     path: /registrationprocessor/v1/landingzone/actuator/health
     port: 8098
-  initialDelaySeconds: 0
+  initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 30

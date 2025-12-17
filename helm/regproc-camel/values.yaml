@@ -78,11 +78,12 @@ startupProbe:
   httpGet:
     path: /registrationprocessor/v1/camelbridge/actuator/health
     port: 8022
-  initialDelaySeconds: 0
+  initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 30
   successThreshold: 1
+
 livenessProbe:
   enabled: true
   httpGet:
@@ -93,6 +94,7 @@ livenessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
+
 readinessProbe:
   enabled: true
   httpGet:
