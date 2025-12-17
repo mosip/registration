@@ -77,7 +77,7 @@ startupProbe:
   httpGet:
     path: /registrationprocessor/v1/registrationstatus/actuator/health
     port: 8083
-  initialDelaySeconds: 180
+  initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 30

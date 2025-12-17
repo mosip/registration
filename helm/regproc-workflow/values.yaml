@@ -78,7 +78,7 @@ startupProbe:
   httpGet:
     path: /registrationprocessor/v1/workflowmanager/actuator/health
     port: 8026
-  initialDelaySeconds: 180
+  initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 30

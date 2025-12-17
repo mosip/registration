@@ -85,7 +85,7 @@ startupProbe:
       if ! [ "$curl_output" = "200" ]; then
         echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i;
       fi;
-  initialDelaySeconds: 180
+  initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 30

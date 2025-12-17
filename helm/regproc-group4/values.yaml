@@ -78,8 +78,8 @@ startupProbe:
     - -c
     - MY_PROBE_CHECK_PATHS="http://localhost:8020/registrationprocessor/v1/bioauth/actuator/health,http://localhost:8091/registrationprocessor/v1/demodedupe/actuator/health"; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then exit 1; fi; done
   initialDelaySeconds: 180
-  periodSeconds: 90
-  timeoutSeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
   failureThreshold: 30
   successThreshold: 1
 
