@@ -77,10 +77,10 @@ startupProbe:
   httpGet:
     path: /registrationprocessor/v1/notification/actuator/health
     port: 8088
-  initialDelaySeconds: 0
+  initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 5
-  failureThreshold: 30
+  failureThreshold: 90
   successThreshold: 1
 
 livenessProbe:
@@ -104,6 +104,7 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
+
 ##
 # existingConfigmap:
 
@@ -134,7 +135,7 @@ resources:
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms540M -Xmx900M"
+  javaOpts: "-Xms540M -Xmx740M"
 
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this

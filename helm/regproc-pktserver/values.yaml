@@ -73,14 +73,18 @@ springServicePort: 8082
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ##
 ## TODO: enable probes once health urls are available
-
 startupProbe:
   enabled: true
   exec:
     command:
-      - /bin/bash
-      - -c
-      - echo "regproc packet server is up !!!" > /home/mosip/landing/healthcheck.txt; url=http://localhost:8082/healthcheck.txt; curl_output="$(curl -w %{http_code} -o /dev/null -s $url)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi;
+    - /bin/bash
+    - -c
+    - echo "regproc packet server is up !!!" > /home/mosip/landing/healthcheck.txt;
+      url=http://localhost:8082/healthcheck.txt;
+      curl_output="$(curl -w %{http_code} -o /dev/null -s $url)";
+      if ! [ "$curl_output" = "200" ]; then
+        echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i;
+      fi;
   initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
@@ -108,6 +112,7 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
+
 ##
 # existingConfigmap:
 

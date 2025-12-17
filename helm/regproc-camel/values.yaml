@@ -83,6 +83,7 @@ startupProbe:
   timeoutSeconds: 5
   failureThreshold: 30
   successThreshold: 1
+
 livenessProbe:
   enabled: true
   httpGet:
@@ -93,6 +94,7 @@ livenessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
   successThreshold: 1
+
 readinessProbe:
   enabled: true
   httpGet:
