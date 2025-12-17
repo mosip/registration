@@ -1752,7 +1752,7 @@ vars.put(&quot;newPath&quot;, path);</stringProp>
           <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="1867782264">&quot;errors&quot; : null</stringProp>
+              <stringProp name="1867782264">&quot;errors&quot;:null</stringProp>
             </collectionProp>
             <stringProp name="Assertion.custom_message"></stringProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
@@ -1953,7 +1953,7 @@ It is controled by &quot;Loop Count&quot; which should be same as number of pack
             <hashTree/>
             <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
-                <stringProp name="1867782264">&quot;errors&quot; : null</stringProp>
+                <stringProp name="1867782264">&quot;errors&quot;:null</stringProp>
               </collectionProp>
               <stringProp name="Assertion.custom_message"></stringProp>
               <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
@@ -2697,7 +2697,7 @@ vars.put(&quot;requestToken&quot;, completeCrypto)
             <hashTree/>
             <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
-                <stringProp name="1867782264">&quot;errors&quot; : null</stringProp>
+                <stringProp name="1867782264">&quot;errors&quot;:null</stringProp>
               </collectionProp>
               <stringProp name="Assertion.custom_message"></stringProp>
               <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
