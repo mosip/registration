@@ -1,0 +1,210 @@
+================================================================================
+COPYRIGHT NOTICES
+================================================================================
+
+This software includes third-party libraries with the following copyright
+notices. All copyright notices must be preserved as required by their
+respective licenses.
+
+MANDATORY COMPLIANCE NOTICE:
+All licenses below REQUIRE that copyright notices be retained in any
+distribution of this software. Failure to include these notices constitutes
+a violation of the respective license terms.
+
+================================================================================
+
+
+--------------------------------------------------------------------------------
+Apache License 2.0 Components
+--------------------------------------------------------------------------------
+
+Spring Framework & Spring Boot
+  Copyright 2002-2024 the original author or authors
+  Copyright (c) 2002-2024 Pivotal, Inc.
+  Copyright (c) 2012-2024 VMware, Inc.
+  License: Apache-2.0
+
+Jackson (FasterXML)
+  Copyright 2007-2023 Tatu Saloranta (tatu.saloranta@iki.fi)
+  License: Apache-2.0
+
+Apache Commons (commons-lang3, commons-io, commons-codec, commons-dbcp2, commons-pool)
+  Copyright 2001-2017 The Apache Software Foundation
+  License: Apache-2.0
+
+Apache HttpComponents (httpclient, httpmime)
+  Copyright 1999-2018 The Apache Software Foundation
+  License: Apache-2.0
+
+Google Guava
+  Copyright The Guava Authors
+  License: Apache-2.0
+
+Byte Buddy
+  Copyright Rafael Winterhalter
+  License: Apache-2.0
+
+Caffeine Cache
+  Copyright Ben Manes
+  License: Apache-2.0
+
+Joda-Time
+  Copyright 2001-2024 Stephen Colebourne
+  License: Apache-2.0
+
+Apache Velocity
+  Copyright 2000-2007 The Apache Software Foundation
+  License: Apache-2.0
+
+Apache Camel
+  Copyright The Apache Software Foundation
+  License: Apache-2.0
+
+Eclipse Vert.x
+  Copyright The Eclipse Foundation and Vert.x contributors
+  License: Apache-2.0
+
+Apache Maven Plugins
+  Copyright The Apache Software Foundation
+  License: Apache-2.0
+
+Micrometer
+  Copyright VMware, Inc.
+  License: Apache-2.0
+
+json-simple
+  Copyright 2006-2009 Yidong Fang
+  License: Apache-2.0
+
+SpringDoc OpenAPI, Springfox Swagger
+  Copyright respective project maintainers
+  License: Apache-2.0
+
+javax.inject
+  Copyright The JSR-330 Expert Group
+  License: Apache-2.0
+
+PowerMock
+  Copyright PowerMock contributors
+  License: Apache-2.0
+
+Awaitility
+  Copyright Johan Haleby
+  License: Apache-2.0
+
+Javassist (when used under Apache-2.0 terms)
+  Copyright 1999-2024 Shigeru Chiba, All rights reserved
+  License: Apache-2.0 
+
+MVEL2
+  Copyright The MVEL Project
+  License: Apache-2.0
+
+
+--------------------------------------------------------------------------------
+MIT License Components
+--------------------------------------------------------------------------------
+
+Project Lombok
+  Copyright (C) 2009-2021 The Project Lombok Authors
+  License: MIT
+
+Mockito
+  Copyright (c) 2007 Mockito contributors
+  License: MIT
+
+SLF4J (Simple Logging Facade for Java)
+  Copyright (c) 2004-2017 QOS.ch
+  License: MIT
+
+
+--------------------------------------------------------------------------------
+Eclipse Public License (EPL-1.0 / EPL-2.0) Components
+--------------------------------------------------------------------------------
+
+JUnit 4
+  Copyright (c) 2002-2020 JUnit contributors
+  License: EPL-1.0
+
+JUnit Jupiter (JUnit 5)
+  Copyright (c) 2015-2024 The JUnit Team
+  License: EPL-2.0
+
+JaCoCo (Java Code Coverage Library)
+  Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
+  License: EPL-2.0
+
+
+--------------------------------------------------------------------------------
+BSD-2-Clause License Components
+--------------------------------------------------------------------------------
+
+PostgreSQL JDBC Driver
+  Copyright (c) 1997, PostgreSQL Global Development Group
+  License: BSD-2-Clause
+
+
+--------------------------------------------------------------------------------
+BSD-3-Clause License Components
+--------------------------------------------------------------------------------
+
+JSch (Java Secure Channel)
+  Copyright (c) 2002-2015 Atsuhiko Yamanaka, JCraft, Inc.
+  License: BSD-3-Clause
+
+
+--------------------------------------------------------------------------------
+GNU LGPL License Components
+--------------------------------------------------------------------------------
+
+SonarQube Maven Scanner Plugin
+  Copyright (C) 2011-2024 SonarSource SA
+  License: LGPL-3.0
+
+Logback (when used under LGPL terms)
+  Copyright (C) 1999-2015 QOS.ch
+  License: EPL-1.0 (dual-licensed)
+
+
+--------------------------------------------------------------------------------
+CDDL-1.1 / GPL-2.0 with Classpath Exception Components
+--------------------------------------------------------------------------------
+
+JAXB API (javax.xml.bind:jaxb-api)
+  Copyright (c) 2003-2021 Oracle and/or its affiliates
+  License: CDDL-1.1 
+
+JAXB Implementation (com.sun.xml.bind)
+  Copyright (c) 1997-2021 Oracle and/or its affiliates
+  License: CDDL-1.1 
+
+Java Servlet API
+  Copyright (c) 1997-2018 Oracle and/or its affiliates
+  License: CDDL-1.1 
+
+--------------------------------------------------------------------------------
+Mozilla Public License 2.0 (MPL-2.0) Components
+--------------------------------------------------------------------------------
+
+MOSIP Kernel, Commons, Registration Processor Modules
+  Copyright (c) 2018-2024 MOSIP (Modular Open Source Identity Platform)
+  License: MPL-2.0
+
+H2 In-Memory Database (dual-licensed)
+  Copyright Thomas Mueller and H2 contributors
+  License: MPL-2.0 
+
+
+--------------------------------------------------------------------------------
+JSON License Components (Special Notice)
+--------------------------------------------------------------------------------
+
+org.json:json
+  Copyright (c) 2002 JSON.org
+  License: JSON License (Public Domain according to upstream GitHub repository)
+  Note: The Maven artifact declares the "JSON License" which includes the
+  "Good, not Evil" clause. The upstream project claims Public Domain status.
+  Review your organization's legal policy regarding this library.
+
+
+================================================================================
