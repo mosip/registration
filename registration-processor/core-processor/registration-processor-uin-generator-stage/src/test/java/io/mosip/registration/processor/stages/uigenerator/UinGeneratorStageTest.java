@@ -242,6 +242,7 @@ public class UinGeneratorStageTest {
 
 	/** The Constant CONFIG_SERVER_URL. */
 	private static final String CONFIG_SERVER_URL = "url";
+	private static final String IDREPO_STATUS = "DRAFTED";
 
 	private String identityMappingjsonString;
 
