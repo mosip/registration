@@ -154,6 +154,7 @@ public class BioDedupeProcessor {
 	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
 
 	public static final String REJECTED = "REJECTED";
+	public static final String MANUAL_VERIFICATION = "MANUAL_VERIFICATION";
 
 
 
@@ -473,7 +474,11 @@ public class BioDedupeProcessor {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_MATCH_FOUND);
 
-					if (REJECTED.equalsIgnoreCase(nonInfantNotAllBiometricExceptionDecision)) {
+					String decision = nonInfantNotAllBiometricExceptionDecision;
+					if (!REJECTED.equalsIgnoreCase(decision) && !MANUAL_VERIFICATION.equalsIgnoreCase(decision)) {
+						decision = REJECTED;
+					}
+					if (REJECTED.equalsIgnoreCase(decision)) {
 						object.setInternalError(Boolean.FALSE);
 						object.setIsValid(Boolean.FALSE);
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.name());

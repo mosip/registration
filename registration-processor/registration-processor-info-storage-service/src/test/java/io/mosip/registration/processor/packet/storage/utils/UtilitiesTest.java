@@ -99,18 +99,24 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 0);
         ReflectionTestUtils.setField(utilities, "expectedPacketProcessingDurationHours", 0);
 
-        InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream("RegistrationProcessorIdentity.json");
-        String identityMappingjsonString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        String identityMappingjsonString;
+        try (InputStream inputStream = getClass().getClassLoader()
+                .getResourceAsStream("RegistrationProcessorIdentity.json")) {
+            assertNotNull("RegistrationProcessorIdentity.json resource not found", inputStream);
+
+        identityMappingjsonString =
+                IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
         ObjectMapper mapper = new ObjectMapper();
         LinkedHashMap jsonMap = mapper.readValue(identityMappingjsonString, LinkedHashMap.class);
 
         LinkedHashMap identityMap = (LinkedHashMap) jsonMap.get("identity");
-
         JSONObject identityObj = new JSONObject(identityMap);
 
-        Mockito.doReturn(identityObj).when(utilities).getRegistrationProcessorMappingJson("identity");
+        Mockito.doReturn(identityObj)
+                .when(utilities)
+                .getRegistrationProcessorMappingJson("identity");
+        }
 
         PowerMockito.mockStatic(Utilities.class);
         PowerMockito.when(Utilities.getJson(anyString(), anyString())).thenReturn(identityMappingjsonString);
@@ -314,10 +320,7 @@ public class UtilitiesTest {
         String dob = "2023/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -329,6 +332,13 @@ public class UtilitiesTest {
         utilities.wasInfantWhenLastPacketProcessed("10049100271000420240319064824", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
+    private JSONObject createIdentityJsonWithDob(String dob) throws IOException, com.fasterxml.jackson.core.JsonProcessingException {
+        Map<String, String> response = new HashMap<>();
+        response.put("dateOfBirth", dob);
+        String jsonString = new ObjectMapper().writeValueAsString(response);
+        return JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+    }
+
     @Test
     public void testWasInfantWhenLastPacketProcessed_returnIdVidMetadata() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
 
@@ -336,10 +346,7 @@ public class UtilitiesTest {
         String dob = "2023/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -362,10 +369,7 @@ public class UtilitiesTest {
         String dob = "2021/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -396,10 +400,7 @@ public class UtilitiesTest {
         String dob = "2023/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -430,10 +431,7 @@ public class UtilitiesTest {
         String dob = "2022/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -461,10 +459,7 @@ public class UtilitiesTest {
         String dob = "2022/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -492,10 +487,7 @@ public class UtilitiesTest {
         ReflectionTestUtils.setField(utilities, "ageLimitBuffer", 3);
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
@@ -558,10 +550,7 @@ public class UtilitiesTest {
         String dob = "2022/01/01";
         Mockito.when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any(ProviderStageName.class)))
                 .thenReturn(uin);
-        Map<String, String> response = new HashMap<>();
-        response.put("dateOfBirth", dob);
-        String jsonString = new ObjectMapper().writeValueAsString(response);
-        JSONObject identityJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
+        JSONObject identityJson = createIdentityJsonWithDob(dob);
         when(idRepoService.getIdJsonFromIDRepo(anyString(), any()))
                 .thenReturn(identityJson);
 
