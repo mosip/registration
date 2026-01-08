@@ -45,7 +45,7 @@ The system determines this using the following fallback sequence:
 
 ---
 
-#### **Fallback Order to Determine Last Interaction Timestamp**
+#### **Fallback Order to Determine Last Interaction DateTime**
 
 ##### a) Use `packetCreatedOn` field from `/idvid` API
 If **_packetCreatedOn_** field available in the `/idvid` response, use it directly.  
