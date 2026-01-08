@@ -87,7 +87,7 @@ If the calculated age is less than the effective age limit, the applicant is con
 
 ---
 
-## 4. Biometric Exception Fallback
+### 4. Biometric Exception Fallback
 If the applicant was **not an infant**, the system checks if **all biometrics are marked as exception**, based on CBEFF biometric data stored in ID Repository.
 
 If **all biometrics are exception**, the packet is forwarded to **Manual Verification (MV)**.  
@@ -95,7 +95,7 @@ MV becomes the final decision-maker for the update.
 
 ---
 
-## 5. Non-Infant and Not All Biometric Exception Scenario
+### 5. Non-Infant and Not All Biometric Exception Scenario
 If:
 - The applicant was **not an infant**
 - The applicant does **not** have all biometrics as exception
@@ -116,12 +116,12 @@ Default: **REJECTED**
 
 ---
 
-## 6. Biometric Match Found
+### 6. Biometric Match Found
 If ABIS returns a **successful match**, the system proceeds with the **normal update flow**.
 
 ---
 
-## Notes
+### Notes
 
 1. If `packetCreatedOn` cannot be determined, the system throws **_PacketDateComputationException_** and sends the packet to the MV stage for manual verification.
 2. If a `BiometricClassificationException` occurs during biometric exception evaluation, the packet is forwarded to MV.
