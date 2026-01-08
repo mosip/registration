@@ -54,10 +54,10 @@ If **_packetCreatedOn_** field available in the `/idvid` response, use it direct
 ---
 
 ##### b) If not available, use `/idvid-metadata/search` API
-This API returns metadata such as:
-- `registrationId`
-- `createdOn`
-- `updatedOn`
+This API returns metadata for the provided UIN such as:
+- `registrationId` : The registrationId associated with the latest interaction of the UIN.
+- `createdOn` : DateTime when the UIN was created.
+- `updatedOn` : DateTime when the UIN was last updated.
 
 Using these, the system performs:
 
@@ -69,9 +69,9 @@ Using these, the system performs:
    - **_registrationId_** is used to determine the last interaction date. Example: _100183015603789**20240729070828**_ where last 14 digits represent the packetCreatedOn in **yyyyMMddHHmmss**.
 
 3. **If unable to obtain from registrationId, approximate using createdOn/updatedOn**  
-   **_createdOn_** or **_updatedOn_** are used to determine the last interaction. As the createdOn and updatedOn are the time when the UIN is created or updated respectively, includes the processing time taken for the packet i.e. equals to **packetCreatedOn** + **processing time**. In order to approximately determine the last interaction, following configuration is introduced:<br>
+   **_createdOn_** or **_updatedOn_** are used to determine the last interaction. As the createdOn and updatedOn are the time when the UIN is created or updated respectively, includes the processing time taken for the packet i.e. equals to **packetCreatedOn** + **processing time**. In order to approximately determine the last interaction, following configuration is introduced:<br><br>
    **_registration.processor.expected-packet-processing-duration_** : This configuration holds the expected maximum duration taken for processing a packet in hours. This value is subtracted from createdOn or updatedOn to approximately determine the last interaction date. By default, this value is set to 0. The approximate packetCreatedOn is determined as follows:<br>
-   ```packetCreatedOn = createdOn/updatedOn - expected-packet-processing-duration (in hours)```<br>
+   ```packetCreatedOn = createdOn/updatedOn - expected-packet-processing-duration (in hours)```<br><br>
    **Note :** This property is kept for considering the time taken for processing the packet as createdOn and updatedOn includes that time. Country can configure this property based on their requirements.
 ---
 
@@ -82,8 +82,8 @@ Using these, the system performs:
 
 ### Step 4 — Compare Against Effective Age Limit
 If the calculated age is less than the effective age limit, the applicant is considered an infant during last interaction. The effective age limit is obtained as given below:<br>
-```effective age limit = configured age limit (mosip.kernel.applicant.type.age.limit) + age limit buffer (registration.processor.applicant.type.age.limit.buffer)```<br>
-**Note : **_registration.processor.applicant.type.age.limit.buffer_** is introduced to provide some buffer over the configured age limit to handle edge case scenarios in age calculation. Increasing this value provides a safety margin for age calculations near the eligibility boundary. By default, this value is set to 0.
+```effective age limit = configured age limit (mosip.kernel.applicant.type.age.limit) + age limit buffer (registration.processor.applicant.type.age.limit.buffer)```<br><br>
+**Note :** **_registration.processor.applicant.type.age.limit.buffer_** is introduced to provide some buffer over the configured age limit to handle edge case scenarios in age calculation. Increasing this value provides a safety margin for age calculations near the eligibility boundary. By default, this value is set to 0.
 
 ---
 
