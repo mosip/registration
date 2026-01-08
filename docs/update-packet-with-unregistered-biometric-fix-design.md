@@ -189,7 +189,7 @@ sequenceDiagram
             Note over RP,RP: STEP 5 : Non-Infant and Not All Biometric Exception Scenario
             RP->>RP: Read config <Br> mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision
             alt Decision = REJECTED
-                RP-->>RC: Reject update packet
+                RP->>RP: Reject update packet
             else Decision = MANUAL_VERIFICATION
                 RP->>MV: Send to Manual Verification
             end
