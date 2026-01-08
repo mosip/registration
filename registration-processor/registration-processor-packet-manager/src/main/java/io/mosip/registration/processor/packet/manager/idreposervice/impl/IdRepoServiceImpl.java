@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.mosip.registration.processor.core.http.RequestWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
+import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -194,4 +195,50 @@ public class IdRepoServiceImpl implements IdRepoService {
 
 		return responseDTO;
 	}
+
+	@Override
+	public IdVidMetadataResponse searchIdVidMetadata(IdVidMetadataRequest idVidMetadataRequest) throws IOException, ApisResourceAccessException{
+
+		IdVidMetadataResponse idVidMetadataResponse = null;
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(),
+				"", "IdRepoServiceImpl::searchIdVidMetadata()::entry");
+
+		RequestWrapper<IdVidMetadataRequest> requestWrapper = new RequestWrapper<>();
+		requestWrapper.setId("mosip.idrepo.idvid.metadata");
+		requestWrapper.setVersion("1.0");
+		requestWrapper.setRequest(idVidMetadataRequest);
+
+		// Call the API and get the response wrapped in ResponseWrapper
+		@SuppressWarnings("unchecked")
+		ResponseWrapper<IdVidMetadataResponse> response = (ResponseWrapper<IdVidMetadataResponse>) restClientService.postApi(
+				ApiName.IDREPOIDVIDMETADATASEARCH,
+				null,
+				null,
+				null,
+				requestWrapper,
+				ResponseWrapper.class
+		);
+
+		// Check if the response contains errors
+		if (response == null || response.getResponse() == null
+				|| (response.getErrors() != null && !response.getErrors().isEmpty())) {
+			String errors = (response == null) ? "null" : String.valueOf(response.getErrors());
+			regProcLogger.error("IDRepo returned null/errored response. Errors: " + errors);
+			return null;
+		} else {
+			// Successfully received response, process the idVidMetadataResponse
+			idVidMetadataResponse = mapper.readValue(mapper.writeValueAsString(response.getResponse()), IdVidMetadataResponse.class);
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), idVidMetadataResponse.getRid(),
+					"idVidMetadataResponse fetched successfully");
+		}
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(),
+				"", "IdRepoServiceImpl::searchIdVidMetadata()::exit");
+
+		return idVidMetadataResponse;
+	}
+
 }
