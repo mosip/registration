@@ -140,14 +140,14 @@ sequenceDiagram
     participant MV as Manual Verification
 
     RC->>RP: Submit Update Packet
+    Note over RP,RP: STEP 1 : Identify Update Packet
     RP->>RP: Identify registrationType == UPDATE
-
-    RP->>RP: Execute Bio-Dedupe Stage
+    
+    Note over RP,RP: STEP 2 : Biometric Match Check
     RP->>ABIS: Perform biometric match
     ABIS-->>RP: No Match Found
 
-    RP->>RP: Check Infant Scenario
-
+    Note over RP,RP: STEP 3 : Check Infant Scenario
     RP->>IDR: Fetch DOB
     IDR-->>RP: Date of Birth
 
@@ -181,10 +181,12 @@ sequenceDiagram
         RP->>RP: Allow biometric update
         RP->>RP: Continue normal update flow
     else Applicant not Infant
+        Note over RP,RP: STEP 4 : Biometric Exception Fallback
         RP->>IDR: Fetch biometric exception status (CBEFF)
         alt All biometrics are exception
             RP->>MV: Send to Manual Verification
         else Not all biometrics exception
+            Note over RP,RP: STEP 5 : Non-Infant and Not All Biometric Exception Scenario
             RP->>RP: Read config <Br> mosip.regproc.bio.dedupe.non-infant-not-all-biometric-exception-decision
             alt Decision = REJECTED
                 RP-->>RC: Reject update packet
@@ -195,6 +197,7 @@ sequenceDiagram
     end
 
     alt ABIS Match Found
+        Note over RP,RP: STEP 6 : Biometric Match Found
         ABIS-->>RP: Match Success
         RP->>RP: Proceed with normal update flow
     end
