@@ -35,7 +35,7 @@ To determine this:
 ---
 
 ### Step 1 — Fetch Date of Birth (DOB)
-- Retrieve **date of birth** from the ID Repository for the UIN.
+Retrieve **date of birth** from the ID Repository for the UIN.
 
 ---
 
