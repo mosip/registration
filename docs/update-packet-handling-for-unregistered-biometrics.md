@@ -1,4 +1,4 @@
-# Update Packet With Unregistered Biometric Fix — Design
+# Update Packet Handling for Unregistered Biometrics
 
 ## Overview
 This document describes the design changes implemented in the MOSIP Registration Processor to correctly handle **update packets** where the biometric data is **not found in ABIS** (i.e., no biometric match exists for the UIN holder).
