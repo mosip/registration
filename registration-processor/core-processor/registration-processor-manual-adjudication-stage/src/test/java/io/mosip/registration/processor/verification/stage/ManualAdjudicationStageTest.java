@@ -134,7 +134,7 @@ public class ManualAdjudicationStageTest {
 		ReflectionTestUtils.setField(manualverificationstage, "mosipConnectionFactory", mosipConnectionFactory);
 		ReflectionTestUtils.setField(manualverificationstage, "mosipQueueManager", mosipQueueManager);
 		//ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
-		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(manualverificationstage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(manualverificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");
 		List<String> trustedPackageList=new ArrayList();

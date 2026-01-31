@@ -61,10 +61,6 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
@@ -102,7 +98,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 * deploys this verticle.
 	 */
 	public void deployVerticle() {
-		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 	}
 
 	/** The env. */

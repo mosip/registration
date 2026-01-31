@@ -93,10 +93,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflow-manager.internal.action.server.port}")
 	private String port;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	@Value("${mosip.regproc.workflow-manager.internal.action.eventbus.port}")
 	private String eventBusPort;
 
@@ -147,7 +143,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consume(mosipEventBus, MessageBusAddress.WORKFLOW_INTERNAL_ACTION_ADDRESS, 0);
 	}
 

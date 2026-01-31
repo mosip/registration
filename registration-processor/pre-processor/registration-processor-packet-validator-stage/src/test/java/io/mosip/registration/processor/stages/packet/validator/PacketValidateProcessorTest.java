@@ -223,7 +223,7 @@ public class PacketValidateProcessorTest {
 		hashsequence2.setValue(sequence2);
 		fieldValueArrayListSequence.add(hashsequence2);
 		PowerMockito.mockStatic(JsonUtil.class);
-		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(true);
+		Mockito.when(packetValidator.validate(any(), any(), any(), any())).thenReturn(true);
 		Mockito.doNothing().when(auditUtility).saveAuditDetails(anyString(), anyString());
 		
 		MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDTO = new MainResponseDTO<>();
@@ -299,7 +299,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationFailureTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		registrationStatusDto.setRetryCount(1);
-		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
+		Mockito.when(packetValidator.validate(any(), any(), any(), any())).thenReturn(false);
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
 		assertFalse(object.getIsValid());
 		assertFalse(object.getInternalError());
@@ -341,7 +341,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationAPIResourceExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		ApisResourceAccessException exc=new ApisResourceAccessException("Ex");
-		Mockito.when(packetValidator.validate(any(),any(), any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(), any())).thenThrow(exc);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
@@ -352,7 +352,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationIOExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		IOException exc=new IOException("Ex");
-		Mockito.when(packetValidator.validate(any(),any(), any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(), any())).thenThrow(exc);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION)).thenReturn("ERROR");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);
@@ -363,7 +363,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationBaseCheckedExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		RegistrationProcessorCheckedException exc=new RegistrationProcessorCheckedException("", "", new RegistrationProcessorCheckedException("", ""));
-		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(), any())).thenThrow(exc);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION)).thenReturn("ERROR");
 		MessageDTO object = packetValidateProcessor.process(messageDTO, stageName);

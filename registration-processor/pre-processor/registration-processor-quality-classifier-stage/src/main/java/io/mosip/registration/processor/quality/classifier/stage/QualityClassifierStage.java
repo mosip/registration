@@ -100,10 +100,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/**
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
@@ -186,7 +182,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	private void generateParsedQualityRangeMap() {
 		parsedQualityRangeMap = new HashMap<>();
 		//If maxPoolSize is not provided then ForkJoinPool will be created with workerPoolSize, so that each work thread utilizes one thread from pool for task execution i.e. equivalent to execute task sequentially inside a worker thread.
-		forkJoinPool = new ForkJoinPool((maxPoolSize > 0 ? maxPoolSize : workerPoolSize));
+		forkJoinPool = new ForkJoinPool((maxPoolSize > 0 ? maxPoolSize : getWorkerPoolSize()));
 		for (Map.Entry<String, String> entry : qualityClassificationRangeMap.entrySet()) {
 			String[] range = entry.getValue().split(RANGE_DELIMITER);
 			int[] rangeArray = new int[2];
@@ -200,7 +196,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
 				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
 	}

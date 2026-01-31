@@ -22,6 +22,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -179,8 +180,9 @@ public class AbisMiddleWareStageTest {
 	@Before
 	public void setUp() throws RegistrationProcessorCheckedException {
 		MockitoAnnotations.openMocks(this);
+		ReflectionTestUtils.setField(stage, "environment", new StandardEnvironment());
 		ReflectionTestUtils.setField(stage, "messageFormat", "byte");
-		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(stage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();

@@ -195,11 +195,14 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			setPacketCreatedDateTime(registrationStatusDto);
+			// Fetch metaInfo once and reuse for setPacketCreatedDateTime, validate (biometricsXSDValidation), and reverseDataSync
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			setPacketCreatedDateTime(registrationStatusDto, metaInfo);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
-						registrationStatusDto.getRegistrationType(), packetValidationDto);
+						registrationStatusDto.getRegistrationType(), packetValidationDto, metaInfo);
 
 				if (isValid) {
 					// save audit details
@@ -223,9 +226,9 @@ public class PacketValidateProcessor {
 							.setStatusComment(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getMessage());
 					registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getCode());
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-					// ReverseDataSync
+					// ReverseDataSync (reuse metaInfo to avoid second getMetaInfo call)
 					reverseDataSync(registrationId, registrationStatusDto.getRegistrationType(), description,
-							packetValidationDto);
+							packetValidationDto, metaInfo);
 
 					packetValidationDto.setTransactionSuccessful(true);
 					description.setMessage(
@@ -464,10 +467,12 @@ public class PacketValidateProcessor {
 	}
 
 
-	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto, Map<String, String> metaInfo) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		try {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
-					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			if (metaInfo == null) {
+				metaInfo = packetManagerService.getMetaInfo(
+						registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			}
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
 			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
@@ -503,11 +508,12 @@ public class PacketValidateProcessor {
 
 	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,
-			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
+			PacketValidationDto packetValidationDto, Map<String, String> metaInfoMap) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+		if (metaInfoMap == null) {
+			metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+		}
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);
