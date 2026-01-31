@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
@@ -181,7 +182,8 @@ public class QualityClassifierStageTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(qualityClassifierStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(qualityClassifierStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(qualityClassifierStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(qualityClassifierStage, "maxPoolSize", 10);
 		ReflectionTestUtils.setField(qualityClassifierStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(qualityClassifierStage, "messageExpiryTimeLimit", Long.valueOf(0));
