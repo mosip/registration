@@ -82,7 +82,7 @@ public class PacketValidatorImpl implements PacketValidator {
     private ApplicantDocumentValidation applicantDocumentValidation;
 
     @Override
-    public boolean validate(String id, String process, PacketValidationDto packetValidationDto)
+    public boolean validate(String id, String process, PacketValidationDto packetValidationDto, Map<String, String> metaInfo)
             throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException,
             JsonProcessingException, PacketManagerException {
         String uin = null;
@@ -163,7 +163,7 @@ public class PacketValidatorImpl implements PacketValidator {
                 }
             }
 
-            if (!biometricsXSDValidation(id, process, packetValidationDto)) {
+            if (!biometricsXSDValidation(id, process, packetValidationDto, metaInfo)) {
                 return false;
             }
         } catch(PacketManagerNonRecoverableException e){
@@ -186,15 +186,16 @@ public class PacketValidatorImpl implements PacketValidator {
         return packetValidationDto.isValid();
     }
 
-    private boolean biometricsXSDValidation(String id, String process, PacketValidationDto packetValidationDto)
+    private boolean biometricsXSDValidation(String id, String process, PacketValidationDto packetValidationDto, Map<String, String> metaInfoMap)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
             RegistrationProcessorCheckedException, JSONException {
         List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
                 MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
                 MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 
-        Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-                ProviderStageName.PACKET_VALIDATOR);
+        if (metaInfoMap == null) {
+            metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+        }
 
         for (String field : fields) {
             BiometricRecord biometricRecord = null;

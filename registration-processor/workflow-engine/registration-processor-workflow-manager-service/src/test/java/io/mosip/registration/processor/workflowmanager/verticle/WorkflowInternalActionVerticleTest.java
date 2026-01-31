@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -186,7 +187,8 @@ public class WorkflowInternalActionVerticleTest {
 	@Test
 	public void testDeployVerticle() {
 
-		ReflectionTestUtils.setField(workflowInternalActionVerticle, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "defaultMaxAllowedIteration", 5);
 		workflowInternalActionVerticle.deployVerticle();

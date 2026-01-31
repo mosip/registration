@@ -115,7 +115,7 @@ public class BioDedupeStageTest {
 	 */
 	@Test
 	public void testDeployVerticle() {
-		ReflectionTestUtils.setField(bioDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(bioDedupeStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(bioDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(bioDedupeStage, "tracing", Mockito.mock(Tracing.class));
@@ -133,7 +133,7 @@ public class BioDedupeStageTest {
 	
 	@Test
 	public void testStart() {
-		ReflectionTestUtils.setField(bioDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(bioDedupeStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(bioDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
 		

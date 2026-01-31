@@ -90,10 +90,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	@Value("${mosip.regproc.biometric.extraction.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 	
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-	
 	/**partner policy ids */
 	@Value("${biometric.extraction.default.partner.policy.ids}")
 	private String partnerPolicyIdsJson;
@@ -135,7 +131,7 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN,
 				MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_OUT, messageExpiryTimeLimit);
 	}

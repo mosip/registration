@@ -109,10 +109,6 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	@Autowired
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.credentialrequestor.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -163,7 +159,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_IN, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_OUT,
 				messageExpiryTimeLimit);
 	}

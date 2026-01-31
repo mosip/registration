@@ -5,6 +5,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
 
@@ -19,6 +20,7 @@ import org.springframework.core.env.Environment;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
@@ -154,7 +156,7 @@ public class ValidatorConfig {
 					"loading reference validator", "");
 			return new PacketValidator() {
 				@Override
-				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
+				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto, Map<String, String> metaInfo) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
 					return true;
 				}
 			};

@@ -265,7 +265,7 @@ public class UinGeneratorStageTest {
 
 	@Before
 	public void setup() throws Exception {
-		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(uinGeneratorStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(uinGeneratorStage, "updateInfo", "phone");
