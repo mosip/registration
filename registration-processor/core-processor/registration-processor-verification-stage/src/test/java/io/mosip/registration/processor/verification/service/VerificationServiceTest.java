@@ -34,8 +34,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.ArgumentCaptor;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import io.mosip.kernel.core.util.JsonUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -92,6 +96,7 @@ import io.mosip.registration.processor.verification.util.SaveVerificationRecordU
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
+@PrepareForTest(JsonUtils.class)
 public class VerificationServiceTest {
 
 	private static final String STAGE_NAME = "VerificationStage";
@@ -539,8 +544,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testSuccessFlowWhenManualVerificationRejectedShouldSetRejectedStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+	public void testSuccessFlowWhenManualVerificationRejectedShouldSetRejectedStatus() throws Exception {
 
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("{}");
+		Mockito.when(basePacketRepository.getVerificationRecordByRequestId(resp.getRequestId())).thenReturn(entities);
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 		String response = objectMapper.writeValueAsString(resp);
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
@@ -559,8 +567,11 @@ public class VerificationServiceTest {
 	}
 
 	@Test
-	public void testSuccessFlowWhenManualVerificationApprovedShouldSetSuccessStatus() throws com.fasterxml.jackson.core.JsonProcessingException {
+	public void testSuccessFlowWhenManualVerificationApprovedShouldSetSuccessStatus() throws Exception {
 
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("{}");
+		Mockito.when(basePacketRepository.getVerificationRecordByRequestId(resp.getRequestId())).thenReturn(entities);
 		Mockito.when(basePacketRepository.getAssignedVerificationRecord(anyString(), anyString())).thenReturn(entities);
 		String response = objectMapper.writeValueAsString(resp);
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
