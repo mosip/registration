@@ -135,10 +135,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 	
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.abis.middleware.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -168,7 +164,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		try {
-			mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+			mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 			this.consume(mosipEventBus, MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN, messageExpiryTimeLimit);
 			abisQueueDetails = utility.getAbisQueueDetails();
 			for (AbisQueueDetails abisQueue : abisQueueDetails) {

@@ -48,10 +48,6 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size is the maximum number of worker threads that will be used by the Vert.x instance */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	@Value("${mosip.regproc.packet.classifier.eventbus.port}")
 	private String eventBusPort;
 
@@ -66,7 +62,7 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	 * Deploys the vertx verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_CLASSIFIER_BUS_IN,
 				MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
 	}

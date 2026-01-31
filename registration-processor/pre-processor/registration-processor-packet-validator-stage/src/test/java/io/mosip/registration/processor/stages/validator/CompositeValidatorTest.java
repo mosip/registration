@@ -35,8 +35,8 @@ public class CompositeValidatorTest {
 	 
 	 @Test
 	 public void validateTest() throws ApisResourceAccessException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException, IOException {
-		 Mockito.when(packetValidatorImpl.validate(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
-		 Mockito.when(referenceValidatorImpl.validate(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
+		 Mockito.when(packetValidatorImpl.validate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
+		 Mockito.when(referenceValidatorImpl.validate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		 assertTrue(compositePacketValidator.validate("1234", "NEW", new PacketValidationDto()));
 	 }
 	 	

@@ -70,12 +70,6 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	private String clusterManagerUrl;
 
 	/**
-	 * worker pool size.
-	 */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
-	/**
 	 * The mosip event bus.
 	 */
 	private MosipEventBus mosipEventBus;
@@ -120,7 +114,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
 				MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageExpiryTimeLimit);
 	}

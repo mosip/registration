@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -115,7 +116,8 @@ public class PacketReceiverStageTest {
 
 	@Before
 	public void setup() throws IOException, io.mosip.kernel.core.exception.IOException {
-		ReflectionTestUtils.setField(packetReceiverStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(packetReceiverStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(packetReceiverStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(packetReceiverStage, "clusterManagerUrl", "/dummyPath");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
