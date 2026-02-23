@@ -116,13 +116,32 @@ public class DeviceValidator {
 	 */
 	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
 			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
+		validate(regOsi, process, registrationId, null);
+	}
+
+	/**
+	 * Checks if is device active. Uses passed metaInfo when available to reduce packet manager calls.
+	 *
+	 * @param regOsi                the regOsi dto
+	 * @param process
+	 * @param registrationId
+	 * @param metaInfo              optional pre-fetched meta info; when null, fetched on demand
+	 * @throws IOException
+	 * @throws JsonProcessingException
+	 * @throws BaseCheckedException,                               ApisResourceAccessException
+	 * @throws JSONException
+	 * @throws com.fasterxml.jackson.databind.JsonMappingException
+	 * @throws com.fasterxml.jackson.core.JsonParseException
+	 */
+	public void validate(RegOsiDto regOsi, String process, String registrationId, Map<String, String> metaInfo) throws JsonProcessingException,
+			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
 					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-				String value = getOperationsDataFromMetaInfo(registrationId, process, field);
+				String value = getOperationsDataValue(registrationId, process, field, metaInfo);
 				if (value != null && !value.isEmpty()) {
 					BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, field, process,
 							ProviderStageName.CMD_VALIDATOR);
@@ -133,26 +152,24 @@ public class DeviceValidator {
 					validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
 				}
 			} else {
-				String value = packetManagerService.getField(registrationId, field, process,
-						ProviderStageName.PACKET_VALIDATOR);
-				if (value != null && !value.isEmpty()) {
-					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-							field, process, ProviderStageName.CMD_VALIDATOR);
-					if (biometricRecord == null)
-						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
-								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
-										+ " --> Biometrics not found for field " + field);
-					validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
-				}
+				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
+						field, process, ProviderStageName.CMD_VALIDATOR);
+				if (biometricRecord == null)
+					throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+							StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
+									+ " --> Biometrics not found for field " + field);
+				validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
 			}
 		}
 	}
 
-	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
+	private String getOperationsDataValue(String id, String process, String fileName, Map<String, String> metaInfo)
 			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
 			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+		Map<String, String> metaInfoMap = metaInfo;
+		if (metaInfoMap == null) {
+			metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+		}
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {
