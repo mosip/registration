@@ -152,6 +152,9 @@ public class DeviceValidator {
 					validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
 				}
 			} else {
+				String value = packetManagerService.getField(registrationId, field, process,
+						ProviderStageName.PACKET_VALIDATOR);
+				if (value != null && !value.isEmpty()) {
 				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
 						field, process, ProviderStageName.CMD_VALIDATOR);
 				if (biometricRecord == null)
@@ -161,6 +164,7 @@ public class DeviceValidator {
 				validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
 			}
 		}
+	}
 	}
 
 	private String getOperationsDataValue(String id, String process, String fileName, Map<String, String> metaInfo)
