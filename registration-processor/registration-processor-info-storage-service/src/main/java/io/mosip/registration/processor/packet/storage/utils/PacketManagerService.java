@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -20,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -79,6 +81,9 @@ public class PacketManagerService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private Environment env;
+
     @PostConstruct
     private void setObjectMapper() {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -88,17 +93,20 @@ public class PacketManagerService {
     /**
      * Optimized WebClient POST API with minimal changes
      */
-    private <T> T postApi(String uri, Object requestObject, Class<T> responseClass) throws ApisResourceAccessException {
+    private <T> T postApi(ApiName apiName, Object requestObject, Class<T> responseClass) throws ApisResourceAccessException {
         try {
+            String uri = env.getProperty(apiName.toString());
             regProcLogger.info(SESSION_ID, APPLICATION_ID, APPLICATION_ID, uri);
-            return webClient.post()
-                    .uri(uri)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(requestObject)
-                    .retrieve()
-                    .bodyToMono(responseClass)
-                    .timeout(Duration.ofMillis(REQUEST_TIMEOUT_MS))
-                    .block();
+            if (uri!=null){
+                return webClient.post()
+                        .uri(uri)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(requestObject)
+                        .retrieve()
+                        .bodyToMono(responseClass)
+                        .timeout(Duration.ofMillis(REQUEST_TIMEOUT_MS))
+                        .block();
+            }
         } catch (WebClientResponseException e) {
             regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID,
                     e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -108,6 +116,7 @@ public class PacketManagerService {
                     e.getMessage() + ExceptionUtils.getStackTrace(e));
             throw e;
         }
+        return null;
     }
 
     /**
@@ -136,7 +145,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_FIELD.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_FIELD, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -157,7 +166,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -180,7 +189,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<Document> response = postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<Document> response = postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -198,7 +207,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<ValidatePacketResponse> response = postApi(ApiName.PACKETMANAGER_VALIDATE.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<ValidatePacketResponse> response = postApi(ApiName.PACKETMANAGER_VALIDATE, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -218,7 +227,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<List<FieldResponseDto>> responseObj = postApi(ApiName.PACKETMANAGER_SEARCH_AUDITS.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<List<FieldResponseDto>> responseObj = postApi(ApiName.PACKETMANAGER_SEARCH_AUDITS, request, ResponseWrapper.class);
 
         handleErrorResponse(responseObj, id);
 
@@ -241,7 +250,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<BiometricRecord> response = postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<BiometricRecord> response = postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -262,7 +271,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(fieldDto);
-        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<FieldResponseDto> response = postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO, request, ResponseWrapper.class);
 
         if (CollectionUtils.isNotEmpty(response.getErrors())) {
             regProcLogger.error(SESSION_ID, REGISTRATION_ID, id, JsonUtils.javaObjectToJsonString(response));
@@ -296,7 +305,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(infoRequestDto);
-        ResponseWrapper<InfoResponseDto> response = postApi(ApiName.PACKETMANAGER_INFO.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<InfoResponseDto> response = postApi(ApiName.PACKETMANAGER_INFO, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
 
@@ -324,7 +333,7 @@ public class PacketManagerService {
         request.setVersion(VERSION);
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(updateTagRequestDto);
-        ResponseWrapper<Void> response = postApi(ApiName.PACKETMANAGER_UPDATE_TAGS.toString(), request, ResponseWrapper.class);
+        ResponseWrapper<Void> response = postApi(ApiName.PACKETMANAGER_UPDATE_TAGS, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
     }
@@ -339,7 +348,7 @@ public class PacketManagerService {
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(deleteTagREquestDto);
         ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) postApi(
-                ApiName.PACKETMANAGER_DELETE_TAGS.toString(), request, ResponseWrapper.class);
+                ApiName.PACKETMANAGER_DELETE_TAGS, request, ResponseWrapper.class);
 
         handleErrorResponse(response, id);
     }
@@ -356,7 +365,7 @@ public class PacketManagerService {
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(tagRequestDto);
         ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) postApi(
-                ApiName.PACKETMANAGER_GET_TAGS.toString(), request, ResponseWrapper.class);
+                ApiName.PACKETMANAGER_GET_TAGS, request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
             ErrorDTO error = response.getErrors().get(0);
