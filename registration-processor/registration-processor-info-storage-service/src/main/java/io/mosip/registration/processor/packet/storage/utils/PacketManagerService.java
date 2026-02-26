@@ -56,6 +56,7 @@ import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
+import reactor.core.publisher.Mono;
 
 @Component
 public class PacketManagerService {
@@ -122,7 +123,47 @@ public class PacketManagerService {
                 throw new ApisResourceAccessException(errorMsg);
             }
 
-            regProcLogger.info(SESSION_ID, APPLICATION_ID, APPLICATION_ID, uri);
+            regProcLogger.info("Calling API: " + uri);
+
+            // FIX: Remove ALL .onStatus() handlers for successful responses
+            // WebClient automatically accepts 2xx without special handling
+            return webClient.post()
+                    .uri(uri)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestObject)
+                    .retrieve()
+                    // ONLY handle 4xx and 5xx errors
+                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .flatMap(body -> {
+                                        String errorMsg = "HTTP " + clientResponse.statusCode() +
+                                                " - " + clientResponse.toString() + ": " + body;
+                                        regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID,
+                                                "Error response: " + errorMsg);
+                                        return Mono.error(new ApisResourceAccessException(errorMsg));
+                                    }))
+                    .bodyToMono(responseClass)
+                    .timeout(Duration.ofMillis(REQUEST_TIMEOUT_MS))
+                    .onErrorMap(ex -> {
+                        // Don't wrap ApisResourceAccessException again
+                        if (ex instanceof ApisResourceAccessException) {
+                            return ex;
+                        }
+                        // Handle timeout
+                        if (ex instanceof TimeoutException) {
+                            return new ApisResourceAccessException("Request timeout after " + REQUEST_TIMEOUT_MS + "ms", ex);
+                        }
+                        // Handle WebClientResponseException (should not happen with above logic)
+                        if (ex instanceof WebClientResponseException) {
+                            WebClientResponseException wex = (WebClientResponseException) ex;
+                            return new ApisResourceAccessException("WebClient error: " + wex.getMessage(), ex);
+                        }
+                        return new ApisResourceAccessException("Unexpected error: " + ex.getMessage(), ex);
+                    })
+                    .block();
+
+           /* regProcLogger.info(SESSION_ID, APPLICATION_ID, APPLICATION_ID, uri);
 
             // FIX: Simplified - WebClient automatically treats 2xx as success
             // Only handle error status codes (4xx, 5xx)
@@ -141,7 +182,7 @@ public class PacketManagerService {
                                                     ": " + body)))
                     .bodyToMono(responseClass)
                     .timeout(Duration.ofMillis(REQUEST_TIMEOUT_MS))
-                    .block();
+                    .block();*/
 
         } catch (ApisResourceAccessException e) {
             regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID,
