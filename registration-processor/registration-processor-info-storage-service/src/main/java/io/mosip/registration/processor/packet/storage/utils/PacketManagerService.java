@@ -70,7 +70,6 @@ public class PacketManagerService {
     private static final String APPLICATION_ID = LoggerFileConstant.APPLICATIONID.toString();
     private static final String REGISTRATION_ID = LoggerFileConstant.REGISTRATIONID.toString();
 
-    // ISSUE #1: Timer creates new thread for each cache entry - memory leak!
     private final Map<String, CacheEntryWithTimestamp> infoCache = new ConcurrentHashMap<>();
     private static final long INFO_CACHE_TTL_MS = 5000; // 5 second TTL
 
@@ -108,10 +107,8 @@ public class PacketManagerService {
     }
 
     /**
-     * Optimized WebClient POST API with proper error handling
-     * ISSUE #2 FIXED: Added null check for uri before calling webClient
-     * ISSUE #3 FIXED: Added timeout exception handling
-     * ISSUE #4 FIXED: Proper exception throwing without returning null
+     * FIX: Removed .onStatus() handler - WebClient automatically handles 2xx as success
+     * Only use .onStatus() if you need special handling for specific status codes
      */
     private <T> T postApi(ApiName apiName, Object requestObject, Class<T> responseClass)
             throws ApisResourceAccessException, IOException {
@@ -119,7 +116,6 @@ public class PacketManagerService {
         try {
             uri = env.getProperty(apiName.name());
 
-            // ISSUE #2: Check if URI is configured
             if (uri == null) {
                 String errorMsg = "API endpoint not configured for: " + apiName.toString();
                 regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID, errorMsg);
@@ -128,16 +124,21 @@ public class PacketManagerService {
 
             regProcLogger.info(SESSION_ID, APPLICATION_ID, APPLICATION_ID, uri);
 
+            // FIX: Simplified - WebClient automatically treats 2xx as success
+            // Only handle error status codes (4xx, 5xx)
             return webClient.post()
                     .uri(uri)
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .bodyValue(requestObject)
                     .retrieve()
-                    .onStatus(status -> !status.is2xxSuccessful(),
+                    // Only handle error responses (4xx, 5xx)
+                    .onStatus(status -> status.isError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
                                     .map(body -> new ApisResourceAccessException(
-                                            "HTTP " + clientResponse.statusCode() + ": " + body)))
+                                            "HTTP " + clientResponse.statusCode() +
+                                                    " - " + clientResponse.logPrefix() +
+                                                    ": " + body)))
                     .bodyToMono(responseClass)
                     .timeout(Duration.ofMillis(REQUEST_TIMEOUT_MS))
                     .block();
@@ -148,7 +149,8 @@ public class PacketManagerService {
             throw e;
         } catch (WebClientResponseException e) {
             regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID,
-                    "WebClient error for " + apiName + ": " + e.getMessage() + ExceptionUtils.getStackTrace(e));
+                    "WebClient error for " + apiName + ": " + e.getRawStatusCode() +
+                            " - " + e.getStatusText() + " - " + e.getResponseBodyAsString());
             throw new ApisResourceAccessException(e.getMessage(), e);
         } catch (Exception e) {
             regProcLogger.error(SESSION_ID, APPLICATION_ID, APPLICATION_ID,
@@ -159,13 +161,11 @@ public class PacketManagerService {
 
     /**
      * Optimized error handling
-     * ISSUE #5: Added JsonProcessingException to throws clause
      */
     private void handleErrorResponse(ResponseWrapper<?> response, String id)
             throws ApisResourceAccessException, PacketManagerException, ObjectDoesnotExistsException,
             PacketManagerNonRecoverableException, JsonProcessingException {
 
-        // ISSUE #6: Check if response is null
         if (response == null) {
             throw new ApisResourceAccessException("Response wrapper is null");
         }
@@ -175,7 +175,6 @@ public class PacketManagerService {
 
             ErrorDTO errorDTO = response.getErrors().iterator().next();
 
-            // ISSUE #7: Check if errorDTO is null
             if (errorDTO == null) {
                 throw new PacketManagerException("Unknown error occurred", "UNKNOWN_ERROR");
             }
@@ -191,7 +190,6 @@ public class PacketManagerService {
     public String getField(String id, String field, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks for input parameters
             if (StringUtils.isBlank(id) || StringUtils.isBlank(field)) {
                 throw new IllegalArgumentException("id and field cannot be blank");
             }
@@ -208,7 +206,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No response data for field: " + field);
                 return null;
@@ -232,7 +229,6 @@ public class PacketManagerService {
     public Map<String, String> getFields(String id, List<String> fields, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks for input parameters
             if (StringUtils.isBlank(id) || CollectionUtils.isEmpty(fields)) {
                 throw new IllegalArgumentException("id and fields cannot be blank or empty");
             }
@@ -249,7 +245,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No response data for fields");
                 return new java.util.HashMap<>();
@@ -275,7 +270,6 @@ public class PacketManagerService {
     public Document getDocument(String id, String documentName, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id) || StringUtils.isBlank(documentName)) {
                 throw new IllegalArgumentException("id and documentName cannot be blank");
             }
@@ -292,7 +286,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No response data for document: " + documentName);
                 return null;
@@ -313,7 +306,6 @@ public class PacketManagerService {
     public ValidatePacketResponse validate(String id, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id)) {
                 throw new IllegalArgumentException("id cannot be blank");
             }
@@ -330,7 +322,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No response data for validate");
                 return null;
@@ -351,7 +342,6 @@ public class PacketManagerService {
     public List<FieldResponseDto> getAudits(String id, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id)) {
                 throw new IllegalArgumentException("id cannot be blank");
             }
@@ -369,7 +359,6 @@ public class PacketManagerService {
 
             handleErrorResponse(responseObj, id);
 
-            // ISSUE #9: Check if response data is null
             if (responseObj.getResponse() == null || responseObj.getResponse().isEmpty()) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No audit data found");
                 return response;
@@ -396,7 +385,6 @@ public class PacketManagerService {
                                          String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id) || StringUtils.isBlank(person)) {
                 throw new IllegalArgumentException("id and person cannot be blank");
             }
@@ -413,7 +401,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() != null) {
                 BiometricRecord biometricRecord = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), BiometricRecord.class);
                 return biometricRecord;
@@ -433,7 +420,6 @@ public class PacketManagerService {
     public Map<String, String> getMetaInfo(String id, String source, String process)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id)) {
                 throw new IllegalArgumentException("id cannot be blank");
             }
@@ -458,7 +444,6 @@ public class PacketManagerService {
                 throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
             }
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No meta info data found");
                 return new java.util.HashMap<>();
@@ -476,28 +461,19 @@ public class PacketManagerService {
         }
     }
 
-    /**
-     * OPTIMIZED: info() with timestamp-based caching to reduce repeated API calls
-     * ISSUE #1 FIXED: Removed Timer-based cache invalidation (memory leak)
-     * ISSUE #10 FIXED: Added TTL check on cache retrieval
-     */
     public InfoResponseDto info(String id)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null check
             if (StringUtils.isBlank(id)) {
                 throw new IllegalArgumentException("id cannot be blank");
             }
 
-            // Quick cache check for repeated calls within 5 seconds
             if (infoCache.containsKey(id)) {
                 CacheEntryWithTimestamp entry = infoCache.get(id);
-                // ISSUE #10: Validate cache entry is not expired
                 if (!entry.isExpired()) {
                     regProcLogger.info(SESSION_ID, REGISTRATION_ID, id, "Using cached info response");
                     return entry.data;
                 } else {
-                    // Remove expired entry
                     infoCache.remove(id);
                 }
             }
@@ -514,7 +490,6 @@ public class PacketManagerService {
 
             handleErrorResponse(response, id);
 
-            // ISSUE #9: Check if response data is null
             if (response.getResponse() == null) {
                 regProcLogger.warn(SESSION_ID, REGISTRATION_ID, id, "No info data found");
                 return null;
@@ -522,7 +497,6 @@ public class PacketManagerService {
 
             InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
 
-            // Cache the result - no Timer needed, check TTL on retrieval
             infoCache.put(id, new CacheEntryWithTimestamp(infoResponseDto));
 
             return infoResponseDto;
@@ -538,7 +512,6 @@ public class PacketManagerService {
     public void addOrUpdateTags(String id, Map<String, String> tags)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id) || tags.isEmpty()) {
                 throw new IllegalArgumentException("id and tags cannot be blank or empty");
             }
@@ -567,7 +540,6 @@ public class PacketManagerService {
     public void deleteTags(String id, List<String> tags)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id) || CollectionUtils.isEmpty(tags)) {
                 throw new IllegalArgumentException("id and tags list cannot be blank or empty");
             }
@@ -600,7 +572,6 @@ public class PacketManagerService {
     public Map<String, String> getTags(String id, List<String> tagNames)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         try {
-            // ISSUE #8: Add null checks
             if (StringUtils.isBlank(id)) {
                 throw new IllegalArgumentException("id cannot be blank");
             }
@@ -619,12 +590,10 @@ public class PacketManagerService {
                 ErrorDTO error = response.getErrors().get(0);
                 regProcLogger.error(SESSION_ID, REGISTRATION_ID, id, JsonUtils.javaObjectToJsonString(response));
 
-                // ISSUE #7: Check if error is null
                 if (error == null) {
                     throw new PacketManagerException("Unknown error occurred", "UNKNOWN_ERROR");
                 }
 
-                //This error code will return if requested tag is not present, so returning null for that
                 if (error.getErrorCode().equalsIgnoreCase("KER-PUT-024"))
                     return null;
                 else {
