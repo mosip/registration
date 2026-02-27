@@ -75,7 +75,7 @@ public class PacketManagerService {
     private static final long INFO_CACHE_TTL_MS = 5000; // 5 second TTL
 
     @Autowired
-    @Qualifier("selfTokenWebClient")
+    @Qualifier("packetManagerWebClient")
     private WebClient webClient;
 
     @Autowired
