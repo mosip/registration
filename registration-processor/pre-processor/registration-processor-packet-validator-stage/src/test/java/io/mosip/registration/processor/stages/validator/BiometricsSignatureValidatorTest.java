@@ -37,7 +37,6 @@ import io.mosip.kernel.core.exception.BiometricSignatureValidationException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.constant.JsonConstant;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.JWTSignatureVerifyResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -132,12 +131,11 @@ public class BiometricsSignatureValidatorTest {
 		Mockito.when(env.getProperty(anyString())).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject1 = new JSONObject();
-		jsonObject1.put("Registration Client Version Number", "1.2.0");
+		jsonObject1.put("label", "Registration Client Version Number");
+		jsonObject1.put("value", "1.2.0");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
-		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
-				.thenReturn(new FieldValue("Registration Client Version Number", "1.2.0"));
 	}
 
 	@Test
@@ -163,8 +161,6 @@ public class BiometricsSignatureValidatorTest {
 
 		PowerMockito.mockStatic(BiometricsSignatureHelper.class);
 		PowerMockito.when(BiometricsSignatureHelper.extractJWTToken(any())).thenReturn(constructedJwtToken);
-		PowerMockito.mockStatic(JsonUtils.class);
-		PowerMockito.when(JsonUtils.javaObjectToJsonString(any())).thenReturn("");
 
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(ResponseWrapper1);
@@ -210,12 +206,11 @@ public class BiometricsSignatureValidatorTest {
 			throws JsonProcessingException, IOException, BaseCheckedException, JSONException {
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject1 = new JSONObject();
-		jsonObject1.put("Registration Client Version Number", "1.1.3");
+		jsonObject1.put("label", "Registration Client Version Number");
+		jsonObject1.put("value", "1.1.3");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
-		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
-				.thenReturn(new FieldValue("Registration Client Version Number", "1.1.3"));
 		biometricsSignatureValidator.validateSignature(id, process, biometricRecord1, metamap);
 	}
 	

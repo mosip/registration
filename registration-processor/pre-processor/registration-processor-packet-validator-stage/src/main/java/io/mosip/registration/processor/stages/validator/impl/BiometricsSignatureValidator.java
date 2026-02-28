@@ -145,9 +145,8 @@ public class BiometricsSignatureValidator {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
-					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
-						version = fieldValue.getValue();
+					if (jsonObject.optString("label").equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
+						version = jsonObject.optString("value");
 						break;
 					}
 				}

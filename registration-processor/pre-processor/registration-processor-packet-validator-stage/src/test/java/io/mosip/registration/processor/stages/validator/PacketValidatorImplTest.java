@@ -236,12 +236,11 @@ public class PacketValidatorImplTest {
 
 		JSONArray jsonArray = new JSONArray();
 		org.json.JSONObject jsonObject = new org.json.JSONObject();
-		jsonObject.put(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename");
+		jsonObject.put("label", MappingJsonConstants.OFFICERBIOMETRICFILENAME);
+		jsonObject.put("value", "officerBiometricFilename");
 		jsonArray.put(0, jsonObject);
 		metamap.put(JsonConstant.OPERATIONSDATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
-		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
-				.thenReturn(new FieldValue(MappingJsonConstants.OFFICERBIOMETRICFILENAME, "officerBiometricFilename"));
 	}
 
 	@Test

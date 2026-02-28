@@ -259,9 +259,8 @@ public class PacketValidatorImpl implements PacketValidator {
             for (int i = 0; i < jsonArray.length(); i++) {
                 if (!jsonArray.isNull(i)) {
                     org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
-                    FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
-                    if (fieldValue.getLabel().equalsIgnoreCase(fileName)) {
-                        value = fieldValue.getValue();
+                    if (jsonObject.optString("label").equalsIgnoreCase(fileName)) {
+                        value = jsonObject.optString("value");
                         break;
                     }
                 }
