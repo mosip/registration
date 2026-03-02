@@ -37,7 +37,7 @@ public class RestConfigBean {
 	}
 
 
-	@Bean(name = "auditExecutor")
+	/*@Bean(name = "auditExecutor")
 	public Executor auditExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(10);                    // Minimum threads
@@ -48,5 +48,5 @@ public class RestConfigBean {
 		executor.setAwaitTerminationSeconds(60);        // Wait 60 seconds for shutdown
 		executor.initialize();
 		return executor;
-	}
+	}*/
 }
