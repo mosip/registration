@@ -30,13 +30,13 @@ public class WebClientConfig {
     @Value("${webclient.write.timeout.ms:10000}")
     private int writeTimeoutMs;
 
-    @Value("${webclient.max.connections:200}")
+    @Value("${webclient.max.connections:100}")
     private int maxConnections;
 
-    @Value("${webclient.pending.acquire.max.count:400}")
+    @Value("${webclient.pending.acquire.max.count:200}")
     private int pendingAcquireMaxCount;
 
-    @Value("${webclient.pending.acquire.timeout.ms:45000}")
+    @Value("${webclient.pending.acquire.timeout.ms:15000}")
     private long pendingAcquireTimeoutMs;
 
     @Value("${webclient.max.idle.time.ms:20000}")
@@ -48,7 +48,7 @@ public class WebClientConfig {
     @Value("${webclient.evict.interval.ms:30000}")
     private long evictIntervalMs;
 
-    @Value("${webclient.response.buffer.size.mb:16}")
+    @Value("${webclient.response.buffer.size.mb:10}")
     private int responseBufferSizeMb;
 
     /**
