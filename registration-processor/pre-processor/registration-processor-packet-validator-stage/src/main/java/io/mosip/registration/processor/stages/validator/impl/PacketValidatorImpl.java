@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.validator.impl;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -141,8 +142,9 @@ public class PacketValidatorImpl implements PacketValidator {
                 }
             }
 
-            // document validation
-            if (!applicantDocumentValidation(id, process, packetValidationDto)) {
+            // document validation - pass map to cache INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO for reuse in biometricsXSDValidation
+            Map<String, BiometricRecord> fetchedBiometrics = new HashMap<>();
+            if (!applicantDocumentValidation(id, process, packetValidationDto, fetchedBiometrics)) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
                         "ERROR =======>" + StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
@@ -163,7 +165,7 @@ public class PacketValidatorImpl implements PacketValidator {
                 }
             }
 
-            if (!biometricsXSDValidation(id, process, packetValidationDto, metaInfo)) {
+            if (!biometricsXSDValidation(id, process, packetValidationDto, metaInfo, fetchedBiometrics)) {
                 return false;
             }
         } catch(PacketManagerNonRecoverableException e){
@@ -186,7 +188,8 @@ public class PacketValidatorImpl implements PacketValidator {
         return packetValidationDto.isValid();
     }
 
-    private boolean biometricsXSDValidation(String id, String process, PacketValidationDto packetValidationDto, Map<String, String> metaInfoMap)
+    private boolean biometricsXSDValidation(String id, String process, PacketValidationDto packetValidationDto, Map<String, String> metaInfoMap,
+                                            Map<String, BiometricRecord> fetchedBiometrics)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
             RegistrationProcessorCheckedException, JSONException {
         List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
@@ -207,8 +210,11 @@ public class PacketValidatorImpl implements PacketValidator {
                             ProviderStageName.PACKET_VALIDATOR);
                 }
             } else {
-                String value = packetManagerService.getField(id, field, process, ProviderStageName.PACKET_VALIDATOR);
-                if (value != null && !value.isEmpty()) {
+                // For INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO, reuse if already fetched by ApplicantDocumentValidation
+                if (fetchedBiometrics != null && fetchedBiometrics.containsKey(field)) {
+                    biometricRecord = fetchedBiometrics.get(field);
+                } else {
+                    // Skip redundant getField - call getBiometricsByMappingJsonKey directly; null/empty means no biometrics
                     biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field, process,
                             ProviderStageName.PACKET_VALIDATOR);
                 }
@@ -271,7 +277,8 @@ public class PacketValidatorImpl implements PacketValidator {
 
 
     private boolean applicantDocumentValidation(String registrationId, String process,
-                                                PacketValidationDto packetValidationDto)
+                                                PacketValidationDto packetValidationDto,
+                                                Map<String, BiometricRecord> fetchedBiometrics)
             throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
         String validateApplicant = env.getProperty(VALIDATEAPPLICANTDOCUMENT);
         if (validateApplicant != null && validateApplicant.trim().equalsIgnoreCase(VALIDATIONFALSE))
@@ -279,7 +286,7 @@ public class PacketValidatorImpl implements PacketValidator {
         else {
             String validateApplicantDocument = env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS);
             if (validateApplicantDocument != null && validateApplicantDocument.contains(process)) {
-                boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+                boolean result = applicantDocumentValidation.validateDocument(registrationId, process, fetchedBiometrics);
                 if (!result) {
                     packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
                     packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());

@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils2;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
@@ -71,7 +70,6 @@ import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
@@ -199,7 +197,9 @@ public class PacketValidateProcessor {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
 					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 			setPacketCreatedDateTime(registrationStatusDto, metaInfo);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
+			// Fetch regEntity once and reuse for isValidSupervisorStatus and sendNotification
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
+			boolean isValidSupervisorStatus = isValidSupervisorStatus(regEntity);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto, metaInfo);
@@ -282,7 +282,6 @@ public class PacketValidateProcessor {
 			}
 			object.setInternalError(Boolean.FALSE);
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful(),isValidSupervisorStatus);
 		} catch (PacketManagerNonRecoverableException exc) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
@@ -495,16 +494,15 @@ public class PacketValidateProcessor {
 		}
 	}
 
-		private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-			if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
-				return true;
+	private boolean isValidSupervisorStatus(SyncRegistrationEntity regEntity) {
+		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
+			return true;
 
-			} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
-				return false;
-			}
+		} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
 			return false;
 		}
+		return false;
+	}
 
 	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,

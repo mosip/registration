@@ -240,7 +240,7 @@ public class PacketManagerService {
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
         if (response.getResponse() != null) {
-            BiometricRecord biometricRecord = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), BiometricRecord.class);
+            BiometricRecord biometricRecord = objectMapper.convertValue(response.getResponse(), BiometricRecord.class);
             return biometricRecord;
         }
         return null;
