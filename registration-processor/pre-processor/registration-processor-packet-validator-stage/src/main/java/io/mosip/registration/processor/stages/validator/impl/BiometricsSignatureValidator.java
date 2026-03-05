@@ -3,9 +3,15 @@ package io.mosip.registration.processor.stages.validator.impl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils2;
@@ -75,6 +81,8 @@ public class BiometricsSignatureValidator {
 
 		List<BIR> birs = biometricRecord.getSegments();
 
+		// Collect tokens for all non-exception BIR segments first
+		List<String> tokensToValidate = new ArrayList<>();
 		for (BIR bir : birs) {
 			HashMap<String, String> othersInfo = bir.getOthers();
 			if (othersInfo == null) {
@@ -91,14 +99,44 @@ public class BiometricsSignatureValidator {
 				}
 			}
 
-			if (exceptionValue) {
-				continue;
+			if (!exceptionValue) {
+				tokensToValidate.add(BiometricsSignatureHelper.extractJWTToken(bir));
 			}
-
-			String token = BiometricsSignatureHelper.extractJWTToken(bir);
-			validateJWTToken(id, token);
 		}
 
+		if (tokensToValidate.isEmpty()) {
+			return;
+		}
+
+		// Validate all JWT tokens in parallel using virtual threads
+		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+			List<CompletableFuture<Void>> futures = tokensToValidate.stream()
+					.map(token -> CompletableFuture.runAsync(() -> {
+						try {
+							validateJWTToken(id, token);
+						} catch (Exception e) {
+							throw new CompletionException(e);
+						}
+					}, executor))
+					.collect(Collectors.toList());
+
+			try {
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof BiometricSignatureValidationException) {
+					throw (BiometricSignatureValidationException) cause;
+				} else if (cause instanceof ApisResourceAccessException) {
+					throw (ApisResourceAccessException) cause;
+				} else if (cause instanceof io.mosip.kernel.core.util.exception.JsonProcessingException) {
+					throw (io.mosip.kernel.core.util.exception.JsonProcessingException) cause;
+				} else if (cause instanceof IOException) {
+					throw (IOException) cause;
+				} else {
+					throw new IOException("Biometric signature validation failed", cause);
+				}
+			}
+		}
 	}
 
 	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)

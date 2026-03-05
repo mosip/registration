@@ -91,7 +91,7 @@ public class ApplicantDocumentValidationTest {
 		when(packetManagerService.getDocument(anyString(),anyString(),anyString(), any())).thenReturn(document);
 
 		Map<String, String> docFields = new HashMap<>();
-		docFields.put("label", "value");
+		docFields.put("documentValue", "value");
 		when(packetManagerService.getFields(anyString(), anyList(), anyString(), any())).thenReturn(docFields);
 		when(packetManagerService.getField(anyString(), any(), anyString(), any())).thenReturn(docFields.toString());
 

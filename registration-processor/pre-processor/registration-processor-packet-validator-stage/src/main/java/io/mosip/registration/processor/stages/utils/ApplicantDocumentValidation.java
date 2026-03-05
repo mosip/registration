@@ -43,25 +43,19 @@ public class ApplicantDocumentValidation {
     private static final String VALUE = "value";
 
     public boolean validateDocument(String registrationId, String process) throws IdentityNotFoundException, IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-        return validateDocument(registrationId, process, null);
-    }
-
-    /**
-     * Validates applicant documents and biometrics. Optionally populates fetchedBiometricsToReuse with
-     * INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO when fetched, to avoid duplicate packet manager calls
-     * in biometricsXSDValidation.
-     *
-     * @param fetchedBiometricsToReuse optional map to store fetched INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO for reuse; may be null
-     */
-    public boolean validateDocument(String registrationId, String process, Map<String, BiometricRecord> fetchedBiometricsToReuse) throws IdentityNotFoundException, IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
         // validate all documents from mapping json
         JSONObject docMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+        List<String> docFieldNames = new ArrayList<>();
 
         for (Object doc : docMappingJson.values()) {
             Map docMap = (LinkedHashMap) doc;
-            String docValue = docMap.values().iterator().next().toString();
-            String idObjectField = packetManagerService.getField(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR);
-            if (idObjectField != null) {
+            docFieldNames.add(docMap.values().iterator().next().toString());
+        }
+        Map<String, String> docFieldValues = packetManagerService.getFields(registrationId, docFieldNames, process, ProviderStageName.PACKET_VALIDATOR);
+
+        // Only call getDocument for fields that are present
+        for (String docValue : docFieldNames) {
+            if (docFieldValues.get(docValue) != null) {
                 if (packetManagerService.getDocument(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR) == null) {
                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + docValue);
@@ -71,7 +65,7 @@ public class ApplicantDocumentValidation {
         }
 
         // validate INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO.
-		JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
         String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
         String introducerBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INTRODUCER_BIO), VALUE);
@@ -84,9 +78,6 @@ public class ApplicantDocumentValidation {
 
         if (docFields.get(applicantBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.PACKET_VALIDATOR);
-            if (fetchedBiometricsToReuse != null) {
-                fetchedBiometricsToReuse.put(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, biometricRecord);
-            }
             if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + applicantBiometricLabel);
@@ -95,9 +86,6 @@ public class ApplicantDocumentValidation {
         }
         if (docFields.get(introducerBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INTRODUCER_BIO, process, ProviderStageName.PACKET_VALIDATOR);
-            if (fetchedBiometricsToReuse != null) {
-                fetchedBiometricsToReuse.put(MappingJsonConstants.INTRODUCER_BIO, biometricRecord);
-            }
             if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
                 return false;
         }

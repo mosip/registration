@@ -5,6 +5,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -34,7 +39,6 @@ import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -199,55 +203,76 @@ public class PacketValidatorImpl implements PacketValidator {
         if (metaInfoMap == null) {
             metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
         }
+        final Map<String, String> finalMetaInfoMap = metaInfoMap;
 
-        for (String field : fields) {
-            BiometricRecord biometricRecord = null;
-            if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
-                    || field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-                String value = getOperationsDataFromMetaInfo(id, process, field, metaInfoMap);
-                if (value != null && !value.isEmpty()) {
-                    biometricRecord = packetManagerService.getBiometrics(id, field, process,
-                            ProviderStageName.PACKET_VALIDATOR);
-                }
-            } else {
-                // For INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO, reuse if already fetched by ApplicantDocumentValidation
-                if (fetchedBiometrics != null && fetchedBiometrics.containsKey(field)) {
-                    biometricRecord = fetchedBiometrics.get(field);
+        // Validate all biometric fields in parallel using virtual threads
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<CompletableFuture<Void>> futures = fields.stream()
+                    .map(field -> CompletableFuture.runAsync(() -> {
+                        try {
+                            BiometricRecord biometricRecord = null;
+                            if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
+                                    || field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
+                                String value = getOperationsDataFromMetaInfo(id, process, field, finalMetaInfoMap);
+                                if (value != null && !value.isEmpty()) {
+                                    biometricRecord = packetManagerService.getBiometrics(id, field, process,
+                                            ProviderStageName.PACKET_VALIDATOR);
+                                }
+                            } else {
+                                // For INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO, reuse if already fetched by ApplicantDocumentValidation
+                                if (fetchedBiometrics != null && fetchedBiometrics.containsKey(field)) {
+                                    biometricRecord = fetchedBiometrics.get(field);
+                                } else {
+                                    biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field, process,
+                                            ProviderStageName.PACKET_VALIDATOR);
+                                }
+                            }
+                            if (biometricRecord != null) {
+                                biometricsXSDValidator.validateXSD(biometricRecord);
+                                biometricsSignatureValidator.validateSignature(id, process, biometricRecord, finalMetaInfoMap);
+                            }
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
+                    }, executor))
+                    .collect(Collectors.toList());
+
+            try {
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof CbeffException) {
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), id,
+                            "ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
+                    packetValidationDto.setPacketValidaionFailureMessage(
+                            StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
+                    packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
+                    return false;
+                } else if (cause instanceof BiometricSignatureValidationException) {
+                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), id,
+                            "ERROR =======> " + StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
+                    packetValidationDto.setPacketValidaionFailureMessage(
+                            StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage() + "--> "
+                                    + cause.getMessage());
+                    packetValidationDto.setPacketValidatonStatusCode(
+                            StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode());
+                    return false;
+                } else if (cause instanceof ApisResourceAccessException) {
+                    throw (ApisResourceAccessException) cause;
+                } else if (cause instanceof PacketManagerException) {
+                    throw (PacketManagerException) cause;
+                } else if (cause instanceof JsonProcessingException) {
+                    throw (JsonProcessingException) cause;
+                } else if (cause instanceof JSONException) {
+                    throw (JSONException) cause;
+                } else if (cause instanceof IOException) {
+                    throw (IOException) cause;
                 } else {
-                    // Skip redundant getField - call getBiometricsByMappingJsonKey directly; null/empty means no biometrics
-                    biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(id, field, process,
-                            ProviderStageName.PACKET_VALIDATOR);
-                }
-            }
-
-            if (biometricRecord != null) {
-                try {
-                    biometricsXSDValidator.validateXSD(biometricRecord);
-                    biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metaInfoMap);
-                } catch (Exception e) {
-                    if (e instanceof CbeffException) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), id,
-                                "ERROR =======> " + StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
-                        packetValidationDto.setPacketValidaionFailureMessage(
-                                StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage());
-                        packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
-                        return false;
-                    } else if (e instanceof BiometricSignatureValidationException) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), id,
-                                "ERROR =======> " + StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage());
-                        packetValidationDto.setPacketValidaionFailureMessage(
-                                StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getMessage() + "--> "
-                                        + e.getMessage());
-                        packetValidationDto.setPacketValidatonStatusCode(
-                                StatusUtil.BIOMETRICS_SIGNATURE_VALIDATION_FAILURE.getCode());
-                        return false;
-                    } else {
-                        throw new RegistrationProcessorCheckedException(
-                                PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-                                PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
-                    }
+                    throw new RegistrationProcessorCheckedException(
+                            PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+                            PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), cause);
                 }
             }
         }
@@ -286,7 +311,7 @@ public class PacketValidatorImpl implements PacketValidator {
         else {
             String validateApplicantDocument = env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS);
             if (validateApplicantDocument != null && validateApplicantDocument.contains(process)) {
-                boolean result = applicantDocumentValidation.validateDocument(registrationId, process, fetchedBiometrics);
+                boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
                 if (!result) {
                     packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
                     packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
