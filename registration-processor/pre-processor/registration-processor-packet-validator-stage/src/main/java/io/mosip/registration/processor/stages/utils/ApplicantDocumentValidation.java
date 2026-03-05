@@ -42,20 +42,28 @@ public class ApplicantDocumentValidation {
 
     private static final String VALUE = "value";
 
-    public boolean validateDocument(String registrationId, String process) throws IdentityNotFoundException, IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-        // validate all documents from mapping json
+    public boolean validateDocument(String registrationId, String process, Map<String, BiometricRecord> fetchedBiometrics) throws IdentityNotFoundException, IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
         JSONObject docMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-        List<String> docFieldNames = new ArrayList<>();
+        JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
+        List<String> docFieldNames = new ArrayList<>();
         for (Object doc : docMappingJson.values()) {
             Map docMap = (LinkedHashMap) doc;
             docFieldNames.add(docMap.values().iterator().next().toString());
         }
-        Map<String, String> docFieldValues = packetManagerService.getFields(registrationId, docFieldNames, process, ProviderStageName.PACKET_VALIDATOR);
 
-        // Only call getDocument for fields that are present
+        String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
+        String introducerBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INTRODUCER_BIO), VALUE);
+
+        // Single batch getFields call for all document + biometric presence checks
+        List<String> allFields = new ArrayList<>(docFieldNames);
+        allFields.add(applicantBiometricLabel);
+        allFields.add(introducerBiometricLabel);
+        Map<String, String> fieldValues = packetManagerService.getFields(registrationId, allFields, process, ProviderStageName.PACKET_VALIDATOR);
+
+        // Validate documents
         for (String docValue : docFieldNames) {
-            if (docFieldValues.get(docValue) != null) {
+            if (fieldValues.get(docValue) != null) {
                 if (packetManagerService.getDocument(registrationId, docValue, process, ProviderStageName.PACKET_VALIDATOR) == null) {
                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + docValue);
@@ -64,30 +72,23 @@ public class ApplicantDocumentValidation {
             }
         }
 
-        // validate INDIVIDUAL_BIOMETRICS and INTRODUCER_BIO.
-        JSONObject identityMappingJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-
-        String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
-        String introducerBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.INTRODUCER_BIO), VALUE);
-
-        List<String> fields = new ArrayList<>();
-        fields.add(applicantBiometricLabel);
-        fields.add(introducerBiometricLabel);
-
-        Map<String, String> docFields = packetManagerService.getFields(registrationId, fields, process, ProviderStageName.PACKET_VALIDATOR);
-
-        if (docFields.get(applicantBiometricLabel) != null) {
+        // Validate INDIVIDUAL_BIOMETRICS presence
+        if (fieldValues.get(applicantBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.PACKET_VALIDATOR);
             if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + applicantBiometricLabel);
                 return false;
             }
+            if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, biometricRecord);
         }
-        if (docFields.get(introducerBiometricLabel) != null) {
+
+        // Validate INTRODUCER_BIO presence
+        if (fieldValues.get(introducerBiometricLabel) != null) {
             BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INTRODUCER_BIO, process, ProviderStageName.PACKET_VALIDATOR);
             if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
                 return false;
+            if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INTRODUCER_BIO, biometricRecord);
         }
 
 

@@ -123,14 +123,14 @@ public class ApplicantDocumentValidationTest {
 
 	@Test
 	public void testApplicantDocumentValidationSuccess() throws Exception {
-		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "NEW");
+		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "NEW", null);
 		assertTrue("Test for successful Applicant Document Validation success for adult", isApplicantDocumentValidated);
 	}
 
 	@Test
 	public void testApplicantDocumentValidationFailure() throws Exception {
 		when(packetManagerService.getDocument(anyString(),anyString(),anyString(), any())).thenReturn(null);
-		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "NEW");
+		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "NEW", null);
 		assertFalse(isApplicantDocumentValidated);
 	}
 

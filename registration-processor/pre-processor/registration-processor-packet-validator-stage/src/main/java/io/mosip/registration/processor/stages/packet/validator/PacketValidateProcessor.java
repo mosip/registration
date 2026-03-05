@@ -86,7 +86,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
-@Transactional
 public class PacketValidateProcessor {
 
 	/**
@@ -198,7 +197,9 @@ public class PacketValidateProcessor {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
 					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
 			setPacketCreatedDateTime(registrationStatusDto, metaInfo);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
+			// Fetch entity once for supervisor status check and sendNotification (eliminates duplicate DB call)
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
+			boolean isValidSupervisorStatus = regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto, metaInfo);
@@ -281,8 +282,11 @@ public class PacketValidateProcessor {
 			}
 			object.setInternalError(Boolean.FALSE);
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
-			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful(),isValidSupervisorStatus);
+			// Send notification in virtual thread -- result already determined, notification does not affect it
+			final boolean transactionSuccessful = packetValidationDto.isTransactionSuccessful();
+			final boolean finalIsValidSupervisorStatus = isValidSupervisorStatus;
+			final InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
+			Thread.ofVirtual().start(() -> sendNotification(regEntity, finalRegistrationStatusDto, transactionSuccessful, finalIsValidSupervisorStatus));
 		} catch (PacketManagerNonRecoverableException exc) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
@@ -494,16 +498,6 @@ public class PacketValidateProcessor {
 		}
 	}
 
-	private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
-		SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
-			return true;
-
-		} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
-			return false;
-		}
-		return false;
-	}
 
 	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,
@@ -521,9 +515,8 @@ public class PacketValidateProcessor {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
-						preRegId = fieldValue.getValue();
+					if (jsonObject.optString("label").equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
+						preRegId = jsonObject.optString("value");
 						break;
 					}
 

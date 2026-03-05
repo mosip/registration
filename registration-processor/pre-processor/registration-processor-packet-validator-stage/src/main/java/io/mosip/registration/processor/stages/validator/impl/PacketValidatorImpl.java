@@ -92,29 +92,51 @@ public class PacketValidatorImpl implements PacketValidator {
             JsonProcessingException, PacketManagerException {
         String uin = null;
         try {
-            ValidatePacketResponse response = packetManagerService.validate(id, process,
-                    ProviderStageName.PACKET_VALIDATOR);
+            // Run packet validation and consent check in parallel using virtual threads
+            ValidatePacketResponse response;
+            String consentVal;
+            try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                CompletableFuture<ValidatePacketResponse> validateFuture = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return packetManagerService.validate(id, process, ProviderStageName.PACKET_VALIDATOR);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                }, executor);
+                CompletableFuture<String> consentFuture = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return packetManagerService.getField(id, MappingJsonConstants.CONSENT, process, ProviderStageName.PACKET_VALIDATOR);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                }, executor);
+                try {
+                    CompletableFuture.allOf(validateFuture, consentFuture).join();
+                } catch (CompletionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof ApisResourceAccessException) throw (ApisResourceAccessException) cause;
+                    if (cause instanceof PacketManagerException) throw (PacketManagerException) cause;
+                    if (cause instanceof JsonProcessingException) throw (JsonProcessingException) cause;
+                    if (cause instanceof IOException) throw (IOException) cause;
+                    throw new IOException("Parallel validation/consent check failed", cause);
+                }
+                response = validateFuture.join();
+                consentVal = consentFuture.join();
+            }
             if (!response.isValid()) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
                         "ERROR =======>" + StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
-                packetValidationDto
-                        .setPacketValidatonStatusCode(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getCode());
-                packetValidationDto
-                        .setPacketValidaionFailureMessage(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
+                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getCode());
+                packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
                 return false;
             }
-
-            //Check consent
-            if(!checkConsentForPacket(id,process,ProviderStageName.PACKET_VALIDATOR))
-			{
+            if (consentVal != null && StringUtils.isNotEmpty(consentVal) && consentVal.equalsIgnoreCase("N")) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
                         "ERROR =======>" + StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
-                packetValidationDto
-                        .setPacketValidatonStatusCode(StatusUtil.PACKET_CONSENT_VALIDATION.getCode());
-                packetValidationDto
-                        .setPacketValidaionFailureMessage(StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
+                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.PACKET_CONSENT_VALIDATION.getCode());
+                packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
                 return false;
             }
 
@@ -311,7 +333,7 @@ public class PacketValidatorImpl implements PacketValidator {
         else {
             String validateApplicantDocument = env.getProperty(VALIDATEAPPLICANTDOCUMENTPROCESS);
             if (validateApplicantDocument != null && validateApplicantDocument.contains(process)) {
-                boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+                boolean result = applicantDocumentValidation.validateDocument(registrationId, process, fetchedBiometrics);
                 if (!result) {
                     packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
                     packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
@@ -322,15 +344,5 @@ public class PacketValidatorImpl implements PacketValidator {
         }
     }
 
-    private boolean checkConsentForPacket(String id, String process, ProviderStageName stageName)
-            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-
-        String val = packetManagerService.getField(id, MappingJsonConstants.CONSENT, process, stageName);
-        if (null != val && StringUtils.isNotEmpty(val)) {
-            if (val.equalsIgnoreCase("N"))
-                return false;
-        }
-        return true;
-
-    }
 }
+
