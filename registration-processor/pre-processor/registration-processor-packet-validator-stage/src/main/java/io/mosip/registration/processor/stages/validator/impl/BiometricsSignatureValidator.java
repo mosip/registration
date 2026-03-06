@@ -18,6 +18,7 @@ import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import jakarta.annotation.PostConstruct;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,15 @@ public class BiometricsSignatureValidator {
 
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
 	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
+
+	private String dateTimePattern;
+	private DateTimeFormatter dateTimeFormatter;
+
+	@PostConstruct
+	public void init() {
+		dateTimePattern = env.getProperty(DATETIME_PATTERN);
+		dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+	}
 
 	public void validateSignature(String id, String process, BiometricRecord biometricRecord,
 								  Map<String, String> metaInfoMap) throws JSONException, BiometricSignatureValidationException,
@@ -176,16 +186,15 @@ public class BiometricsSignatureValidator {
 
 		request.setRequest(jwtSignatureVerifyRequestDto);
 		request.setVersion("1.0");
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+				.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 		request.setRequesttime(localdatetime);
 
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);
 		if (responseWrapper.getResponse() != null) {
-			JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(
-					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
+			JWTSignatureVerifyResponseDto jwtResponse = mapper.convertValue(
+					responseWrapper.getResponse(), JWTSignatureVerifyResponseDto.class);
 
 			if (!jwtResponse.isSignatureValid()) {
 				regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), id,

@@ -129,6 +129,7 @@ public class BiometricsSignatureValidatorTest {
 		jwtSignatureVerifyResponseDto1.setTrustValid("TRUST_CERT_PATH_VALID");
 
 		Mockito.when(env.getProperty(anyString())).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		biometricsSignatureValidator.init();
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject1 = new JSONObject();
 		jsonObject1.put("label", "Registration Client Version Number");
@@ -148,8 +149,7 @@ public class BiometricsSignatureValidatorTest {
 
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(ResponseWrapper1);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("TkJna3Foa2lHOXcwQkFRc0ZBR");
-		Mockito.when(mapper.readValue(anyString(), eq(JWTSignatureVerifyResponseDto.class)))
+		Mockito.when(mapper.convertValue(any(), eq(JWTSignatureVerifyResponseDto.class)))
 				.thenReturn(jwtSignatureVerifyResponseDto);
 		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
 	}
@@ -164,8 +164,7 @@ public class BiometricsSignatureValidatorTest {
 
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(ResponseWrapper1);
-		Mockito.when(mapper.writeValueAsString(any())).thenReturn("TkJna3Foa2lHOXcwQkFRc0ZBR");
-		Mockito.when(mapper.readValue(anyString(), eq(JWTSignatureVerifyResponseDto.class)))
+		Mockito.when(mapper.convertValue(any(), eq(JWTSignatureVerifyResponseDto.class)))
 				.thenReturn(jwtSignatureVerifyResponseDto1);
 		biometricsSignatureValidator.validateSignature(id, process, biometricRecord, metamap);
 	}

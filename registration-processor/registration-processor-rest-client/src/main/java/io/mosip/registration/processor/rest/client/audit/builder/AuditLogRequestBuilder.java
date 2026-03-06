@@ -10,7 +10,9 @@ import java.util.concurrent.Executors;
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,7 @@ public class AuditLogRequestBuilder {
 	private Environment env;
 
 	@Autowired(required = false)
+	@Qualifier("auditExecutor")
 	private Executor auditExecutor;
 
 	private static final Executor VIRTUAL_THREAD_EXECUTOR =
@@ -51,6 +54,24 @@ public class AuditLogRequestBuilder {
 	private static final String AUDIT_SERVICE_ID = "mosip.registration.processor.audit.id";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+
+	// Cached at startup — these never change at runtime
+	private String dateTimePattern;
+	private DateTimeFormatter dateTimeFormatter;
+	private String auditServiceId;
+	private String appVersion;
+	private String serverIp;
+	private String serverName;
+
+	@PostConstruct
+	public void init() {
+		dateTimePattern = env.getProperty(DATETIME_PATTERN);
+		dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+		auditServiceId = env.getProperty(AUDIT_SERVICE_ID);
+		appVersion = env.getProperty(REG_PROC_APPLICATION_VERSION);
+		serverIp = ServerUtil.getServerUtilInstance().getServerIp();
+		serverName = ServerUtil.getServerUtilInstance().getServerName();
+	}
 
 	private Executor getExecutor() {
 		return auditExecutor != null ? auditExecutor : VIRTUAL_THREAD_EXECUTOR;
@@ -116,15 +137,15 @@ public class AuditLogRequestBuilder {
 			try {
 				AuditRequestDto auditRequestDto = new AuditRequestDto();
 				auditRequestDto.setDescription(description);
-				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern));
 				auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 				auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 				auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
 				auditRequestDto.setEventId(eventId);
 				auditRequestDto.setEventName(eventName);
 				auditRequestDto.setEventType(eventType);
-				auditRequestDto.setHostIp(ServerUtil.getServerUtilInstance().getServerIp());
-				auditRequestDto.setHostName(ServerUtil.getServerUtilInstance().getServerName());
+				auditRequestDto.setHostIp(serverIp);
+				auditRequestDto.setHostName(serverName);
 				auditRequestDto.setId(registrationId);
 				auditRequestDto.setIdType(AuditLogConstant.REGISTRATION_ID.toString());
 				auditRequestDto.setModuleId(null);
@@ -133,14 +154,13 @@ public class AuditLogRequestBuilder {
 				auditRequestDto.setSessionUserName(null);
 
 				RequestWrapper<AuditRequestDto> requestWrapper = new RequestWrapper<>();
-				requestWrapper.setId(env.getProperty(AUDIT_SERVICE_ID));
+				requestWrapper.setId(auditServiceId);
 				requestWrapper.setMetadata(null);
 				requestWrapper.setRequest(auditRequestDto);
-				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 				LocalDateTime localdatetime = LocalDateTime
-						.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+						.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 				requestWrapper.setRequesttime(localdatetime);
-				requestWrapper.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+				requestWrapper.setVersion(appVersion);
 
 				@SuppressWarnings("unchecked")
 				ResponseWrapper<AuditResponseDto> response = (ResponseWrapper<AuditResponseDto>) registrationProcessorRestService
@@ -209,15 +229,15 @@ public class AuditLogRequestBuilder {
 			try {
 				AuditRequestDto auditRequestDto = new AuditRequestDto();
 				auditRequestDto.setDescription(description);
-				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern));
 				auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 				auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 				auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
 				auditRequestDto.setEventId(eventId);
 				auditRequestDto.setEventName(eventName);
 				auditRequestDto.setEventType(eventType);
-				auditRequestDto.setHostIp(ServerUtil.getServerUtilInstance().getServerIp());
-				auditRequestDto.setHostName(ServerUtil.getServerUtilInstance().getServerName());
+				auditRequestDto.setHostIp(serverIp);
+				auditRequestDto.setHostName(serverName);
 				auditRequestDto.setId(registrationId);
 				auditRequestDto.setIdType(auditLogConstant.toString());
 				auditRequestDto.setModuleId(moduleId);
@@ -226,14 +246,13 @@ public class AuditLogRequestBuilder {
 				auditRequestDto.setSessionUserName(null);
 
 				RequestWrapper<AuditRequestDto> requestWrapper = new RequestWrapper<>();
-				requestWrapper.setId(env.getProperty(AUDIT_SERVICE_ID));
+				requestWrapper.setId(auditServiceId);
 				requestWrapper.setMetadata(null);
 				requestWrapper.setRequest(auditRequestDto);
-				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 				LocalDateTime localdatetime = LocalDateTime
-						.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+						.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 				requestWrapper.setRequesttime(localdatetime);
-				requestWrapper.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+				requestWrapper.setVersion(appVersion);
 
 				@SuppressWarnings("unchecked")
 				ResponseWrapper<AuditResponseDto> response = (ResponseWrapper<AuditResponseDto>) registrationProcessorRestService
@@ -301,15 +320,15 @@ public class AuditLogRequestBuilder {
 			try {
 				AuditRequestDto auditRequestDto = new AuditRequestDto();
 				auditRequestDto.setDescription(description);
-				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+				auditRequestDto.setActionTimeStamp(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern));
 				auditRequestDto.setApplicationId(AuditLogConstant.MOSIP_4.toString());
 				auditRequestDto.setApplicationName(AuditLogConstant.REGISTRATION_PROCESSOR.toString());
 				auditRequestDto.setCreatedBy(AuditLogConstant.SYSTEM.toString());
 				auditRequestDto.setEventId(eventId);
 				auditRequestDto.setEventName(eventName);
 				auditRequestDto.setEventType(eventType);
-				auditRequestDto.setHostIp(ServerUtil.getServerUtilInstance().getServerIp());
-				auditRequestDto.setHostName(ServerUtil.getServerUtilInstance().getServerName());
+				auditRequestDto.setHostIp(serverIp);
+				auditRequestDto.setHostName(serverName);
 				auditRequestDto.setId(registrationId);
 				auditRequestDto.setIdType(AuditLogConstant.REGISTRATION_ID.toString());
 				auditRequestDto.setModuleId(moduleId);
@@ -318,14 +337,13 @@ public class AuditLogRequestBuilder {
 				auditRequestDto.setSessionUserName(null);
 
 				RequestWrapper<AuditRequestDto> requestWrapper = new RequestWrapper<>();
-				requestWrapper.setId(env.getProperty(AUDIT_SERVICE_ID));
+				requestWrapper.setId(auditServiceId);
 				requestWrapper.setMetadata(null);
 				requestWrapper.setRequest(auditRequestDto);
-				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 				LocalDateTime localdatetime = LocalDateTime
-						.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+						.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 				requestWrapper.setRequesttime(localdatetime);
-				requestWrapper.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+				requestWrapper.setVersion(appVersion);
 
 				@SuppressWarnings("unchecked")
 				ResponseWrapper<AuditResponseDto> response = (ResponseWrapper<AuditResponseDto>) registrationProcessorRestService
