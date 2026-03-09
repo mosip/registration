@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
 
@@ -326,25 +331,79 @@ public class PacketClassificationProcessor {
 
 	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, int iteration)
 			throws IOException, BaseCheckedException, NumberFormatException, JSONException {
-		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
+		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId,
 			requiredIdObjectFieldNames);
-		Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
-			requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
-		Map<String, String> fieldTypeMap = getFieldTypeMap(identityFieldValueMap.get(idSchemaVersionLabel));
-		Map<String, FieldDTO> idObjectFieldDTOMap = 
-			getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
-		Map<String, String> metaInfoMap = priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
-		Map<String, String> allTags = new HashMap<String, String>();
-		for(TagGenerator tagGenerator : tagGenerators) {
-			Map<String, String> tags = tagGenerator.generateTags(workflowInstanceId, registrationId, process, 
-				idObjectFieldDTOMap, metaInfoMap, iteration);
-			if(tags != null && !tags.isEmpty())
-				allTags.putAll(tags);
+
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
+			// Fire getMetaInfo in parallel while processing identity fields — they are independent I/O calls
+			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
+				} catch (Exception e) {
+					throw new CompletionException(e);
+				}
+			}, executor);
+
+			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
+				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
+			Map<String, String> fieldTypeMap = getFieldTypeMap(identityFieldValueMap.get(idSchemaVersionLabel));
+			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
+
+			Map<String, String> metaInfoMap;
+			try {
+				metaInfoMap = metaInfoFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause();
+				// Unwrap double-wrapping: Supplier wraps in CompletionException, then join() wraps again
+				while (cause instanceof CompletionException && cause.getCause() != null)
+					cause = cause.getCause();
+				if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
+				if (cause instanceof IOException) throw (IOException) cause;
+				if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+				throw new IOException("Failed to fetch metaInfo", cause);
+			}
+
+			// Run tag generators in parallel — AgeGroupTagGenerator makes its own I/O call (getApplicantAge)
+			List<CompletableFuture<Map<String, String>>> tagFutures = tagGenerators.stream()
+					.map(tagGenerator -> CompletableFuture.supplyAsync(() -> {
+						try {
+							return tagGenerator.generateTags(workflowInstanceId, registrationId, process,
+									idObjectFieldDTOMap, metaInfoMap, iteration);
+						} catch (Exception e) {
+							throw new CompletionException(e);
+						}
+					}, executor))
+					.collect(Collectors.toList());
+
+			try {
+				CompletableFuture.allOf(tagFutures.toArray(new CompletableFuture[0])).join();
+			} catch (CompletionException e) {
+				executor.shutdownNow();
+				Throwable cause = e.getCause();
+				// Unwrap double-wrapping: Supplier wraps in CompletionException, then join() wraps again
+				while (cause instanceof CompletionException && cause.getCause() != null)
+					cause = cause.getCause();
+				if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
+				if (cause instanceof IOException) throw (IOException) cause;
+				if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+				throw new IOException("Tag generation failed", cause);
+			}
+
+			Map<String, String> allTags = new HashMap<>();
+			for (CompletableFuture<Map<String, String>> future : tagFutures) {
+				Map<String, String> tags = future.getNow(null);
+				if (tags != null && !tags.isEmpty())
+					allTags.putAll(tags);
+			}
+
+			handleNullValueTags(allTags);
+			regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
+			if (!allTags.isEmpty())
+				packetManagerService.addOrUpdateTags(registrationId, allTags);
+		} finally {
+			executor.close();
 		}
-		handleNullValueTags(allTags);
-		regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
-		if(!allTags.isEmpty())
-			packetManagerService.addOrUpdateTags(registrationId, allTags);
 	}
 
 	private Map<String, FieldDTO> getIdObjectFieldDTOMap(Map<String, String> identityFieldValueMap,
