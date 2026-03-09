@@ -118,8 +118,9 @@ public class BiometricsSignatureValidator {
 			return;
 		}
 
-		// Validate all JWT tokens in parallel using virtual threads
-		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+		// Validate all JWT tokens in parallel using virtual threads (fail-fast: cancel remaining on first failure)
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
 			List<CompletableFuture<Void>> futures = tokensToValidate.stream()
 					.map(token -> CompletableFuture.runAsync(() -> {
 						try {
@@ -133,6 +134,8 @@ public class BiometricsSignatureValidator {
 			try {
 				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 			} catch (CompletionException e) {
+				// Interrupt remaining in-flight threads immediately (fail-fast)
+				executor.shutdownNow();
 				Throwable cause = e.getCause();
 				if (cause instanceof BiometricSignatureValidationException) {
 					throw (BiometricSignatureValidationException) cause;
@@ -146,6 +149,8 @@ public class BiometricsSignatureValidator {
 					throw new IOException("Biometric signature validation failed", cause);
 				}
 			}
+		} finally {
+			executor.close(); // waits for any still-running threads to finish (fast after shutdownNow)
 		}
 	}
 

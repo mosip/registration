@@ -92,37 +92,8 @@ public class PacketValidatorImpl implements PacketValidator {
             JsonProcessingException, PacketManagerException {
         String uin = null;
         try {
-            // Run packet validation and consent check in parallel using virtual threads
-            ValidatePacketResponse response;
-            String consentVal;
-            try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-                CompletableFuture<ValidatePacketResponse> validateFuture = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return packetManagerService.validate(id, process, ProviderStageName.PACKET_VALIDATOR);
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                }, executor);
-                CompletableFuture<String> consentFuture = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return packetManagerService.getField(id, MappingJsonConstants.CONSENT, process, ProviderStageName.PACKET_VALIDATOR);
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                }, executor);
-                try {
-                    CompletableFuture.allOf(validateFuture, consentFuture).join();
-                } catch (CompletionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof ApisResourceAccessException) throw (ApisResourceAccessException) cause;
-                    if (cause instanceof PacketManagerException) throw (PacketManagerException) cause;
-                    if (cause instanceof JsonProcessingException) throw (JsonProcessingException) cause;
-                    if (cause instanceof IOException) throw (IOException) cause;
-                    throw new IOException("Parallel validation/consent check failed", cause);
-                }
-                response = validateFuture.join();
-                consentVal = consentFuture.join();
-            }
+            ValidatePacketResponse response = packetManagerService.validate(id, process, ProviderStageName.PACKET_VALIDATOR);
+            String consentVal = packetManagerService.getField(id, MappingJsonConstants.CONSENT, process, ProviderStageName.PACKET_VALIDATOR);
             if (!response.isValid()) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
@@ -227,8 +198,9 @@ public class PacketValidatorImpl implements PacketValidator {
         }
         final Map<String, String> finalMetaInfoMap = metaInfoMap;
 
-        // Validate all biometric fields in parallel using virtual threads
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        // Validate all biometric fields in parallel using virtual threads (fail-fast: cancel remaining on first failure)
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        try {
             List<CompletableFuture<Void>> futures = fields.stream()
                     .map(field -> CompletableFuture.runAsync(() -> {
                         try {
@@ -262,6 +234,8 @@ public class PacketValidatorImpl implements PacketValidator {
             try {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             } catch (CompletionException e) {
+                // Interrupt remaining in-flight threads immediately (fail-fast)
+                executor.shutdownNow();
                 Throwable cause = e.getCause();
                 if (cause instanceof CbeffException) {
                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -297,6 +271,8 @@ public class PacketValidatorImpl implements PacketValidator {
                             PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), cause);
                 }
             }
+        } finally {
+            executor.close(); // waits for any still-running threads to finish (fast after shutdownNow)
         }
         return true;
     }
