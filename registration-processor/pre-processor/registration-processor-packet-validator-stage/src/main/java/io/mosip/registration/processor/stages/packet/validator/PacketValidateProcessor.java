@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -209,15 +208,17 @@ public class PacketValidateProcessor {
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					String finalRegistrationId = registrationId;
 
-					try {
-						auditUtility.saveAuditDetails(finalRegistrationId,
-								finalRegistrationStatusDto.getRegistrationType());
-					} catch (Exception e) {
-						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(),
-								description.getCode() + " Inside Runnable ", "");
-
-					}
+					// Fetch audits + fire async audit REST calls in virtual thread — not on critical path
+					Thread.ofVirtual().start(() -> {
+						try {
+							auditUtility.saveAuditDetails(finalRegistrationId,
+									finalRegistrationStatusDto.getRegistrationType());
+						} catch (Exception e) {
+							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+									LoggerFileConstant.REGISTRATIONID.toString(),
+									"auditUtility.saveAuditDetails failed for rid " + finalRegistrationId, "");
+						}
+					});
 
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
