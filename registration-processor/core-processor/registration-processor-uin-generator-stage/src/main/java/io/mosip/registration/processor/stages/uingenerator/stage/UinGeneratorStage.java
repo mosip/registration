@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.packet.storage.utils.*;
@@ -248,11 +252,25 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				}
 			} else {
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
+				// Start getUIn in parallel — independent of schemaVersion/getFields chain
+				CompletableFuture<String> uinFuture = CompletableFuture.supplyAsync(() -> {
+					try {
+						return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+					} catch (Exception e) { throw new CompletionException(e); }
+				});
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
-				String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+				String uinField;
+				try {
+					uinField = uinFuture.join();
+				} catch (CompletionException e) {
+					Throwable cause = e.getCause();
+					while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+					sneakyThrow(cause);
+					throw new RuntimeException(); // unreachable
+				}
 				JSONObject demographicIdentity = new JSONObject();
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
@@ -594,28 +612,70 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws JsonParseException
 	 */
 	private List<Documents> getAllDocumentsByRegId(String regId, String process, JSONObject demographicIdentity) throws Exception {
-		List<Documents> applicantDocuments = new ArrayList<>();
-
 		JSONObject idJSON = demographicIdentity;
-		JSONObject  docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-		JSONObject  identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+
+		// Fetch DOCUMENT and IDENTITY mapping JSONs in parallel
+		CompletableFuture<JSONObject> docJsonFuture = CompletableFuture.supplyAsync(() -> {
+			try { return utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT); }
+			catch (Exception e) { throw new CompletionException(e); }
+		});
+		CompletableFuture<JSONObject> identityJsonFuture = CompletableFuture.supplyAsync(() -> {
+			try { return utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY); }
+			catch (Exception e) { throw new CompletionException(e); }
+		});
+		try {
+			CompletableFuture.allOf(docJsonFuture, identityJsonFuture).join();
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause();
+			while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+			sneakyThrow(cause);
+			throw new RuntimeException(); // unreachable
+		}
+		JSONObject docJson = docJsonFuture.getNow(null);
+		JSONObject identityJson = identityJsonFuture.getNow(null);
 
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
-
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
 
-
-		for (Object doc : docJson.values()) {
-			Map docMap = (LinkedHashMap) doc;
-			String docValue = docMap.values().iterator().next().toString();
-			HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
-			if (docInIdentityJson != null)
-				applicantDocuments
-						.add(getIdDocumnet(regId, docValue, process));
+		// Fetch all documents in parallel using virtual threads
+		List<CompletableFuture<Documents>> futures = new ArrayList<>();
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
+			for (Object doc : docJson.values()) {
+				Map docMap = (LinkedHashMap) doc;
+				String docValue = docMap.values().iterator().next().toString();
+				HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
+				if (docInIdentityJson != null) {
+					futures.add(CompletableFuture.supplyAsync(() -> {
+						try { return getIdDocumnet(regId, docValue, process); }
+						catch (Exception e) { throw new CompletionException(e); }
+					}, executor));
+				}
+			}
+			if (applicantBiometric != null) {
+				String biometricLabel = applicantBiometricLabel;
+				futures.add(CompletableFuture.supplyAsync(() -> {
+					try { return getBiometrics(regId, biometricLabel, process, biometricLabel); }
+					catch (Exception e) { throw new CompletionException(e); }
+				}, executor));
+			}
+			try {
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+			} catch (CompletionException e) {
+				executor.shutdownNow();
+				Throwable cause = e.getCause();
+				while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+				sneakyThrow(cause);
+				throw new RuntimeException(); // unreachable
+			}
+		} finally {
+			executor.close();
 		}
 
-		if (applicantBiometric != null) {
-			applicantDocuments.add(getBiometrics(regId, applicantBiometricLabel, process, applicantBiometricLabel));
+		List<Documents> applicantDocuments = new ArrayList<>();
+		for (CompletableFuture<Documents> f : futures) {
+			Documents document = f.getNow(null);
+			if (document != null) applicantDocuments.add(document);
 		}
 		return applicantDocuments;
 	}
@@ -1148,6 +1208,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		return idResponse;
 	}
+
+	@SuppressWarnings("unchecked")
+	private static <E extends Throwable> void sneakyThrow(Throwable e) throws E { throw (E) e; }
 
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
 		object.setInternalError(true);
