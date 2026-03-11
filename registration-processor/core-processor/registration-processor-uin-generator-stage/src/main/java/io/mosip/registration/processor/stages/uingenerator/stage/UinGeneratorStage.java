@@ -252,12 +252,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				}
 			} else {
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
-				// Start getUIn in parallel — independent of schemaVersion/getFields chain
+				// Run getUIn in parallel with schemaVersion+getFields using virtual threads (not ForkJoinPool)
+				ExecutorService uinExecutor = Executors.newVirtualThreadPerTaskExecutor();
 				CompletableFuture<String> uinFuture = CompletableFuture.supplyAsync(() -> {
 					try {
 						return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 					} catch (Exception e) { throw new CompletionException(e); }
-				});
+				}, uinExecutor);
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
@@ -270,6 +271,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
 					sneakyThrow(cause);
 					throw new RuntimeException(); // unreachable
+				} finally {
+					uinExecutor.close();
 				}
 				JSONObject demographicIdentity = new JSONObject();
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
@@ -614,25 +617,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private List<Documents> getAllDocumentsByRegId(String regId, String process, JSONObject demographicIdentity) throws Exception {
 		JSONObject idJSON = demographicIdentity;
 
-		// Fetch DOCUMENT and IDENTITY mapping JSONs in parallel
-		CompletableFuture<JSONObject> docJsonFuture = CompletableFuture.supplyAsync(() -> {
-			try { return utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT); }
-			catch (Exception e) { throw new CompletionException(e); }
-		});
-		CompletableFuture<JSONObject> identityJsonFuture = CompletableFuture.supplyAsync(() -> {
-			try { return utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY); }
-			catch (Exception e) { throw new CompletionException(e); }
-		});
-		try {
-			CompletableFuture.allOf(docJsonFuture, identityJsonFuture).join();
-		} catch (CompletionException e) {
-			Throwable cause = e.getCause();
-			while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
-			sneakyThrow(cause);
-			throw new RuntimeException(); // unreachable
-		}
-		JSONObject docJson = docJsonFuture.getNow(null);
-		JSONObject identityJson = identityJsonFuture.getNow(null);
+		// Mapping JSONs are cached after first call — fetch sequentially (no ForkJoinPool)
+		JSONObject docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+		JSONObject identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);

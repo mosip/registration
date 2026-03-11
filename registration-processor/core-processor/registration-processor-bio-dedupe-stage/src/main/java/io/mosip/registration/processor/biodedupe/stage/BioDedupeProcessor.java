@@ -6,6 +6,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -474,24 +478,61 @@ public class BioDedupeProcessor {
 		String process = messageDTO.getReg_type();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
-		boolean isInfant = infantCheck(id, process);
-		try {
-			if (isInfant)
-				if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE))
-					cbeffValidateAndVerificatonService.validateBiometrics(id, process);
-				else
-					return false;
-			else
-				cbeffValidateAndVerificatonService.validateBiometrics(id, process);
-		} catch (CbeffNotFoundException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), id, ExceptionUtils.getStackTrace(e));
-			messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
-			return false;
-		}
-		return true;
 
+		// Run infant age check and biometric validation in parallel — they fetch different data independently
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
+			CompletableFuture<Boolean> infantFuture = CompletableFuture.supplyAsync(() -> {
+				try { return infantCheck(id, process); }
+				catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			CompletableFuture<Throwable> bioFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					cbeffValidateAndVerificatonService.validateBiometrics(id, process);
+					return null; // success
+				} catch (CbeffNotFoundException e) {
+					return e; // signal cbeff not found without failing the future
+				} catch (Exception e) {
+					throw new CompletionException(e);
+				}
+			}, executor);
+
+			boolean isInfant;
+			try {
+				isInfant = infantFuture.join();
+			} catch (CompletionException e) {
+				sneakyThrow(e.getCause() != null ? e.getCause() : e);
+				return false; // unreachable
+			}
+
+			if (isInfant && !infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
+				return false;
+			}
+
+			Throwable bioResult;
+			try {
+				bioResult = bioFuture.join();
+			} catch (CompletionException e) {
+				sneakyThrow(e.getCause() != null ? e.getCause() : e);
+				return false; // unreachable
+			}
+
+			if (bioResult instanceof CbeffNotFoundException) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), id, ExceptionUtils.getStackTrace(bioResult));
+				messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+				return false;
+			}
+
+			return true;
+		} finally {
+			executor.close();
+		}
 	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void sneakyThrow(Throwable t) throws T { throw (T) t; }
 
 	private boolean infantCheck(String registrationId, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		boolean isInfant = false;
