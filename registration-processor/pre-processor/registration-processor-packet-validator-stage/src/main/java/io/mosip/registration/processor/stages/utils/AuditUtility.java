@@ -5,8 +5,6 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Supplier;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -66,7 +64,7 @@ public class AuditUtility {
 	 *
 	 * @param registrationId
 	 *            the registrationId
-	 * 
+	 *
 	 *
 	 */
 	public void saveAuditDetails(String registrationId, String process) {
@@ -75,10 +73,10 @@ public class AuditUtility {
 					"", "AuditUtility::saveAuditDetails()::entry");
 			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, process, ProviderStageName.PACKET_VALIDATOR);
 			if (CollectionUtils.isNotEmpty(audits)) {
-				audits.parallelStream().forEach(audit -> {
+				// Fire-and-forget: submit audit requests without blocking worker thread
+				audits.forEach(audit -> {
 					AsyncRequestDTO request = buildRequest(audit);
-					Supplier<Object> dto = restHelper.requestAsync(request);
-					dto.get();
+					restHelper.requestAsync(request);
 				});
 			}
 		} catch (RuntimeException e) {
@@ -114,12 +112,12 @@ public class AuditUtility {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		request.setHeaders(headers);
-		
+
 
 		request.setRequestBody(auditRequest);
 		request.setResponseType(AuditRespDTO.class);
 
 		return request;
 	}
-	 
+
 }

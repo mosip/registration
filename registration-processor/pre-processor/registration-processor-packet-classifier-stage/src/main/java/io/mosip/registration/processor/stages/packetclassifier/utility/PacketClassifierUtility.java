@@ -47,8 +47,8 @@ public class PacketClassifierUtility {
 				}
 			}
 		} else {
+			JSONArray jsonArray = new JSONArray(value); // parse once, reuse across all language lookups
 			for (String language : optionalLanguages) {
-				JSONArray jsonArray = new JSONArray(value);
 				for (int i = 0; i < jsonArray.length(); i++) {
 					JSONObject jsonObject = jsonArray.getJSONObject(i);
 					if (jsonObject.getString(LANGUAGE_LABEL).equals(language)) {

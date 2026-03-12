@@ -6,6 +6,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -177,19 +181,18 @@ public class BioDedupeProcessor {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(
 					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 			String registrationType = registrationStatusDto.getRegistrationType();
+			// Fetch packetStatus once — reused across all branches and duplicate check
+			String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString())
 			|| (subProcesses != null && subProcesses.contains(registrationType))) {
-				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					newPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					postAbisIdentification(registrationStatusDto, object, registrationType);
-
 				}
 
 			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())
 					|| registrationType.equalsIgnoreCase(SyncTypeDto.RES_UPDATE.toString())) {
-				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					updatePacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
@@ -198,8 +201,6 @@ public class BioDedupeProcessor {
 
 			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())
 					&& isValidCbeff(object)) {
-				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
-
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
@@ -208,10 +209,9 @@ public class BioDedupeProcessor {
 									registrationType, object.getIteration(), object.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
-
 			}
 
-			if (abisHandlerUtil.getPacketStatus(registrationStatusDto).equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
+			if (packetStatus.equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
 				isDuplicateRequestForSameTransactionId = true;
 
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -478,24 +478,61 @@ public class BioDedupeProcessor {
 		String process = messageDTO.getReg_type();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
-		boolean isInfant = infantCheck(id, process);
-		try {
-			if (isInfant)
-				if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE))
-					cbeffValidateAndVerificatonService.validateBiometrics(id, process);
-				else
-					return false;
-			else
-				cbeffValidateAndVerificatonService.validateBiometrics(id, process);
-		} catch (CbeffNotFoundException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString(), id, ExceptionUtils.getStackTrace(e));
-			messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
-			return false;
-		}
-		return true;
 
+		// Run infant age check and biometric validation in parallel — they fetch different data independently
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
+			CompletableFuture<Boolean> infantFuture = CompletableFuture.supplyAsync(() -> {
+				try { return infantCheck(id, process); }
+				catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			CompletableFuture<Throwable> bioFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					cbeffValidateAndVerificatonService.validateBiometrics(id, process);
+					return null; // success
+				} catch (CbeffNotFoundException e) {
+					return e; // signal cbeff not found without failing the future
+				} catch (Exception e) {
+					throw new CompletionException(e);
+				}
+			}, executor);
+
+			boolean isInfant;
+			try {
+				isInfant = infantFuture.join();
+			} catch (CompletionException e) {
+				sneakyThrow(e.getCause() != null ? e.getCause() : e);
+				return false; // unreachable
+			}
+
+			if (isInfant && !infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
+				return false;
+			}
+
+			Throwable bioResult;
+			try {
+				bioResult = bioFuture.join();
+			} catch (CompletionException e) {
+				sneakyThrow(e.getCause() != null ? e.getCause() : e);
+				return false; // unreachable
+			}
+
+			if (bioResult instanceof CbeffNotFoundException) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), id, ExceptionUtils.getStackTrace(bioResult));
+				messageDTO.setMessageBusAddress(MessageBusAddress.VERIFICATION_BUS_IN);
+				return false;
+			}
+
+			return true;
+		} finally {
+			executor.close();
+		}
 	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void sneakyThrow(Throwable t) throws T { throw (T) t; }
 
 	private boolean infantCheck(String registrationId, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		boolean isInfant = false;
@@ -558,11 +595,15 @@ public class BioDedupeProcessor {
 			List<String> demoMatchedIds = new ArrayList<>();
 			int matchCount = 0;
 
+			// Build mapperIdentity once outside the loop — avoids repeated mapping JSON fetches per matched reg
+			JSONObject mapperIdentity = new JSONObject();
+			mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY));
+			mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT));
 			for (String matchedRegId : matchedRegIds) {
 				JSONObject matchedDemographicIdentity = idRepoService.getIdJsonFromIDRepo(matchedRegId,
 						utilities.getGetRegProcessorDemographicIdentity());
 				matchCount = addMactchedRefId(registrationStatusDto.getRegistrationId(),
-						registrationStatusDto.getRegistrationType(), matchedDemographicIdentity, matchCount, demoMatchedIds, matchedRegId);
+						registrationStatusDto.getRegistrationType(), matchedDemographicIdentity, matchCount, demoMatchedIds, matchedRegId, mapperIdentity);
 				if (matchCount > 1)
 					break;
 			}
@@ -600,9 +641,9 @@ public class BioDedupeProcessor {
 	}
 
 	private int addMactchedRefId(String id, String process, JSONObject matchedDemographicIdentity, int matchCount, List<String> demoMatchedIds,
-			String matchedRegId) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+			String matchedRegId, JSONObject mapperIdentity) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		if (matchedDemographicIdentity != null) {
-			Map<String, String> matchedAttribute = getIdJson(matchedDemographicIdentity);
+			Map<String, String> matchedAttribute = getIdJson(matchedDemographicIdentity, mapperIdentity);
 			if (!matchedAttribute.isEmpty()) {
 				if (compareDemoDedupe(id, process, matchedAttribute)) {
 					matchCount++;
@@ -615,29 +656,20 @@ public class BioDedupeProcessor {
 	}
 
 	private boolean compareDemoDedupe(String id, String process, Map<String, String> matchedAttribute) throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		boolean isMatch = false;
-
+		// Fetch all fields in one bulk call instead of one HTTP call per attribute key
+		Map<String, String> fields = priorityBasedPacketManagerService.getFields(
+				id, new ArrayList<>(matchedAttribute.keySet()), process, ProviderStageName.BIO_DEDUPE);
 		for (String key : matchedAttribute.keySet()) {
-			String value = priorityBasedPacketManagerService.getField(id, key, process, ProviderStageName.BIO_DEDUPE);
-			if (value != null && value.equalsIgnoreCase(matchedAttribute.get(key))) {
-				isMatch = true;
-			} else {
-				isMatch = false;
-				return isMatch;
+			String value = fields.get(key);
+			if (value == null || !value.equalsIgnoreCase(matchedAttribute.get(key))) {
+				return false;
 			}
-
 		}
-		return isMatch;
+		return true;
 	}
 
-	private Map<String, String> getIdJson(JSONObject demographicJsonIdentity) throws IOException {
+	private Map<String, String> getIdJson(JSONObject demographicJsonIdentity, JSONObject mapperIdentity) throws IOException {
 		Map<String, String> attribute = new LinkedHashMap<>();
-
-
-		JSONObject mapperIdentity = new JSONObject();
-		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY));
-		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT));
-
 
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 
