@@ -96,6 +96,7 @@ public class BiometricsXSDValidatorTest {
         biometricRecord.setSegments(birTypeList);
         PowerMockito.mockStatic(CbeffValidator.class);
         PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenReturn("bdd".getBytes());
+        biometricsXSDValidator.init();
 	}
 	
 	@Test(expected=CbeffException.class)
@@ -110,7 +111,7 @@ public class BiometricsXSDValidatorTest {
         String url = "http://localhost:51000/config/registration-processor/mz/master/mosip-cbeff.xsd";
         PowerMockito.whenNew(URL.class).withArguments(url).thenReturn(u);
         PowerMockito.when(u.openStream()).thenThrow(IOException.class);
-        biometricsXSDValidator.validateXSD(biometricRecord);
+        biometricsXSDValidator.init();
 	}
 	
 	@Test

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PostConstruct;
 
@@ -61,16 +62,21 @@ public class PacketManagerService {
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
 
+    // Cache for Info API responses (per packet ID) - improves performance for repeated info() calls
+    private final Map<String, InfoResponseDto> infoCache = new ConcurrentHashMap<>();
+    private static final long INFO_CACHE_TTL_MS = 5000; // 5 second TTL
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @PostConstruct
     private void setObjectMapper() {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-	public String getField(String id, String field, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public String getField(String id, String field, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDto fieldDto = new FieldDto(id, field, source, process, false);
 
         RequestWrapper<FieldDto> request = new RequestWrapper<>();
@@ -98,8 +104,8 @@ public class PacketManagerService {
         return responseField;
     }
 
-	public Map<String, String> getFields(String id, List<String> fields, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Map<String, String> getFields(String id, List<String> fields, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDtos fieldDto = new FieldDtos(id, fields, source, process, false);
 
         RequestWrapper<FieldDtos> request = new RequestWrapper<>();
@@ -124,13 +130,13 @@ public class PacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-	public Document getDocument(String id, String documentName, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Document getDocument(String id, String documentName, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         return getDocument(id, documentName, null, process);
     }
 
-	public Document getDocument(String id, String documentName, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Document getDocument(String id, String documentName, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         DocumentDto fieldDto = new DocumentDto(id, documentName, source, process);
 
         RequestWrapper<DocumentDto> request = new RequestWrapper<>();
@@ -155,8 +161,8 @@ public class PacketManagerService {
         return document;
     }
 
-	public ValidatePacketResponse validate(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public ValidatePacketResponse validate(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
@@ -180,8 +186,8 @@ public class PacketManagerService {
         return validatePacketResponse;
     }
 
-	public List<FieldResponseDto> getAudits(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public List<FieldResponseDto> getAudits(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         InfoDto fieldDto = new InfoDto(id, source, process, false);
         List<FieldResponseDto> response = new ArrayList<>();
@@ -211,9 +217,9 @@ public class PacketManagerService {
         return response;
     }
 
-	public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source,
-			String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source,
+                                         String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         BiometricRequestDto fieldDto = new BiometricRequestDto(id, person, modalities, source, process, false);
 
@@ -241,8 +247,8 @@ public class PacketManagerService {
 
     }
 
-	public Map<String, String> getMetaInfo(String id, String source, String process)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Map<String, String> getMetaInfo(String id, String source, String process)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
@@ -268,8 +274,8 @@ public class PacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-	public InfoResponseDto info(String id)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+   /* public InfoResponseDto info(String id)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
         RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
@@ -290,6 +296,50 @@ public class PacketManagerService {
         }
 
         InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+
+        return infoResponseDto;
+    }*/
+
+    /**
+     * OPTIMIZED: info() with simple caching to reduce repeated API calls
+     */
+    public InfoResponseDto info(String id)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        // Quick cache check for repeated calls within 5 seconds
+        if (infoCache.containsKey(id)) {
+            return infoCache.get(id);
+        }
+
+        InfoRequestDto infoRequestDto = new InfoRequestDto(id);
+
+        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
+        request.setRequest(infoRequestDto);
+        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            ErrorDTO errorDTO = response.getErrors().iterator().next();
+            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
+                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
+            else
+                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
+        }
+
+        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+
+        // Cache the result
+        infoCache.put(id, infoResponseDto);
+
+        // Clear cache after TTL (simple approach)
+        new java.util.Timer().schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                infoCache.remove(id);
+            }
+        }, INFO_CACHE_TTL_MS);
 
         return infoResponseDto;
     }
@@ -315,32 +365,32 @@ public class PacketManagerService {
         }
     }
 
-	@SuppressWarnings("unchecked")
-	public void deleteTags(String id, List<String> tags)
-			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
-		RequestWrapper<DeleteTagRequestDTO> request = new RequestWrapper<>();
-		request.setId(ID);
-		request.setVersion(VERSION);
-		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-		request.setRequest(deleteTagREquestDto);
-		ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) restApi
-				.postApi(ApiName.PACKETMANAGER_DELETE_TAGS, "", "",
-				request, ResponseWrapper.class);
+    @SuppressWarnings("unchecked")
+    public void deleteTags(String id, List<String> tags)
+            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+        DeleteTagRequestDTO deleteTagREquestDto = new DeleteTagRequestDTO(id, tags);
+        RequestWrapper<DeleteTagRequestDTO> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
+        request.setRequest(deleteTagREquestDto);
+        ResponseWrapper<DeleteTagResponseDTO> response = (ResponseWrapper<DeleteTagResponseDTO>) restApi
+                .postApi(ApiName.PACKETMANAGER_DELETE_TAGS, "", "",
+                        request, ResponseWrapper.class);
 
-		if (response.getErrors() != null && response.getErrors().size() > 0) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					id, JsonUtils.javaObjectToJsonString(response));
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    id, JsonUtils.javaObjectToJsonString(response));
             ErrorDTO errorDTO = response.getErrors().iterator().next();
             if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
                 throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
             if(PACKET_MANAGER_NON_RECOVERABLE_ERROR_CODES.contains(errorDTO.getErrorCode()))
                 throw new PacketManagerNonRecoverableException(errorDTO.getErrorCode(), errorDTO.getMessage());
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-		}
+        }
 
 
-	}
+    }
 
     public Map<String, String> getAllTags(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         return getTags(id, null);
@@ -358,12 +408,12 @@ public class PacketManagerService {
                         request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-        	ErrorDTO error=response.getErrors().get(0);
+            ErrorDTO error=response.getErrors().get(0);
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     id, JsonUtils.javaObjectToJsonString(response));
             //This error code will return if requested tag is not present ,so returning null for that
-            if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024")) 
-        		return null;
+            if(error.getErrorCode().equalsIgnoreCase("KER-PUT-024"))
+                return null;
             else {
                 ErrorDTO errorDTO = response.getErrors().iterator().next();
                 if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))

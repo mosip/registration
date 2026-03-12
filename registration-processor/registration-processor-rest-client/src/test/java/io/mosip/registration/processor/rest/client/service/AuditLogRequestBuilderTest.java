@@ -55,7 +55,7 @@ public class AuditLogRequestBuilderTest {
 		Mockito.when(env.getProperty(AUDIT_SERVICE_ID)).thenReturn("mosip.applicanttype.getApplicantType");
 		Mockito.when(env.getProperty(REG_PROC_APPLICATION_VERSION)).thenReturn("1.0");
 		Mockito.when(env.getProperty(DATETIME_PATTERN)).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
+		auditLogRequestBuilder.init();
 	}
 	
 	@Test
