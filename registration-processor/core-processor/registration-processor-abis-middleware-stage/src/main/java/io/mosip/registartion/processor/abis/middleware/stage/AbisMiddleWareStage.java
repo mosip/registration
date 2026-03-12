@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 
@@ -174,15 +175,32 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				QueueListener listener = new QueueListener() {
 					@Override
 					public void setListener(Message message) {
+						String payload;
 						try {
-							consumerListener(message, abisInBoundaddress, queue, mosipEventBus,
-								inboundMessageTTL);
-						} catch (Exception e) {
-
+							payload = extractPayloadFromMessage(message);
+						} catch (JMSException e) {
 							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-									LoggerFileConstant.REGISTRATIONID.toString(), "", ExceptionUtils.getStackTrace(e));
-
+									LoggerFileConstant.REGISTRATIONID.toString(), "",
+									"AbisMiddlewareStage::setListener()::Failed to extract payload from message",
+									ExceptionUtils.getStackTrace(e));
+							return;
 						}
+						vertx.executeBlocking(promise -> {
+							try {
+								processAbisResponse(payload, abisInBoundaddress, queue, mosipEventBus, inboundMessageTTL);
+								promise.complete();
+							} catch (Exception e) {
+								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+										LoggerFileConstant.REGISTRATIONID.toString(), "", ExceptionUtils.getStackTrace(e));
+								promise.fail(e);
+							}
+						}, false, ar -> {
+							if (ar.failed()) {
+								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+										LoggerFileConstant.REGISTRATIONID.toString(), "",
+										"AbisMiddlewareStage::setListener()::Worker completed with failure");
+							}
+						});
 					}
 				};
 				mosipQueueManager.consume(queue, abisQueue.getOutboundQueueName(), listener);
@@ -361,25 +379,32 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue,
+	/**
+	 * Extracts payload from JMS message. Must be called on the JMS delivery thread.
+	 */
+	private String extractPayloadFromMessage(Message message) throws JMSException {
+		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
+			return ((TextMessage) message).getText();
+		}
+		return new String(((ActiveMQBytesMessage) message).getContent().data);
+	}
+
+	/**
+	 * Processes ABIS response on worker thread. Offloaded from JMS delivery thread for faster message consumption.
+	 */
+	public void processAbisResponse(String response, String abisInBoundAddress, MosipQueue queue,
 			MosipEventBus eventBus, int inboundMessageTTL)
 			throws RegistrationProcessorCheckedException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		InternalRegistrationStatusDto internalRegStatusDto = null;
 		String registrationId = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"AbisMiddlewareStage::consumerListener()::entry");
+				"AbisMiddlewareStage::processAbisResponse()::entry");
 		String moduleId = "";
 		String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 		boolean isTransactionSuccessful = true;
-		String response = null;
 		LogDescription description = new LogDescription();
 		try {
-			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
-				TextMessage textMessage = (TextMessage) message;
-				response =textMessage.getText();
-			} else
-				response = new String(((ActiveMQBytesMessage) message).getContent().data);
 			JSONObject inserOrIdentifyResponse = JsonUtil.objectMapperReadValue(response, JSONObject.class);
 			String requestId = JsonUtil.getJSONValue(inserOrIdentifyResponse, REQUESTID);
 			String batchId = packetInfoManager.getBatchIdByRequestId(requestId);
@@ -542,7 +567,23 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"AbisMiddlewareStage::consumerListener()::Exit()");
+				"AbisMiddlewareStage::processAbisResponse()::Exit()");
+	}
+
+	/**
+	 * Entry point for ABIS queue consumer. Extracts payload and delegates to processAbisResponse.
+	 * Used when processing synchronously (e.g. unit tests). Production flow uses offloading via executeBlocking.
+	 */
+	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue,
+			MosipEventBus eventBus, int inboundMessageTTL) throws RegistrationProcessorCheckedException {
+		try {
+			String payload = extractPayloadFromMessage(message);
+			processAbisResponse(payload, abisInBoundAddress, queue, eventBus, inboundMessageTTL);
+		} catch (JMSException e) {
+			throw new RegistrationProcessorCheckedException(
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+		}
 	}
 
 	private void validateNullCheck(Object obj, String errorMessage) {
