@@ -6,7 +6,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.registration.processor.core.constant.AbisConstant;
@@ -82,10 +85,16 @@ public class Utility {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"Utility::getApplicantAge()::entry");
 
-		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process,
-				stageName);
-		String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process,
-				stageName);
+		// Batch DOB and AGE into a single getFields() call instead of two sequential HTTP calls
+		JSONObject identityMappingJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		String dobField = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.DOB), VALUE);
+		String ageField = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.AGE), VALUE);
+		List<String> fieldsToFetch = new ArrayList<>();
+		if (dobField != null) fieldsToFetch.add(dobField);
+		if (ageField != null) fieldsToFetch.add(ageField);
+		Map<String, String> ageFieldValues = packetManagerService.getFields(id, fieldsToFetch, process, stageName);
+		String applicantDob = dobField != null ? ageFieldValues.get(dobField) : null;
+		String applicantAge = ageField != null ? ageFieldValues.get(ageField) : null;
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {

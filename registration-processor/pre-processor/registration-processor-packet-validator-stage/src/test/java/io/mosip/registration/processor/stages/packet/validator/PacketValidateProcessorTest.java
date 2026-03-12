@@ -248,7 +248,8 @@ public class PacketValidateProcessorTest {
 		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
 		metamap.put(JsonConstant.CREATIONDATE,"2023-10-17T03:01:09.893");
 		metamap.put("creationDate","2023-10-17T03:01:09.893Z");
-		jsonObject1.put("preRegistrationId", "12345");
+		jsonObject1.put("label", "preRegistrationId");
+		jsonObject1.put("value", "12345");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metamap);

@@ -17,8 +17,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
-
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -184,16 +182,9 @@ public class QualityClassifierStageTest {
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(qualityClassifierStage, "environment", new StandardEnvironment());
 		ReflectionTestUtils.setField(qualityClassifierStage, "defaultWorkerPoolSize", 10);
-		ReflectionTestUtils.setField(qualityClassifierStage, "maxPoolSize", 10);
 		ReflectionTestUtils.setField(qualityClassifierStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(qualityClassifierStage, "messageExpiryTimeLimit", Long.valueOf(0));
-//		ReflectionTestUtils.setField(qualityClassifierStage, "irisThreshold", 70);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "leftFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "rightFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "thumbFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "faceThreshold", 25);
 		ReflectionTestUtils.setField(qualityClassifierStage, "qualityTagPrefix", qualityPrefixTag);
-		ReflectionTestUtils.setField(qualityClassifierStage, "forkJoinPool", new ForkJoinPool(10));
 
 		Map<String, String> qualityClassificationRangeMap = new HashMap<String, String>();
 		qualityClassificationRangeMap.put(level_1, "0-10");

@@ -16,8 +16,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
@@ -59,7 +57,6 @@ public class MetaInfoTagGeneratorTest {
 		metaDataTagLabels = new ArrayList<>();
 		capturedRegisteredDeviceTypes = new ArrayList<>();
 
-		Whitebox.setInternalState(metaInfoTagGenerator, "objectMapper", new ObjectMapper());
 	}
 
 	@Test
@@ -114,10 +111,13 @@ public class MetaInfoTagGeneratorTest {
 	
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForMetaDataIOException() throws BaseCheckedException {
+		Whitebox.setInternalState(metaInfoTagGenerator, "operationsDataTagLabels", operationsDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "metaDataTagLabels", metaDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "capturedRegisteredDeviceTypes", capturedRegisteredDeviceTypes);
 
 		Map<String, String> metaInfoMap = new HashMap<>();
-		metaInfoMap.put(JsonConstant.OPERATIONSDATA,
-				"[ {\n  \"label\" : \"officerId\",\n  \"values\" : \"110119\"\n}]");
+		metaInfoMap.put(JsonConstant.OPERATIONSDATA, "[]");
+		// METADATA intentionally missing — generateTagsFromMetaData throws BaseCheckedException
 		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 
