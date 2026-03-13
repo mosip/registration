@@ -229,7 +229,6 @@ public class BioDedupeProcessor {
 					Set<String> matchedRegIds = processedMatchedResult.getMatchedResults();
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
-
 			}
 
 			if (packetStatus.equalsIgnoreCase(AbisConstant.DUPLICATE_FOR_SAME_TRANSACTION_ID))
@@ -757,7 +756,6 @@ public class BioDedupeProcessor {
 			if (value == null || !value.equalsIgnoreCase(matchedAttribute.get(key))) {
 				return false;
 			}
-
 		}
 		return true;
 	}
