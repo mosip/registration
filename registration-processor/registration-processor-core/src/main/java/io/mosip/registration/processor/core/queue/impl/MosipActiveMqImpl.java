@@ -42,6 +42,8 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
 
     private Connection connection;
     private Session session;
+    /** Dedicated session for send operations; prevents concurrent use with consume session (delivery thread acks vs worker thread sends). */
+    private Session sessionForSend;
     private Destination destination;
     private static final String LINE_SEPERATOR = "----------------";
     @Value("${registration.processor.queue.connection.retry.count:10}")
@@ -64,19 +66,26 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 connection = mosipActiveMq.getActiveMQConnectionFactory().createConnection();
                 activemQConn = (ActiveMQConnection) connection;
                 activemQConn.addTransportListener(new TransportExceptionListener());
-                if (session == null) {
-                    connection.start();
-                    this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-                    regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW CONNECTION-----",
-                            LINE_SEPERATOR + this.connection);
-                    regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION-----",
-                            LINE_SEPERATOR + this.session);
-                    if (!((ActiveMQConnection) connection).isStarted() || session == null) {
-                        regProcLogger.error("Activemq connection is not created. Retrying.....");
-                        throw new QueueConnectionException("session is "+session);
-                       
-                    }
+                session = null;
+                sessionForSend = null;
+            }
+            if (session == null) {
+                connection.start();
+                this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                this.sessionForSend = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW CONNECTION-----",
+                        LINE_SEPERATOR + this.connection);
+                regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION-----",
+                        LINE_SEPERATOR + this.session);
+                regProcLogger.debug(LINE_SEPERATOR, LINE_SEPERATOR, "-----NEW SESSION FOR SEND-----",
+                        LINE_SEPERATOR + this.sessionForSend);
+                if (!((ActiveMQConnection) connection).isStarted() || session == null || sessionForSend == null) {
+                    regProcLogger.error("Activemq connection is not created. Retrying.....");
+                    throw new QueueConnectionException("session is " + session);
                 }
+            }
+            if (sessionForSend == null && session != null) {
+                this.sessionForSend = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             }
 
         } catch (JMSException e) {
@@ -116,9 +125,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
         boolean flag = false;
         initialSetup(mosipQueue);
         try {
-            destination = session.createQueue(address);
-            MessageProducer messageProducer = session.createProducer(destination);
-            BytesMessage byteMessage = session.createBytesMessage();
+            Destination sendDestination = sessionForSend.createQueue(address);
+            MessageProducer messageProducer = sessionForSend.createProducer(sendDestination);
+            BytesMessage byteMessage = sessionForSend.createBytesMessage();
             byteMessage.writeObject(message);
             if(messageTTL > 0)
                 messageProducer.setTimeToLive(messageTTL * (long)1000);
@@ -153,9 +162,11 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             // fix for activemq connection issue
             if (session == null)
                 initialSetup(mosipQueue);
-            destination = session.createQueue(address);
-            MessageProducer messageProducer = session.createProducer(destination);
-            TextMessage textMessage = session.createTextMessage();
+            if (sessionForSend == null)
+                initialSetup(mosipQueue);
+            Destination sendDestination = sessionForSend.createQueue(address);
+            MessageProducer messageProducer = sessionForSend.createProducer(sendDestination);
+            TextMessage textMessage = sessionForSend.createTextMessage();
             textMessage.setText(message);
             if(messageTTL > 0)
                 messageProducer.setTimeToLive(messageTTL * (long)1000);
