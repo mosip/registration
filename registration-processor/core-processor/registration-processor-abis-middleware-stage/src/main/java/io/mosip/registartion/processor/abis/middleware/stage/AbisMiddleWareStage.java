@@ -6,7 +6,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import jakarta.jms.JMSException;
@@ -160,9 +159,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static final String BIOGRAPHIC_VERIFICATION = "BIOGRAPHIC_VERIFICATION";
 	private static final String ABIS_QUEUE_NOT_FOUND = "ABIS_QUEUE_NOT_FOUND";
 	private static final String TEXT_MESSAGE = "text";
-
-	/** Per-batch locks to prevent duplicate sendToAbisHandler when worker threads process same batch concurrently. */
-	private final ConcurrentHashMap<String, Object> batchLocks = new ConcurrentHashMap<>();
 
 	/** Lock for thread-safe JMS send (shared session is not thread-safe). */
 	private final Object sendLock = new Object();
@@ -512,18 +508,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				}
 				updteAbisRequestProcessed(abisIdentifyResponseDto, abisCommonRequestDto);
 
-				Object batchLock = batchLocks.computeIfAbsent(batchId, k -> new Object());
-				synchronized (batchLock) {
-					if (checkAllIdentifyRequestsProcessed(batchId)) {
+				if (checkAllIdentifyRequestsProcessed(batchId)) {
 
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-								"",
-								"AbisMiddlewareStage::consumerListener()::All identify are requests processed sending to Abis handler");
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							"",
+							"AbisMiddlewareStage::consumerListener()::All identify are requests processed sending to Abis handler");
 
-						sendToAbisHandler(eventBus, bioRefId, registrationId, internalRegStatusDto.getRegistrationType(),
-								internalRegStatusDto.getIteration(), internalRegStatusDto.getWorkflowInstanceId());
-						batchLocks.remove(batchId);
-					}
+					sendToAbisHandler(eventBus, bioRefId, registrationId, internalRegStatusDto.getRegistrationType(),
+							internalRegStatusDto.getIteration(), internalRegStatusDto.getWorkflowInstanceId());
 				}
 				} else {
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
