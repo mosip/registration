@@ -632,10 +632,45 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws Exception
 	 */
-	private IdResponseDTO sendIdRepoWithUin(String id, String process, JSONObject demographicIdentity, String uin)
-			throws Exception {
+	private IdResponseDTO sendIdRepoWithUin(String id, String process,
+											JSONObject demographicIdentity, String uin) throws Exception {
 
-		List<Documents> documentInfo = getAllDocumentsByRegId(id, process, demographicIdentity);
+		// ── Parallel: fetch documents + timestamp concurrently ──────────────────
+		// These two are completely independent — no reason to serialize them.
+		// getAllDocumentsByRegId is the heavy I/O call (packet manager fetch);
+		// getUTCCurrentDateTimeString may involve a clock/format call — cheap but
+		// free to overlap. Both run on virtual threads so no carrier thread is blocked.
+		List<Documents> documentInfo;
+		String requestTime;
+
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+			CompletableFuture<List<Documents>> docsFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return getAllDocumentsByRegId(id, process, demographicIdentity);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			CompletableFuture<String> timeFuture = CompletableFuture.supplyAsync(
+					DateUtils2::getUTCCurrentDateTimeString, exec);
+
+			try {
+				CompletableFuture.allOf(docsFuture, timeFuture).join();
+			} catch (CompletionException e) {
+				Throwable cause = unwrapCompletionException(e);
+				if (cause instanceof Exception ex) throw ex;
+				throw e;
+			}
+
+			documentInfo = docsFuture.join();
+			requestTime  = timeFuture.join();
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Build request objects (pure CPU, no I/O) ─────────────────────────────
+		// RequestDto and IdRequestDto are independent; inline both to avoid
+		// intermediate variable churn. No parallelism needed here — it's just
+		// field assignments, negligible cost.
 		RequestDto requestDto = new RequestDto();
 		requestDto.setIdentity(demographicIdentity);
 		requestDto.setDocuments(documentInfo);
@@ -643,37 +678,52 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		requestDto.setStatus(RegistrationType.ACTIVATED.toString());
 		requestDto.setBiometricReferenceId(uin);
 
-		IdResponseDTO result = null;
 		IdRequestDto idRequestDTO = new IdRequestDto();
 		idRequestDTO.setId(idRepoUpdate);
 		idRequestDTO.setRequest(requestDto);
-		idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
+		idRequestDTO.setRequesttime(requestTime);
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 		idRequestDTO.setMetadata(null);
+		// ────────────────────────────────────────────────────────────────────────
 
+		// ── Call idRepo, unwrap HTTP errors cleanly ───────────────────────────────
 		try {
-
-			result = idrepoDraftService.idrepoUpdateDraft(id, null, idRequestDTO);
-
+			return idrepoDraftService.idrepoUpdateDraft(id, null, idRequestDTO);
 		} catch (ApisResourceAccessException e) {
-			regProcLogger.error("Execption occured updating draft for id " + id, e);
-			if (e.getCause() instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-				throw new ApisResourceAccessException(httpClientException.getResponseBodyAsString(),
-						httpClientException);
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				throw new ApisResourceAccessException(httpServerException.getResponseBodyAsString(),
-						httpServerException);
-			} else {
-				throw e;
-			}
-
+			regProcLogger.error("Exception occurred updating draft for id {}", id, e);
+			throw unwrapHttpException(e);   // never returns normally
 		}
-		return result;
-
+		// ────────────────────────────────────────────────────────────────────────
 	}
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+	/**
+	 * Unwraps nested CompletionExceptions down to the original root cause.
+	 * Virtual-thread CompletableFutures double-wrap on re-throw; this cuts through all layers.
+	 */
+	private static Throwable unwrapCompletionException(CompletionException e) {
+		Throwable cause = e.getCause();
+		while (cause instanceof CompletionException && cause.getCause() != null)
+			cause = cause.getCause();
+		return cause;
+	}
+
+	/**
+	 * Extracts the response body from an HttpClientErrorException or
+	 * HttpServerErrorException and re-wraps it as ApisResourceAccessException.
+	 * Falls through to re-throw the original if neither type matches.
+	 *
+	 * Replaces the duplicated instanceof+cast+throw blocks in the original.
+	 */
+	private static ApisResourceAccessException unwrapHttpException(ApisResourceAccessException e) {
+		Throwable cause = e.getCause();
+		if (cause instanceof HttpClientErrorException hce)
+			return new ApisResourceAccessException(hce.getResponseBodyAsString(), hce);
+		if (cause instanceof HttpServerErrorException hse)
+			return new ApisResourceAccessException(hse.getResponseBodyAsString(), hse);
+		return e;   // neither — rethrow as-is
+	}
 	/**
 	 * Gets the all documents by reg id.
 	 *
