@@ -599,11 +599,12 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		else {
 			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
-		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
-				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE),
-				policyTypeAndSubTypeMap);
+		Map<String, String> metaInfoMap = priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE);
 
-		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
+		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
+				metaInfoMap, policyTypeAndSubTypeMap);
+
+		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord, id, process, metaInfoMap).getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -714,12 +715,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process)
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process,
+			Map<String, String> metaInfoMap)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			JSONException
 	{
 
-		String version = getRegClientVersionFromMetaInfo(id, process, priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
 		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			return biometricRecord;
 		}
