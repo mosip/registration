@@ -2,10 +2,7 @@ package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.packet.storage.utils.*;
@@ -514,49 +511,112 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		if (description.getTransactionStatusCode() != null)
 			statusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
 	}
-    private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {
-        for (Map.Entry e : fieldMap.entrySet()) {
-            if (e.getValue() == null) {
-                continue;
-            }
+	private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity)
+			throws IOException, JSONException {
 
-            String value = e.getValue().toString();
-            if (value == null) {
-                demographicIdentity.putIfAbsent(e.getKey(), value);
-                continue;
-            }
+		// Pre-size to avoid rehashing; parallel threshold: only worthwhile above ~10 entries
+		// since ConcurrentHashMap + virtual-thread overhead > gain for tiny maps
+		final int size = fieldMap.size();
+		if (size == 0) return;
 
-            Object json = new JSONTokener(value).nextValue();
-            if (json instanceof org.json.JSONObject) {
-                HashMap<String, Object> hashMap = objectMapper.readValue(value, HashMap.class);
-                demographicIdentity.putIfAbsent(e.getKey(), hashMap);
-                continue;
-            }
+		if (size < 10) {
+			// ── Fast path: small map, stay single-threaded ─────────────────
+			for (Map.Entry<String, String> e : fieldMap.entrySet()) {
+				String key   = e.getKey();
+				String value = e.getValue();
+				if (value == null) continue;                       // skip nulls (toString() redundancy removed)
+				demographicIdentity.putIfAbsent(key, parseValue(value));
+			}
+		} else {
+			// ── Hot path: large map, parse entries in parallel ──────────────
+			// Collect results into a plain ConcurrentHashMap first to avoid
+			// JSONObject lock contention, then bulk-merge once.
+			ConcurrentHashMap<String, Object> staging = new ConcurrentHashMap<>(size * 2);
 
-            if (json instanceof JSONArray) {
-                List jsonList = new ArrayList<>();
-                JSONArray jsonArray = new JSONArray(value);
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Object obj = jsonArray.get(i);
-                    if (obj instanceof String) {
-                        jsonList.add(obj);
-                    } else {
-                        HashMap<String, Object> hashMap = objectMapper.readValue(obj.toString(), HashMap.class);
+			try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+				List<CompletableFuture<Void>> futures = new ArrayList<>(size);
 
-                        if (trimWhitespaces && hashMap.containsKey("value") && hashMap.get("value") instanceof String) {
-                            hashMap.put("value", ((String) hashMap.get("value")).trim());
-                        }
-                        jsonList.add(hashMap);
-                    }
-                }
-                demographicIdentity.putIfAbsent(e.getKey(), jsonList);
-            }
-            else {
-                demographicIdentity.putIfAbsent(e.getKey(), value);
-            }
-        }
-    }
+				for (Map.Entry<String, String> e : fieldMap.entrySet()) {
+					String key   = e.getKey();
+					String value = e.getValue();
+					if (value == null) continue;
 
+					futures.add(CompletableFuture.runAsync(() -> {
+						try {
+							staging.put(key, parseValue(value));
+						} catch (IOException | JSONException ex) {
+							throw new CompletionException(ex);
+						}
+					}, exec));
+				}
+
+				try {
+					CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+				} catch (CompletionException ex) {
+					Throwable cause = ex.getCause();
+					if (cause instanceof IOException ioe)      throw ioe;
+					if (cause instanceof JSONException je)     throw je;
+					throw ex;
+				}
+			}
+
+			// Single-threaded merge: putIfAbsent semantics preserved
+			staging.forEach((k, v) -> demographicIdentity.putIfAbsent(k, v));
+		}
+	}
+
+	/**
+	 * Parses a single field value into the appropriate Java type.
+	 * Extracted so both the single-threaded and parallel paths share one code path,
+	 * and so objectMapper is called only when the value is actually an object/array.
+	 *
+	 * Fast-path heuristic: check the first non-whitespace character before allocating
+	 * a JSONTokener — avoids the most expensive case (object construction + tokenizing)
+	 * for plain scalar values, which are by far the most common field type.
+	 */
+	private Object parseValue(String value) throws IOException, JSONException {
+		if (value == null) return null;
+
+		// ── Scalar fast-path: skip JSON parsing entirely ────────────────────────
+		// If the value doesn't start with '{' or '[' it can't be a JSON object/array.
+		// Trim only to find the first real char; don't allocate a trimmed copy.
+		int start = 0;
+		while (start < value.length() && value.charAt(start) <= ' ') start++;
+		if (start == value.length()) return value;             // blank string
+
+		char first = value.charAt(start);
+
+		if (first == '{') {
+			// JSON object → deserialize directly via objectMapper (skips JSONTokener)
+			return objectMapper.readValue(value, HashMap.class);
+		}
+
+		if (first == '[') {
+			// JSON array → parse once, reuse the JSONArray (no re-parse per element)
+			JSONArray jsonArray = new JSONArray(value);        // single parse
+			int len = jsonArray.length();
+			List<Object> jsonList = new ArrayList<>(len);      // pre-sized
+
+			for (int i = 0; i < len; i++) {
+				Object obj = jsonArray.get(i);
+				if (obj instanceof String s) {
+					jsonList.add(s);
+				} else {
+					String raw = obj.toString();
+					HashMap<String, Object> hashMap = objectMapper.readValue(raw, HashMap.class);
+					if (trimWhitespaces) {
+						Object val = hashMap.get("value");
+						if (val instanceof String s) hashMap.put("value", s.strip()); // strip() > trim() (handles Unicode spaces)
+					}
+					jsonList.add(hashMap);
+				}
+			}
+			return jsonList;
+		}
+
+		// Plain scalar (number, boolean, quoted string, etc.)
+		return value;
+	}
 	/**
 	 * Send id repo with uin.
 	 *
