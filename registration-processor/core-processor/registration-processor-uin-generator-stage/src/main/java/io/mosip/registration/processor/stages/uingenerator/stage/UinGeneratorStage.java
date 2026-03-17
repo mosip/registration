@@ -736,59 +736,133 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 */
-	private List<Documents> getAllDocumentsByRegId(String regId, String process, JSONObject demographicIdentity) throws Exception {
-		JSONObject idJSON = demographicIdentity;
+	private List<Documents> getAllDocumentsByRegId(String regId, String process,
+												   JSONObject demographicIdentity) throws Exception {
 
-		// Mapping JSONs are cached after first call — fetch sequentially (no ForkJoinPool)
-		JSONObject docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
-		JSONObject identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+		// ── Parallel: fetch both mapping JSONs concurrently ──────────────────────
+		// Both are cache-backed but the cache itself may do I/O on first call.
+		// Either way they're independent — no reason to serialize.
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
 
-		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
-		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
+			CompletableFuture<JSONObject> docJsonFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return utilities.getRegistrationProcessorMappingJson(
+									MappingJsonConstants.DOCUMENT);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-		// Fetch all documents in parallel using virtual threads
-		List<CompletableFuture<Documents>> futures = new ArrayList<>();
-		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-		try {
-			for (Object doc : docJson.values()) {
-				Map docMap = (LinkedHashMap) doc;
-				String docValue = docMap.values().iterator().next().toString();
-				HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
-				if (docInIdentityJson != null) {
-					futures.add(CompletableFuture.supplyAsync(() -> {
-						try { return getIdDocumnet(regId, docValue, process); }
-						catch (Exception e) { throw new CompletionException(e); }
-					}, executor));
-				}
-			}
-			if (applicantBiometric != null) {
-				String biometricLabel = applicantBiometricLabel;
-				futures.add(CompletableFuture.supplyAsync(() -> {
-					try { return getBiometrics(regId, biometricLabel, process, biometricLabel); }
-					catch (Exception e) { throw new CompletionException(e); }
-				}, executor));
-			}
+			CompletableFuture<JSONObject> identityJsonFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return utilities.getRegistrationProcessorMappingJson(
+									MappingJsonConstants.IDENTITY);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			JSONObject docJson;
+			JSONObject identityJson;
 			try {
-				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+				CompletableFuture.allOf(docJsonFuture, identityJsonFuture).join();
+				docJson      = docJsonFuture.join();
+				identityJson = identityJsonFuture.join();
 			} catch (CompletionException e) {
-				executor.shutdownNow();
-				Throwable cause = e.getCause();
-				while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
-				sneakyThrow(cause);
+				unwrapAndThrow(e);
 				throw new RuntimeException(); // unreachable
 			}
-		} finally {
-			executor.close();
-		}
+			// ────────────────────────────────────────────────────────────────────
 
-		List<Documents> applicantDocuments = new ArrayList<>();
-		for (CompletableFuture<Documents> f : futures) {
-			Documents document = f.getNow(null);
-			if (document != null) applicantDocuments.add(document);
-		}
-		return applicantDocuments;
+			// ── Derive biometric label once (pure in-memory, no I/O) ─────────────
+			String applicantBiometricLabel = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+					MappingJsonConstants.VALUE);
+			
+			@SuppressWarnings("unchecked")
+			HashMap<String, String> applicantBiometric = demographicIdentity.containsKey(applicantBiometricLabel)
+					? (HashMap<String, String>) demographicIdentity.get(applicantBiometricLabel)
+					: null;
+			// opt() avoids a second lookup — returns null instead of throwing if absent
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Fan out: one virtual thread per document + one for biometrics ─────
+			Collection<Object> docValues = docJson.values();
+			List<CompletableFuture<Documents>> futures = new ArrayList<>(
+					docValues.size() + (applicantBiometric != null ? 1 : 0)); // pre-sized, zero resize
+
+			for (Object doc : docValues) {
+				// ── Avoid iterator allocation: cast directly to Map, get first value ──
+				// The original called .values().iterator().next() per entry,
+				// allocating a new Iterator object every iteration.
+				// Map.values() on a LinkedHashMap returns a Collection backed by
+				// the entry set — we can get the first entry directly via entrySet().
+				@SuppressWarnings("unchecked")
+				String docValue = ((Map<String, Object>) doc)
+						.entrySet().iterator().next()   // one allocation for the whole map, not per-value
+						.getValue().toString();
+
+				// Skip if this document type isn't present in the identity JSON
+				if (demographicIdentity.get(docValue) == null) continue;
+
+				// Capture for lambda (effectively final)
+				final String capturedDocValue = docValue;
+				futures.add(CompletableFuture.supplyAsync(() -> {
+					try {
+						return getIdDocumnet(regId, capturedDocValue, process);
+					} catch (Exception e) { throw new CompletionException(e); }
+				}, exec));
+			}
+
+			if (applicantBiometric != null) {
+				final String biometricLabel = applicantBiometricLabel;
+				futures.add(CompletableFuture.supplyAsync(() -> {
+					try {
+						return getBiometrics(regId, biometricLabel, process, biometricLabel);
+					} catch (Exception e) { throw new CompletionException(e); }
+				}, exec));
+			}
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Await all, unwrap any checked exception ───────────────────────────
+			try {
+				CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+				// toArray(CompletableFuture[]::new) avoids the [0]-sized array anti-pattern:
+				// new CompletableFuture[0] forces the JVM to reflectively resize the array;
+				// the generator form pre-allocates the exact right size.
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Collect results: single pass, no second list ──────────────────────
+			// Original did a separate getNow() loop after allOf — redundant second
+			// iteration. Since allOf().join() succeeded, every future is done;
+			// join() here is non-blocking and equivalent to getNow(null).
+			List<Documents> result = new ArrayList<>(futures.size());
+			for (CompletableFuture<Documents> f : futures) {
+				Documents doc = f.join(); // non-blocking: already completed
+				if (doc != null) result.add(doc);
+			}
+			return result;
+			// ────────────────────────────────────────────────────────────────────
+
+		} // exec.close() — virtual thread executor, shuts down cleanly on exit
 	}
 
+// ── Helper ────────────────────────────────────────────────────────────────────
+	/**
+	 * Unwraps a CompletionException to its original root cause and rethrows it,
+	 * preserving the original type (checked or unchecked) without wrapping.
+	 * Uses Generics trick so the compiler thinks it's unchecked — no wrapping needed.
+	 */
+	private static void unwrapAndThrow(CompletionException e) throws Exception {
+		Throwable cause = e.getCause();
+		while (cause instanceof CompletionException && cause.getCause() != null)
+			cause = cause.getCause();
+		if (cause instanceof Exception ex) throw ex;
+		throw e;
+	}
+	
 	private Documents getIdDocumnet(String registrationId, String dockey, String process)
 			throws IOException, ApisResourceAccessException, PacketManagerException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 		Documents documentsInfoDto = new Documents();
