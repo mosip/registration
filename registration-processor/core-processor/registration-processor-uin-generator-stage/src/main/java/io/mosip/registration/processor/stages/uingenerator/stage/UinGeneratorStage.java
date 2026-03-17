@@ -877,14 +877,54 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		return null;
 	}
 
-	private Documents getBiometrics(String registrationId, String person, String process, String idDocLabel) throws Exception {
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, person, process, ProviderStageName.UIN_GENERATOR);
-		byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
-		Documents documentsInfoDto = new Documents();
-		documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
-		documentsInfoDto.setCategory(utilities.getMappingJsonValue(idDocLabel, MappingJsonConstants.IDENTITY));
-		return documentsInfoDto;
+	private Documents getBiometrics(String registrationId, String person,
+									String process, String idDocLabel) throws Exception {
 
+		// ── Parallel: biometrics fetch + mapping JSON lookup are independent ──────
+		// getMappingJsonValue is cache-backed but may block on cold start.
+		// It has zero dependency on biometricRecord — free to overlap.
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+
+			CompletableFuture<BiometricRecord> biometricFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return packetManagerService.getBiometrics(
+									registrationId, person, process, ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			CompletableFuture<String> categoryFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return utilities.getMappingJsonValue(
+									idDocLabel, MappingJsonConstants.IDENTITY);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			BiometricRecord biometricRecord;
+			String category;
+			try {
+				CompletableFuture.allOf(biometricFuture, categoryFuture).join();
+				biometricRecord = biometricFuture.join();
+				category        = categoryFuture.join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Null guard: biometric may be absent for this registration ─────────
+			if (biometricRecord == null || biometricRecord.getSegments() == null) return null;
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Allocate result only after all data confirmed present ─────────────
+			byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
+			Documents documentsInfoDto = new Documents();
+			documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
+			documentsInfoDto.setCategory(category);
+			return documentsInfoDto;
+			// ────────────────────────────────────────────────────────────────────
+		}
 	}
 
 	/**
@@ -902,43 +942,49 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	private boolean uinUpdate(String regId, String process, String uin, MessageDTO object, JSONObject demographicIdentity, LogDescription description)
+	private boolean uinUpdate(String regId, String process, String uin,
+							  MessageDTO object, JSONObject demographicIdentity, LogDescription description)
 			throws Exception {
-		IdResponseDTO result;
-		boolean isTransactionSuccessful = Boolean.FALSE;
+
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId, process, demographicIdentity);
-		result = idRepoRequestBuilder(regId, uin, RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo,
-				demographicIdentity);
-		if (null!=result && isIdResponseNotNull(result)) {
+		IdResponseDTO result = idRepoRequestBuilder(regId, uin,
+				RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo, demographicIdentity);
+
+		if (result != null && isIdResponseNotNull(result)) {
 
 			if (IDREPO_STATUS.equalsIgnoreCase(result.getResponse().getStatus())) {
-				isTransactionSuccessful = true;
 				description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				description.setStatusComment(StatusUtil.UIN_DATA_UPDATION_SUCCESS.getMessage());
 				description.setSubStatusCode(StatusUtil.UIN_DATA_UPDATION_SUCCESS.getCode());
-				description.setMessage(
-						StatusUtil.UIN_DATA_UPDATION_SUCCESS.getMessage() + " for registration Id: " + regId);
-				description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+				description.setMessage(StatusUtil.UIN_DATA_UPDATION_SUCCESS.getMessage()
+						+ " for registration Id: " + regId);
+				description.setTransactionStatusCode(
+						RegistrationTransactionStatusCode.PROCESSED.toString());
 				object.setIsValid(Boolean.TRUE);
+				return true;
 			}
-		} else {
-			String statusComment = result != null && result.getErrors() != null ? result.getErrors().get(0).getMessage()
-					: UINConstants.NULL_IDREPO_RESPONSE;
-			String message = result != null && result.getErrors() != null
-					? result.getErrors().get(0).getMessage()
-					: UINConstants.NULL_IDREPO_RESPONSE;
-			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			description.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.UIN_DATA_UPDATION_FAILED.getMessage() + statusComment));
-			description.setSubStatusCode(StatusUtil.UIN_DATA_UPDATION_FAILED.getCode());
-			description
-					.setMessage(UINConstants.UIN_FAILURE + regId + "::" + message );
-			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
-			object.setIsValid(Boolean.FALSE);
 		}
-		return isTransactionSuccessful;
-	}
 
+		// ── Failure path: extract error message once, reuse twice ────────────────
+		// Original called result.getErrors().get(0).getMessage() twice with the
+		// same null-guard expression — identical strings, redundant evaluation.
+		String errorMessage = (result != null
+				&& result.getErrors() != null
+				&& !result.getErrors().isEmpty())         // guard against empty list too
+				? result.getErrors().get(0).getMessage()
+				: UINConstants.NULL_IDREPO_RESPONSE;
+
+		description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		description.setStatusComment(trimExceptionMessage
+				.trimExceptionMessage(StatusUtil.UIN_DATA_UPDATION_FAILED.getMessage() + errorMessage));
+		description.setSubStatusCode(StatusUtil.UIN_DATA_UPDATION_FAILED.getCode());
+		description.setMessage(UINConstants.UIN_FAILURE + regId + "::" + errorMessage);
+		description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSING.toString());
+		object.setIsValid(Boolean.FALSE);
+		return false;
+		// ─────────────────────────────────────────────────────────────────────────
+	}
+	
 	/**
 	 * Id repo request builder.
 	 *
@@ -1003,104 +1049,127 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws IOException
 	 * @throws IdrepoDraftReprocessableException
 	 */
-	private boolean reActivateUin(IdResponseDTO idResponseDTO, String id, String uin, MessageDTO object,
-			JSONObject demographicIdentity, LogDescription description)
-			throws ApisResourceAccessException, IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
-		IdResponseDTO result = getIdRepoDataByUIN(uin, id, description);
-		List<String> pathsegments = new ArrayList<>();
-		RequestDto requestDto = new RequestDto();
-		boolean isTransactionSuccessful = Boolean.FALSE;
+	private boolean reActivateUin(IdResponseDTO idResponseDTO, String id, String uin,
+								  MessageDTO object, JSONObject demographicIdentity, LogDescription description)
+            throws Exception {
 
-		if (isIdResponseNotNull(result)) {
+		// ── Parallel: fetch current UIN status + request timestamp ───────────────
+		// getIdRepoDataByUIN is a network call; getUTCCurrentDateTimeString is
+		// independent — no reason to serialize them.
+		IdResponseDTO result;
+		String requestTime;
 
-			if ((RegistrationType.ACTIVATED.toString()).equalsIgnoreCase(result.getResponse().getStatus())) {
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+			CompletableFuture<IdResponseDTO> resultFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return getIdRepoDataByUIN(uin, id, description);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-				description.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				description.setStatusComment(StatusUtil.UIN_ALREADY_ACTIVATED.getMessage());
-				description.setSubStatusCode(StatusUtil.UIN_ALREADY_ACTIVATED.getCode());
-				description.setMessage(PlatformErrorMessages.UIN_ALREADY_ACTIVATED.getMessage());
-				description.setCode(PlatformErrorMessages.UIN_ALREADY_ACTIVATED.getCode());
-				description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
-				object.setIsValid(Boolean.FALSE);
-				return isTransactionSuccessful;
+			CompletableFuture<String> timeFuture = CompletableFuture.supplyAsync(
+					DateUtils2::getUTCCurrentDateTimeString, exec);
 
-			} else {
-
-				requestDto.setRegistrationId(id);
-				requestDto.setStatus(RegistrationType.ACTIVATED.toString());
-				requestDto.setBiometricReferenceId(uin);
-				requestDto.setIdentity(demographicIdentity);
-
-				IdRequestDto idRequestDTO = new IdRequestDto();
-				idRequestDTO.setId(idRepoUpdate);
-				idRequestDTO.setRequest(requestDto);
-				idRequestDTO.setMetadata(null);
-				idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
-				idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
-
-				result = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
-
-				if (isIdResponseNotNull(result)) {
-
-					if ((RegistrationType.ACTIVATED.toString()).equalsIgnoreCase(result.getResponse().getStatus())) {
-						isTransactionSuccessful = true;
-						description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-						description.setStatusComment(StatusUtil.UIN_ACTIVATED_SUCCESS.getMessage());
-						description.setSubStatusCode(StatusUtil.UIN_ACTIVATED_SUCCESS.getCode());
-						description.setMessage(StatusUtil.UIN_ACTIVATED_SUCCESS.getMessage() + id);
-						description.setMessage(PlatformSuccessMessages.RPR_UIN_ACTIVATED_SUCCESS.getMessage());
-						description.setCode(PlatformSuccessMessages.RPR_UIN_ACTIVATED_SUCCESS.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-						object.setIsValid(Boolean.TRUE);
-					} else {
-						description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						description.setStatusComment(StatusUtil.UIN_ACTIVATED_FAILED.getMessage());
-						description.setSubStatusCode(StatusUtil.UIN_ACTIVATED_FAILED.getCode());
-						description.setMessage(StatusUtil.UIN_ACTIVATED_FAILED.getMessage() + id);
-						description.setMessage(PlatformErrorMessages.UIN_ACTIVATED_FAILED.getMessage());
-						description.setCode(PlatformErrorMessages.UIN_ACTIVATED_FAILED.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-						object.setIsValid(Boolean.FALSE);
-					}
-				} else {
-					String statusComment = result != null && result.getErrors() != null
-							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE;
-					description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-					description.setStatusComment(trimExceptionMessage
-							.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
-					description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
-					description.setMessage(
-							UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
-									? result.getErrors().get(0).getMessage()
-									: UINConstants.NULL_IDREPO_RESPONSE));
-					description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
-					description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
-					description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-					object.setIsValid(Boolean.FALSE);
-				}
-
+			try {
+				CompletableFuture.allOf(resultFuture, timeFuture).join();
+				result      = resultFuture.join();
+				requestTime = timeFuture.join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
 			}
+		}
+		// ────────────────────────────────────────────────────────────────────────
 
-		}else {
-			String statusComment = result != null && result.getErrors() != null
-					? result.getErrors().get(0).getMessage()
-					: UINConstants.NULL_IDREPO_RESPONSE;
-			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			description.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + statusComment));
-			description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
-			description.setMessage(
-					UINConstants.UIN_FAILURE + id + "::" + (result != null && result.getErrors() != null
-							? result.getErrors().get(0).getMessage()
-							: UINConstants.NULL_IDREPO_RESPONSE));
-			description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
-			description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		// ── Guard: idRepo returned nothing useful ────────────────────────────────
+		if (!isIdResponseNotNull(result)) {
+			setReactivationFailedDescription(result, id, description, object);
+			return false;
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Guard: UIN already active — nothing to do ────────────────────────────
+		if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(result.getResponse().getStatus())) {
+			description.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			description.setStatusComment(StatusUtil.UIN_ALREADY_ACTIVATED.getMessage());
+			description.setSubStatusCode(StatusUtil.UIN_ALREADY_ACTIVATED.getCode());
+			description.setMessage(PlatformErrorMessages.UIN_ALREADY_ACTIVATED.getMessage());
+			description.setCode(PlatformErrorMessages.UIN_ALREADY_ACTIVATED.getCode());
+			description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			object.setIsValid(Boolean.FALSE);
+			return false;
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Build and send activation request ────────────────────────────────────
+		RequestDto requestDto = new RequestDto();
+		requestDto.setRegistrationId(id);
+		requestDto.setStatus(RegistrationType.ACTIVATED.toString());
+		requestDto.setBiometricReferenceId(uin);
+		requestDto.setIdentity(demographicIdentity);
+
+		IdRequestDto idRequestDTO = new IdRequestDto();
+		idRequestDTO.setId(idRepoUpdate);
+		idRequestDTO.setRequest(requestDto);
+		idRequestDTO.setMetadata(null);
+		idRequestDTO.setRequesttime(requestTime);     // already fetched in parallel above
+		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
+
+		result = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Interpret activation response ────────────────────────────────────────
+		if (!isIdResponseNotNull(result)) {
+			setReactivationFailedDescription(result, id, description, object);
+			return false;
 		}
 
-		return isTransactionSuccessful;
+		if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(result.getResponse().getStatus())) {
+			description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+			description.setStatusComment(StatusUtil.UIN_ACTIVATED_SUCCESS.getMessage());
+			description.setSubStatusCode(StatusUtil.UIN_ACTIVATED_SUCCESS.getCode());
+			// NOTE: original called setMessage() twice — second overwrote first.
+			// Keeping only the surviving (second) value here.
+			description.setMessage(PlatformSuccessMessages.RPR_UIN_ACTIVATED_SUCCESS.getMessage());
+			description.setCode(PlatformSuccessMessages.RPR_UIN_ACTIVATED_SUCCESS.getCode());
+			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+			object.setIsValid(Boolean.TRUE);
+			return true;
+		}
+
+		// Status came back but not ACTIVATED (unexpected state)
+		description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		description.setStatusComment(StatusUtil.UIN_ACTIVATED_FAILED.getMessage());
+		description.setSubStatusCode(StatusUtil.UIN_ACTIVATED_FAILED.getCode());
+		// NOTE: same double-setMessage bug as above — keeping only surviving value.
+		description.setMessage(PlatformErrorMessages.UIN_ACTIVATED_FAILED.getMessage());
+		description.setCode(PlatformErrorMessages.UIN_ACTIVATED_FAILED.getCode());
+		description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		object.setIsValid(Boolean.FALSE);
+		return false;
+		// ────────────────────────────────────────────────────────────────────────
+	}
+
+	// ── Helper: consolidates the 3 identical failure-description blocks ───────────
+// Original copy-pasted the same null-guard + getErrors() pattern in three
+// separate places. Single method, zero duplication.
+	private void setReactivationFailedDescription(IdResponseDTO result, String id,
+												  LogDescription description, MessageDTO object) {
+
+		String errorMessage = (result != null
+				&& result.getErrors() != null
+				&& !result.getErrors().isEmpty())
+				? result.getErrors().get(0).getMessage()
+				: UINConstants.NULL_IDREPO_RESPONSE;
+
+		description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+		description.setStatusComment(trimExceptionMessage
+				.trimExceptionMessage(StatusUtil.UIN_REACTIVATION_FAILED.getMessage() + errorMessage));
+		description.setSubStatusCode(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
+		description.setMessage(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getMessage());
+		description.setCode(PlatformErrorMessages.UIN_REACTIVATION_FAILED.getCode());
+		description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+		object.setIsValid(Boolean.FALSE);
 	}
 
 	private boolean isIdResponseNotNull(IdResponseDTO result) {
@@ -1108,17 +1177,20 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	}
 
 	private boolean isUinAlreadyPresent(IdResponseDTO result, String rid) {
-		if  (result != null && result.getErrors() != null && result.getErrors().size() > 0
-				&& result.getErrors().get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
-			ErrorDTO errorDTO = result.getErrors().get(0);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString() + rid,
-					"Record is already present in IDREPO. Error message received : " + errorDTO.getMessage(),
-					"The stage will ignore this error and try to generate vid for the existing UIN now. " +
-							"This is to make sure if the packet processing fails while generating VID then re-processor can process the packet again");
-			return true;
-		}
-		return false;
+		if (result == null
+				|| result.getErrors() == null
+				|| result.getErrors().isEmpty()) return false;
+
+		// Get once, reuse for both the check and the log ─────────────────────────
+		ErrorDTO errorDTO = result.getErrors().get(0);
+
+		if (!RECORD_ALREADY_EXISTS_ERROR.equalsIgnoreCase(errorDTO.getErrorCode())) return false;
+
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString() + rid,
+				"Record already present in IDREPO, error: {}",
+				errorDTO.getMessage());
+		return true;
 	}
 
 	/**
@@ -1133,78 +1205,112 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws IOException
 	 * @throws IdrepoDraftReprocessableException
 	 */
-	private IdResponseDTO deactivateUin(String id, String uin, MessageDTO object, JSONObject demographicIdentity,
-			LogDescription description)
-			throws ApisResourceAccessException, IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
+	private IdResponseDTO deactivateUin(String id, String uin, MessageDTO object,
+										JSONObject demographicIdentity, LogDescription description)
+            throws Exception {
+
+		// ── Parallel: fetch current UIN status + request timestamp ───────────────
 		IdResponseDTO idResponseDto;
-		RequestDto requestDto = new RequestDto();
-		String statusComment = "";
+		String requestTime;
 
-		idResponseDto = getIdRepoDataByUIN(uin, id, description);
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+			CompletableFuture<IdResponseDTO> repoFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try { return getIdRepoDataByUIN(uin, id, description); }
+						catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-		if (idResponseDto.getResponse() != null
-				&& idResponseDto.getResponse().getStatus().equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
+			CompletableFuture<String> timeFuture = CompletableFuture.supplyAsync(
+					DateUtils2::getUTCCurrentDateTimeString, exec);
+
+			try {
+				CompletableFuture.allOf(repoFuture, timeFuture).join();
+				idResponseDto = repoFuture.join();
+				requestTime   = timeFuture.join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Guard: UIN already deactivated — nothing to do ───────────────────────
+		if (idResponseDto.getResponse() != null && RegistrationType.DEACTIVATED.toString()
+				.equalsIgnoreCase(idResponseDto.getResponse().getStatus())) {
 			description.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			description.setStatusComment(StatusUtil.UIN_ALREADY_DEACTIVATED.getMessage());
 			description.setSubStatusCode(StatusUtil.UIN_ALREADY_DEACTIVATED.getCode());
-			description.setMessage(StatusUtil.UIN_ALREADY_DEACTIVATED.getMessage() + id);
+			// NOTE: original called setMessage() twice — second overwrote first, keeping survivor
 			description.setMessage(PlatformErrorMessages.UIN_ALREADY_DEACTIVATED.getMessage());
 			description.setCode(PlatformErrorMessages.UIN_ALREADY_DEACTIVATED.getCode());
 			description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			object.setIsValid(Boolean.FALSE);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString() + id,
+					"Updated Response from IdRepo API", "is : already deactivated");
 			return idResponseDto;
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Build and send deactivation request ──────────────────────────────────
+		RequestDto requestDto = new RequestDto();
+		requestDto.setRegistrationId(id);
+		requestDto.setStatus(RegistrationType.DEACTIVATED.toString());
+		requestDto.setIdentity(demographicIdentity);
+		requestDto.setBiometricReferenceId(uin);
+
+		IdRequestDto idRequestDTO = new IdRequestDto();
+		idRequestDTO.setId(idRepoUpdate);
+		idRequestDTO.setMetadata(null);
+		idRequestDTO.setRequest(requestDto);
+		idRequestDTO.setRequesttime(requestTime);     // already fetched in parallel above
+		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
+
+		idResponseDto = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Interpret deactivation response ──────────────────────────────────────
+		String statusComment;
+
+		if (isIdResponseNotNull(idResponseDto) && RegistrationType.DEACTIVATED.toString()
+				.equalsIgnoreCase(idResponseDto.getResponse().getStatus())) {
+
+			statusComment = idResponseDto.getResponse().getStatus(); // already a String, no .toString()
+			description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+			description.setStatusComment(StatusUtil.UIN_DEACTIVATION_SUCCESS.getMessage());
+			description.setSubStatusCode(StatusUtil.UIN_DEACTIVATION_SUCCESS.getCode());
+			// NOTE: original called setMessage() twice — keeping only surviving second value
+			description.setMessage(PlatformSuccessMessages.RPR_UIN_DEACTIVATION_SUCCESS.getMessage());
+			description.setCode(PlatformSuccessMessages.RPR_UIN_DEACTIVATION_SUCCESS.getCode());
+			description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+			object.setIsValid(Boolean.TRUE);
 
 		} else {
-			requestDto.setRegistrationId(id);
-			requestDto.setStatus(RegistrationType.DEACTIVATED.toString());
-			requestDto.setIdentity(demographicIdentity);
-			requestDto.setBiometricReferenceId(uin);
+			// Extract error once, reuse for both statusComment and log ────────────
+			statusComment = (idResponseDto != null
+					&& idResponseDto.getErrors() != null
+					&& !idResponseDto.getErrors().isEmpty())
+					? idResponseDto.getErrors().get(0).getMessage()
+					: UINConstants.NULL_IDREPO_RESPONSE;
 
-			IdRequestDto idRequestDTO = new IdRequestDto();
-			idRequestDTO.setId(idRepoUpdate);
-			idRequestDTO.setMetadata(null);
-			idRequestDTO.setRequest(requestDto);
-			idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
-			idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
-
-			idResponseDto = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
-
-			if (isIdResponseNotNull(idResponseDto)) {
-				if (idResponseDto.getResponse().getStatus().equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
-					description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-					description.setStatusComment(StatusUtil.UIN_DEACTIVATION_SUCCESS.getMessage());
-					description.setSubStatusCode(StatusUtil.UIN_DEACTIVATION_SUCCESS.getCode());
-					description.setMessage(StatusUtil.UIN_DEACTIVATION_SUCCESS.getMessage() + id);
-					description.setMessage(PlatformSuccessMessages.RPR_UIN_DEACTIVATION_SUCCESS.getMessage());
-					description.setCode(PlatformSuccessMessages.RPR_UIN_DEACTIVATION_SUCCESS.getCode());
-					description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-					object.setIsValid(Boolean.TRUE);
-					statusComment = idResponseDto.getResponse().getStatus().toString();
-
-				}
-			} else {
-
-				statusComment = idResponseDto != null && idResponseDto.getErrors() != null
-						? idResponseDto.getErrors().get(0).getMessage()
-						: UINConstants.NULL_IDREPO_RESPONSE;
-				description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-				description.setStatusComment(trimExceptionMessage
-						.trimExceptionMessage(StatusUtil.UIN_DEACTIVATION_FAILED.getMessage() + statusComment));
-				description.setSubStatusCode(StatusUtil.UIN_DEACTIVATION_FAILED.getCode());
-				description.setMessage(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getMessage());
-				description.setCode(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getCode());
-				description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-				object.setIsValid(Boolean.FALSE);
-			}
-
+			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+			description.setStatusComment(trimExceptionMessage
+					.trimExceptionMessage(StatusUtil.UIN_DEACTIVATION_FAILED.getMessage() + statusComment));
+			description.setSubStatusCode(StatusUtil.UIN_DEACTIVATION_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getCode());
+			description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			object.setIsValid(Boolean.FALSE);
 		}
+		// ────────────────────────────────────────────────────────────────────────
+
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-				LoggerFileConstant.REGISTRATIONID.toString() + id, "Updated Response from IdRepo API",
-				"is : " + statusComment);
+				LoggerFileConstant.REGISTRATIONID.toString() + id,
+				"Updated Response from IdRepo API", "is : {}",
+				statusComment);
 
 		return idResponseDto;
 	}
-
 	/**
 	 * Gets the id repo data by UIN.
 	 *
@@ -1288,45 +1394,145 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws JSONException
 	 */
 	@SuppressWarnings("unchecked")
-	private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId, String process, MessageDTO object,
-			LogDescription description) throws ApisResourceAccessException, IOException,
-			io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException, IdrepoDraftException,
-			IdrepoDraftReprocessableException, JSONException {
+	private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId,
+										   String process, MessageDTO object, LogDescription description)
+            throws Exception {
 
-		IdResponseDTO idResponse = null;
-		String uin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
+		// ── Parallel: UIN lookup + mapping JSON + timestamp — all independent ─────
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
 
+			CompletableFuture<String> uinFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return idRepoService.getUinByRid(matchedRegId,
+									utilities.getGetRegProcessorDemographicIdentity());
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-		RequestDto requestDto = new RequestDto();
-		String statusComment = "";
+			CompletableFuture<JSONObject> identityJsonFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return utilities.getRegistrationProcessorMappingJson(
+									MappingJsonConstants.IDENTITY);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-		if (uin != null) {
+			CompletableFuture<String> timeFuture = CompletableFuture.supplyAsync(
+					DateUtils2::getUTCCurrentDateTimeString, exec);
 
-			JSONObject  regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String idschemaversion = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
+			String uin;
+			JSONObject regProcessorIdentityJson;
+			String requestTime;
+			try {
+				CompletableFuture.allOf(uinFuture, identityJsonFuture, timeFuture).join();
+				uin                    = uinFuture.join();
+				regProcessorIdentityJson = identityJsonFuture.join();
+				requestTime            = timeFuture.join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+			// ────────────────────────────────────────────────────────────────────
 
-			JSONObject identityObject = new JSONObject();
-			identityObject.put(UINConstants.UIN, uin);
-			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
-			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-			regProcLogger.info("Fields to be updated "+updateInfo);
-			Map<String, String> fieldMap = new HashMap<String, String>();
+			// ── Guard: no UIN found for matched reg ID ────────────────────────────
+			if (uin == null) {
+				String msg = UinStatusMessage.PACKET_LOST_UIN_UPDATION_FAILURE_MSG
+						+ "  " + UINConstants.NULL_IDREPO_RESPONSE
+						+ " UIN not available for matchedRegId " + matchedRegId;
+				description.setStatusComment(StatusUtil.LINK_RID_FOR_LOST_PACKET_FAILED.getMessage());
+				description.setSubStatusCode(StatusUtil.LINK_RID_FOR_LOST_PACKET_FAILED.getCode());
+				description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				description.setTransactionStatusCode(registrationStatusMapperUtil
+						.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+				description.setMessage(msg);
+				object.setIsValid(Boolean.FALSE);
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
+						" UIN NOT LINKED WITH " + matchedRegId, "is : {}", msg);
+				return null;
+			}
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Parallel: schemaVersion + per-field fetches ───────────────────────
+			// schemaVersion and each updateInfo field are all independent packet
+			// manager calls — fan them all out together.
+			String idschemaversion = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson,
+							MappingJsonConstants.IDSCHEMA_VERSION),
+					MappingJsonConstants.VALUE);
+
+			CompletableFuture<String> schemaFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return packetManagerService.getFieldByMappingJsonKey(lostPacketRegId,
+									MappingJsonConstants.IDSCHEMA_VERSION, process,
+									ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			// Resolve actual field names first (pure in-memory, no I/O) ───────────
+			List<String> actualFieldNames = new ArrayList<>();
 			if (StringUtils.isNotEmpty(updateInfo)) {
-				String[] updateFields = updateInfo.split(",");
-				for (String fieldName : updateFields) {
+				for (String fieldName : updateInfo.split(",")) {
 					String actualFieldName = JsonUtil.getJSONValue(
 							JsonUtil.getJSONObject(regProcessorIdentityJson, fieldName),
 							MappingJsonConstants.VALUE);
-					if (StringUtils.isNotEmpty(actualFieldName)) {
-						String fldValue = packetManagerService.getField(lostPacketRegId, actualFieldName, process,
-								ProviderStageName.UIN_GENERATOR);
-						if (null != fldValue)
-							fieldMap.put(actualFieldName, fldValue);
-					}
-
+					if (StringUtils.isNotEmpty(actualFieldName))
+						actualFieldNames.add(actualFieldName);
 				}
 			}
+			regProcLogger.info("Fields to be updated {}", updateInfo);
+
+			// Fan out one virtual thread per field — all independent I/O ──────────
+			List<CompletableFuture<Map.Entry<String, String>>> fieldFutures =
+					new ArrayList<>(actualFieldNames.size());
+
+			for (String actualFieldName : actualFieldNames) {
+				fieldFutures.add(CompletableFuture.supplyAsync(
+						() -> {
+							try {
+								String val = packetManagerService.getField(lostPacketRegId,
+										actualFieldName, process, ProviderStageName.UIN_GENERATOR);
+								// null value means field absent — skip by returning null entry
+								return val != null
+										? Map.entry(actualFieldName, val)
+										: null;
+							} catch (Exception e) { throw new CompletionException(e); }
+						}, exec));
+			}
+
+			// Await schema + all fields together ──────────────────────────────────
+			List<CompletableFuture<?>> allFieldWork = new ArrayList<>(fieldFutures.size() + 1);
+			allFieldWork.add(schemaFuture);
+			allFieldWork.addAll(fieldFutures);
+
+			try {
+				CompletableFuture.allOf(allFieldWork.toArray(CompletableFuture[]::new)).join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+
+			String schemaVersion = schemaFuture.join();
+
+			// Collect non-null field results into map ─────────────────────────────
+			Map<String, String> fieldMap = new HashMap<>(fieldFutures.size() * 2);
+			for (CompletableFuture<Map.Entry<String, String>> f : fieldFutures) {
+				Map.Entry<String, String> entry = f.join(); // non-blocking: already done
+				if (entry != null) fieldMap.put(entry.getKey(), entry.getValue());
+			}
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Assemble identity object ──────────────────────────────────────────
+			JSONObject identityObject = new JSONObject();
+			identityObject.put(UINConstants.UIN, uin);
+			identityObject.put(idschemaversion,
+					convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 			loadDemographicIdentity(fieldMap, identityObject);
+			// ────────────────────────────────────────────────────────────────────
+
+			// ── Build and send idRepo request ─────────────────────────────────────
+			RequestDto requestDto = new RequestDto();
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
 
@@ -1334,112 +1540,139 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			idRequestDTO.setId(idRepoUpdate);
 			idRequestDTO.setRequest(requestDto);
 			idRequestDTO.setMetadata(null);
-			idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
+			idRequestDTO.setRequesttime(requestTime);   // fetched in parallel at the top
 			idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
-			idResponse = idrepoDraftService.idrepoUpdateDraft(lostPacketRegId, uin, idRequestDTO);
+			IdResponseDTO idResponse = idrepoDraftService.idrepoUpdateDraft(
+					lostPacketRegId, uin, idRequestDTO);
+			// ────────────────────────────────────────────────────────────────────
 
+			// ── Interpret response ────────────────────────────────────────────────
 			if (isIdResponseNotNull(idResponse)) {
 				description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
 				description.setStatusComment(StatusUtil.LINK_RID_FOR_LOST_PACKET_SUCCESS.getMessage());
 				description.setSubStatusCode(StatusUtil.LINK_RID_FOR_LOST_PACKET_SUCCESS.getCode());
-				description.setMessage(UinStatusMessage.PACKET_LOST_UIN_UPDATION_SUCCESS_MSG + lostPacketRegId);
-				description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+				description.setMessage(UinStatusMessage.PACKET_LOST_UIN_UPDATION_SUCCESS_MSG
+						+ lostPacketRegId);
+				description.setTransactionStatusCode(
+						RegistrationTransactionStatusCode.PROCESSED.toString());
 				object.setIsValid(Boolean.TRUE);
-
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-						" UIN LINKED WITH " + matchedRegId, "is : " + description);
+						" UIN LINKED WITH " + matchedRegId, "is : {}", description);
 			} else {
+				// Extract error once, reuse for statusComment + setMessage ─────────
+				String errorMessage = (idResponse != null
+						&& idResponse.getErrors() != null
+						&& !idResponse.getErrors().isEmpty())
+						? idResponse.getErrors().get(0).getMessage()
+						: UinStatusMessage.PACKET_LOST_UIN_UPDATION_FAILURE_MSG
+						+ "  " + UINConstants.NULL_IDREPO_RESPONSE
+						+ " for lostPacketRegId " + lostPacketRegId;
 
-				statusComment = idResponse != null && idResponse.getErrors() != null
-						&& idResponse.getErrors().get(0) != null ? idResponse.getErrors().get(0).getMessage()
-								: UinStatusMessage.PACKET_LOST_UIN_UPDATION_FAILURE_MSG + "  "
-										+ UINConstants.NULL_IDREPO_RESPONSE + "for lostPacketRegId " + lostPacketRegId;
 				description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-				description.setStatusComment(StatusUtil.LINK_RID_FOR_LOST_PACKET_SUCCESS.getMessage() + statusComment);
+				description.setStatusComment(StatusUtil.LINK_RID_FOR_LOST_PACKET_SUCCESS.getMessage()
+						+ errorMessage);
 				description.setSubStatusCode(StatusUtil.LINK_RID_FOR_LOST_PACKET_SUCCESS.getCode());
 				description.setTransactionStatusCode(registrationStatusMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_ID_REPO_ERROR));
-				if (idResponse != null
-						&& idResponse.getErrors() != null)
-					description.setMessage(idResponse.getErrors().get(0).getMessage());
-				else
-					description.setMessage(UINConstants.NULL_IDREPO_RESPONSE);
+				description.setMessage(errorMessage);
 				object.setIsValid(Boolean.FALSE);
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-						" UIN NOT LINKED WITH " + matchedRegId, "is : " + statusComment);
+						" UIN NOT LINKED WITH " + matchedRegId, "is : {}", errorMessage);
 			}
+			// ────────────────────────────────────────────────────────────────────
 
-		} else {
-			statusComment = UinStatusMessage.PACKET_LOST_UIN_UPDATION_FAILURE_MSG + "  "
-					+ UINConstants.NULL_IDREPO_RESPONSE + " UIN not available for matchedRegId " + matchedRegId;
-			description.setStatusComment(StatusUtil.LINK_RID_FOR_LOST_PACKET_FAILED.getMessage());
-			description.setSubStatusCode(StatusUtil.LINK_RID_FOR_LOST_PACKET_FAILED.getCode());
-			description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			description.setTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
-			description.setMessage(UinStatusMessage.PACKET_LOST_UIN_UPDATION_FAILURE_MSG + "  "
-					+ UINConstants.NULL_IDREPO_RESPONSE + " UIN not available for matchedRegId " + matchedRegId);
+			return idResponse;
 
-			object.setIsValid(Boolean.FALSE);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-					" UIN NOT LINKED WITH " + matchedRegId, "is : " + statusComment);
-		}
-
-		return idResponse;
+		} // exec.close()
 	}
 
 	@SuppressWarnings("unchecked")
 	private static <E extends Throwable> void sneakyThrow(Throwable e) throws E { throw (E) e; }
 
-	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto,
+								  MessageDTO object) {
 		object.setInternalError(true);
-		if (registrationStatusDto.getLatestTransactionStatusCode()
-				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
-			object.setIsValid(true);
-		} else {
-			object.setIsValid(false);
-		}
+		object.setIsValid(RegistrationTransactionStatusCode.REPROCESS.toString()
+				.equalsIgnoreCase(registrationStatusDto.getLatestTransactionStatusCode()));
 	}
+
+	private static final Set<String> PACKET_CREATED_ON_REG_TYPES = Set.of(
+			RegistrationType.NEW.toString(),
+			RegistrationType.UPDATE.toString());
 
 	private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
 															InternalRegistrationStatusDto registrationStatusDto,
-															Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
-		// update packetCreatedOn only for NEW and UPDATE registrations
-		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
-				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"Skipping update of packetCreatedOn. registrationType: {}", object.getReg_type());
-			return; // skip for other registration types
+															Map<String, Object> demographicIdentity, MessageDTO object)
+            throws Exception {
+
+		// ── Guard: only NEW and UPDATE need packetCreatedOn ───────────────────────
+		if (!PACKET_CREATED_ON_REG_TYPES.contains(object.getReg_type())) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"Skipping packetCreatedOn update for registrationType: {}",
+					object.getReg_type());
+			return;
 		}
+		// ────────────────────────────────────────────────────────────────────────
 
-		// Try to fetch the key using getMappedFieldName
-		String packetCreatedOnKey = utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+		// ── Parallel: key lookup + date fetch are fully independent ──────────────
+		// getMappedFieldName reads identity-mapping.json (cache-backed).
+		// retrieveCreatedDateFromPacket hits the packet manager.
+		// Neither depends on the other — no reason to serialize.
+		String packetCreatedOnKey;
+		String packetCreatedOn;
 
+		try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
+			CompletableFuture<String> keyFuture = CompletableFuture.supplyAsync(
+					() -> {
+                        try {
+                            return utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+					exec);
+
+			CompletableFuture<String> dateFuture = CompletableFuture.supplyAsync(
+					() -> {
+						try {
+							return utility.retrieveCreatedDateFromPacket(registrationId,
+									registrationStatusDto.getRegistrationType(),
+									ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
+
+			try {
+				CompletableFuture.allOf(keyFuture, dateFuture).join();
+				packetCreatedOnKey = keyFuture.join();
+				packetCreatedOn    = dateFuture.join();
+			} catch (CompletionException e) {
+				unwrapAndThrow(e);
+				throw new RuntimeException(); // unreachable
+			}
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ── Guards: both key and value must be present to insert ─────────────────
 		if (packetCreatedOnKey == null) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"Mapping is not configured in identity-mapping.json. key: {}", MappingJsonConstants.PACKET_CREATED_ON);
-			return; // Cannot insert if key is null
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"packetCreatedOn key not configured in identity-mapping.json: {}",
+					MappingJsonConstants.PACKET_CREATED_ON);
+			return;
 		}
-
-		// Fallback to metaInfo if not present in packet
-		String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
-				registrationId,
-				registrationStatusDto.getRegistrationType(),
-				ProviderStageName.UIN_GENERATOR
-		);
 
 		if (packetCreatedOn == null) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"unable to find the packetCreatedOn from packet");
-			return; // Cannot insert if value is null
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"packetCreatedOn value not found in packet for: {}", registrationId);
+			return;
 		}
+		// ────────────────────────────────────────────────────────────────────────
 
-		// Insert into demographicIdentity only if both key and value are present
 		demographicIdentity.put(packetCreatedOnKey, packetCreatedOn);
 	}
-
 }
