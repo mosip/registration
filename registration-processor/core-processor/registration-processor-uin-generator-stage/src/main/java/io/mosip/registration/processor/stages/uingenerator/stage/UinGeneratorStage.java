@@ -1,11 +1,7 @@
 package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -226,285 +222,298 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		boolean isTransactionSuccessful = Boolean.FALSE;
+		boolean isTransactionSuccessful = false;
 		object.setMessageBusAddress(MessageBusAddress.UIN_GENERATION_BUS_IN);
 		object.setInternalError(Boolean.FALSE);
 		object.setIsValid(Boolean.TRUE);
 		LogDescription description = new LogDescription();
 		String registrationId = object.getRid();
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "UinGeneratorStage::process()::entry");
-		UinGenResponseDto uinResponseDto = null;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+				"UinGeneratorStage::process()::entry");
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
 				registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
+
 		try {
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UIN_GENERATOR.toString());
+			registrationStatusDto.setLatestTransactionTypeCode(
+					RegistrationTransactionTypeCode.UIN_GENERATOR.toString());
 			registrationStatusDto.setRegistrationStageName(getStageName());
 
-			if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
+			if (RegistrationType.LOST.toString().equalsIgnoreCase(object.getReg_type())) {
 				String lostPacketRegId = object.getRid();
-				String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(object.getWorkflowInstanceId());
-				
+				String matchedRegId = regLostUinDetEntity
+						.getLostUinMatchedRegIdByWorkflowId(object.getWorkflowInstanceId());
 				if (matchedRegId != null) {
-					regProcLogger.info("Match for lostPacketRegId"+lostPacketRegId +"is "+matchedRegId);
-					lostAndUpdateUin(lostPacketRegId, matchedRegId, registrationStatusDto.getRegistrationType(), object, description);
+					regProcLogger.info("Match for lostPacketRegId" + lostPacketRegId + " is " + matchedRegId);
+					lostAndUpdateUin(lostPacketRegId, matchedRegId,
+							registrationStatusDto.getRegistrationType(), object, description);
 				}
 			} else {
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
-				// Run getUIn in parallel with schemaVersion+getFields using virtual threads (not ForkJoinPool)
-				ExecutorService uinExecutor = Executors.newVirtualThreadPerTaskExecutor();
-				CompletableFuture<String> uinFuture = CompletableFuture.supplyAsync(() -> {
-					try {
-						return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
-					} catch (Exception e) { throw new CompletionException(e); }
-				}, uinExecutor);
-				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
-				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
-						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
-				String uinField;
+				// ── Parallel fan-out: getUIn + schemaVersion + fields ────────────
+				ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor();
 				try {
-					uinField = uinFuture.join();
-				} catch (CompletionException e) {
-					Throwable cause = e.getCause();
-					while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
-					sneakyThrow(cause);
-					throw new RuntimeException(); // unreachable
-				} finally {
-					uinExecutor.close();
-				}
-				JSONObject demographicIdentity = new JSONObject();
-				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
+					String regType = registrationStatusDto.getRegistrationType();
 
-				loadDemographicIdentity(fieldMap, demographicIdentity);
+					CompletableFuture<String> uinFuture = CompletableFuture.supplyAsync(() -> {
+						try {
+							return utility.getUIn(registrationId, regType, ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object);
+					CompletableFuture<String> schemaFuture = CompletableFuture.supplyAsync(() -> {
+						try {
+							return packetManagerService.getFieldByMappingJsonKey(registrationId,
+									MappingJsonConstants.IDSCHEMA_VERSION, regType,
+									ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
+					// schemaVersion needed to build the fields list, so chain fieldsFuture on schemaFuture
+					CompletableFuture<Map<String, String>> fieldsFuture = schemaFuture.thenApplyAsync(sv -> {
+						try {
+							return packetManagerService.getFields(registrationId,
+									idSchemaUtil.getDefaultFields(Double.parseDouble(sv)),
+									regType, ProviderStageName.UIN_GENERATOR);
+						} catch (Exception e) { throw new CompletionException(e); }
+					}, exec);
 
-					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
-							uinField);
+					// Await both independent paths together
+					CompletableFuture.allOf(uinFuture, fieldsFuture).join();
 
-					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
+					String uinField   = unwrap(uinFuture);
+					String schemaVersion = unwrap(schemaFuture);
+					Map<String, String> fieldMap = unwrap(fieldsFuture);
+					// ─────────────────────────────────────────────────────────────
 
-					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
-						registrationStatusDto.setStatusComment(StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
-						registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATED_SUCCESS.getCode());
-						isTransactionSuccessful = true;
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
-						description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-						
-					} else {
-						List<ErrorDTO> errors = idResponseDTO != null ? idResponseDTO.getErrors() : null;
-						String statusComment = errors != null ? errors.get(0).getMessage()
-								: UINConstants.NULL_IDREPO_RESPONSE;
-						int unknownErrorCount=0;
-						for(ErrorDTO dto:errors) {
-							if(dto.getErrorCode().equalsIgnoreCase("IDR-IDC-004")||dto.getErrorCode().equalsIgnoreCase("IDR-IDC-001")) {
-								unknownErrorCount++;
+					JSONObject demographicIdentity = new JSONObject();
+					demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
+							convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
+
+					loadDemographicIdentity(fieldMap, demographicIdentity);
+					updatePacketCreatedOnInDemographicIdentity(
+							registrationId, registrationStatusDto, demographicIdentity, object);
+
+					if (StringUtils.isEmpty(uinField) || "null".equalsIgnoreCase(uinField)) {
+						idResponseDTO = sendIdRepoWithUin(registrationId, regType,
+								demographicIdentity, uinField);
+						boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
+
+						if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
+							registrationStatusDto.setStatusComment(
+									StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
+							registrationStatusDto.setSubStatusCode(
+									StatusUtil.UIN_GENERATED_SUCCESS.getCode());
+							isTransactionSuccessful = true;
+							registrationStatusDto.setStatusCode(
+									RegistrationStatusCode.PROCESSING.toString());
+							description.setMessage(
+									PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
+							description.setCode(
+									PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
+							description.setTransactionStatusCode(
+									RegistrationTransactionStatusCode.SUCCESS.toString());
+						} else {
+							List<ErrorDTO> errors = idResponseDTO != null
+									? idResponseDTO.getErrors() : Collections.emptyList();
+
+							// ── Single-pass over errors (was two passes) ─────────
+							String statusComment = errors.isEmpty()
+									? UINConstants.NULL_IDREPO_RESPONSE : errors.get(0).getMessage();
+							boolean hasRecoverableError = errors.stream().anyMatch(dto ->
+									dto.getErrorCode().equalsIgnoreCase("IDR-IDC-004") ||
+											dto.getErrorCode().equalsIgnoreCase("IDR-IDC-001"));
+							// ─────────────────────────────────────────────────────
+
+							if (hasRecoverableError) {
+								registrationStatusDto.setStatusCode(
+										RegistrationStatusCode.PROCESSING.toString());
+								registrationStatusDto.setLatestTransactionStatusCode(
+										registrationStatusMapperUtil.getStatusCode(
+												RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+								description.setTransactionStatusCode(
+										registrationStatusMapperUtil.getStatusCode(
+												RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+							} else {
+								registrationStatusDto.setStatusCode(
+										RegistrationStatusCode.FAILED.toString());
+								registrationStatusDto.setLatestTransactionStatusCode(
+										registrationStatusMapperUtil.getStatusCode(
+												RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
+								description.setTransactionStatusCode(
+										registrationStatusMapperUtil.getStatusCode(
+												RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
 							}
+							registrationStatusDto.setStatusComment(trimExceptionMessage
+									.trimExceptionMessage(
+											StatusUtil.UIN_GENERATION_FAILED.getMessage() + statusComment));
+							object.setInternalError(Boolean.TRUE);
+							isTransactionSuccessful = false;
+							description.setMessage(
+									PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getMessage());
+							description.setCode(
+									PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getCode());
+							description.setSubStatusCode(StatusUtil.UIN_GENERATION_FAILED.getCode());
+							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+									LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+									statusComment + "  :  " + (idResponseDTO != null
+											? idResponseDTO : UINConstants.NULL_IDREPO_RESPONSE));
+							object.setIsValid(Boolean.FALSE);
 						}
-						if(unknownErrorCount>0) {
-							registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-							registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-									.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
-							description.setTransactionStatusCode(registrationStatusMapperUtil
-									.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+					} else {
+						String rt = object.getReg_type();
+						if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(rt)) {
+							isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId,
+									uinField, object, demographicIdentity, description);
+						} else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(rt)) {
+							idResponseDTO = deactivateUin(registrationId, uinField, object,
+									demographicIdentity, description);
+						} else if (RegistrationType.UPDATE.toString().equalsIgnoreCase(rt)
+								|| RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(rt)
+								|| RegistrationType.UPDATE.toString().equalsIgnoreCase(
+								utilities.getInternalProcess(additionalProcessCategoryMapping, rt))) {
+							isTransactionSuccessful = uinUpdate(registrationId, regType, uinField,
+									object, demographicIdentity, description);
 						}
-						else {
-							registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-							registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-									.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
-							description.setTransactionStatusCode(registrationStatusMapperUtil
-									.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
-						}
-						registrationStatusDto.setStatusComment(trimExceptionMessage
-								.trimExceptionMessage(StatusUtil.UIN_GENERATION_FAILED.getMessage() + statusComment));
-						object.setInternalError(Boolean.TRUE);
-						isTransactionSuccessful = false;
-						description.setMessage(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getMessage());
-						description.setCode(PlatformErrorMessages.RPR_UGS_UIN_UPDATE_FAILURE.getCode());
-						description.setSubStatusCode(StatusUtil.UIN_GENERATION_FAILED.getCode());
-						String idres = idResponseDTO != null ? idResponseDTO.toString()
-								: UINConstants.NULL_IDREPO_RESPONSE;
-
-						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								statusComment + "  :  " + idres);
-						object.setIsValid(Boolean.FALSE);
 					}
-
-				} else {
-					if ((RegistrationType.ACTIVATED.toString()).equalsIgnoreCase(object.getReg_type())) {
-						isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, uinField, object,
-								demographicIdentity, description);
-					} else if ((RegistrationType.DEACTIVATED.toString())
-							.equalsIgnoreCase(object.getReg_type())) {
-						idResponseDTO = deactivateUin(registrationId, uinField, object, demographicIdentity,
-								description);
-					} else if (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())
-							|| (RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(object.getReg_type()))
-							|| (RegistrationType.UPDATE.toString().equalsIgnoreCase(utilities.getInternalProcess(additionalProcessCategoryMapping, object.getReg_type())))) {
-						isTransactionSuccessful = uinUpdate(registrationId, registrationStatusDto.getRegistrationType(), uinField, object, demographicIdentity,
-								description);
-					}
+				} finally {
+					exec.close();
 				}
 			}
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getMessage());
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
 			registrationStatusDto.setUpdatedBy(UINConstants.USER);
 
 		} catch (io.mosip.kernel.core.util.exception.JsonProcessingException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
-			isTransactionSuccessful = false;
-			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.FAILED, StatusUtil.JSON_PARSING_EXCEPTION,
+					RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION,
+					PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION, e);
+			registrationStatusDto.setRegistrationId(registrationStatusDto.getRegistrationId());
+		} catch (PacketManagerNonRecoverableException e) {
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.FAILED, StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
+					RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
+					PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, e);
 			object.setRid(registrationStatusDto.getRegistrationId());
-		}catch (PacketManagerNonRecoverableException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
+		} catch (PacketManagerException e) {
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.PACKET_MANAGER_EXCEPTION,
+					RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION,
+					PlatformErrorMessages.PACKET_MANAGER_EXCEPTION, e);
 			object.setRid(registrationStatusDto.getRegistrationId());
-
-		}  catch (PacketManagerException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} catch (ApisResourceAccessException ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + ex.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
-			object.setInternalError(Boolean.TRUE);
-			description.setMessage(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + ex.getMessage()));
-			description.setCode(PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getCode());
-
+		} catch (ApisResourceAccessException e) {
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.API_RESOUCE_ACCESS_FAILED,
+					RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION,
+					PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION, e);
 		} catch (IOException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.IO_EXCEPTION,
+					RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS,
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION, e);
 		} catch (IdrepoDraftException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.IDREPO_DRAFT_EXCEPTION,
+					RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION,
+					PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION, e);
 			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (IdrepoDraftReprocessableException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(
-							StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
-			object.setInternalError(Boolean.TRUE);
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION,
+					RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION,
+					PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION, e);
 			object.setRid(registrationStatusDto.getRegistrationId());
-		} catch (Exception ex) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(
-					trimExceptionMessage.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					RegistrationStatusCode.PROCESSING.toString() + ex.getMessage() + ExceptionUtils.getStackTrace(ex));
-			object.setInternalError(Boolean.TRUE);
-			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
+		} catch (Exception e) {
+			handleException(registrationId, registrationStatusDto, object, description,
+					RegistrationStatusCode.PROCESSING, StatusUtil.UNKNOWN_EXCEPTION_OCCURED,
+					RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS,
+					PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION, e);
 		} finally {
-			if (description.getStatusComment() != null)
-				registrationStatusDto.setStatusComment(description.getStatusComment());
-			if (description.getStatusCode() != null)
-				registrationStatusDto.setStatusCode(description.getStatusCode());
-			if (description.getSubStatusCode() != null)
-				registrationStatusDto.setSubStatusCode(description.getSubStatusCode());
-			if (description.getTransactionStatusCode() != null)
-				registrationStatusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
+			applyDescriptionToStatus(description, registrationStatusDto);
+			if (object.getInternalError()) updateErrorFlags(registrationStatusDto, object);
 
-			if (object.getInternalError()) {
-				updateErrorFlags(registrationStatusDto, object);
-			}
 			String moduleId = isTransactionSuccessful
 					? PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.UIN_GENERATOR.toString();
-			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
-					: EventName.EXCEPTION.toString();
-			String eventType = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventType.BUSINESS.toString()
-					: EventType.SYSTEM.toString();
+			String eventId = isTransactionSuccessful
+					? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+			boolean isSuccess = isTransactionSuccessful;
 
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
+			// ── Parallel finally I/O ──────────────────────────────────────────
+			try (ExecutorService finallyExec = Executors.newVirtualThreadPerTaskExecutor()) {
+				CompletableFuture<Void> updateFuture = CompletableFuture.runAsync(() ->
+						registrationStatusService.updateRegistrationStatus(
+								registrationStatusDto, moduleId, moduleName), finallyExec);
 
+				CompletableFuture<Void> auditFuture = CompletableFuture.runAsync(() -> {
+					String eventName = isSuccess ? EventName.UPDATE.toString()
+							: EventName.EXCEPTION.toString();
+					String eventType = isSuccess ? EventType.BUSINESS.toString()
+							: EventType.SYSTEM.toString();
+					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(),
+							eventId, eventName, eventType, moduleId, moduleName, registrationId);
+				}, finallyExec);
+
+				CompletableFuture.allOf(updateFuture, auditFuture).join();
+			}
+			// ─────────────────────────────────────────────────────────────────
 		}
 
 		return object;
 	}
 
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+	/** Unwraps a CompletableFuture, re-throwing the root cause without wrapping. */
+	@SuppressWarnings("unchecked")
+	private static <T> T unwrap(CompletableFuture<T> future) throws Exception {
+		try {
+			return future.join();
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause();
+			while (cause instanceof CompletionException && cause.getCause() != null)
+				cause = cause.getCause();
+			if (cause instanceof Exception ex) throw ex;
+			throw e;
+		}
+	}
+
+	/** Consolidates the repetitive exception-handler boilerplate into one call. */
+	private void handleException(String registrationId,
+								 InternalRegistrationStatusDto statusDto, MessageDTO object,
+								 LogDescription description, RegistrationStatusCode statusCode,
+								 StatusUtil statusUtil, RegistrationExceptionTypeCode exTypeCode,
+								 PlatformErrorMessages platformMsg, Exception e) {
+
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+				statusCode + " " + e.getMessage() + ExceptionUtils.getStackTrace(e));
+		statusDto.setStatusCode(statusCode.name());
+		statusDto.setStatusComment(trimExceptionMessage
+				.trimExceptionMessage(statusUtil.getMessage() + e.getMessage()));
+		statusDto.setSubStatusCode(statusUtil.getCode());
+		statusDto.setLatestTransactionStatusCode(
+				registrationStatusMapperUtil.getStatusCode(exTypeCode));
+		description.setMessage(platformMsg.getMessage());
+		description.setCode(platformMsg.getCode());
+		object.setInternalError(Boolean.TRUE);
+	}
+
+	/** Copies non-null description fields back onto the status DTO (finally block). */
+	private void applyDescriptionToStatus(LogDescription description,
+										  InternalRegistrationStatusDto statusDto) {
+		if (description.getStatusComment()      != null) statusDto.setStatusComment(description.getStatusComment());
+		if (description.getStatusCode()         != null) statusDto.setStatusCode(description.getStatusCode());
+		if (description.getSubStatusCode()      != null) statusDto.setSubStatusCode(description.getSubStatusCode());
+		if (description.getTransactionStatusCode() != null)
+			statusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
+	}
     private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {
         for (Map.Entry e : fieldMap.entrySet()) {
             if (e.getValue() == null) {
