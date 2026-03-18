@@ -575,7 +575,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
+		long t0 = System.currentTimeMillis();
 		Map<String, List<String>> policyTypeAndSubTypeMap = createTypeSubtypeMapping();
+		long policyMs = System.currentTimeMillis() - t0;
 		List<String> modalities = new ArrayList<>();
 		List<String> policyTypeAndSubTypeList = new ArrayList<>();
 		modalities.addAll(policyTypeAndSubTypeMap.keySet());
@@ -627,6 +629,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		} finally {
 			executor.close();
 		}
+		long packetFetchMs = System.currentTimeMillis() - t0 - policyMs;
 
 		String ageGroup = tags.get("AGE_GROUP");
 		Map<String, List<String>> ageGroupModalitySegmentMap;
@@ -641,6 +644,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				metaInfoMap, policyTypeAndSubTypeMap);
 
 		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord, id, process, metaInfoMap).getSegments());
+		long validateCbeffMs = System.currentTimeMillis() - t0 - policyMs - packetFetchMs;
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -665,8 +669,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		else
 			url = protocol + internalDomainName + env.getProperty(ApiName.DATASHARECREATEURL.name());
 		url = url.replaceAll("[\\[\\]]", "");
+		long beforePostMs = System.currentTimeMillis() - t0;
 		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(url,
 				MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		long datasharePostMs = System.currentTimeMillis() - t0 - beforePostMs;
+		long totalMs = System.currentTimeMillis() - t0;
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				String.format("AbisHandlerStage::getDataShareUrl timing(ms) policy=%d packetFetch=%d validateCbeff=%d datasharePost=%d total=%d",
+						policyMs, packetFetchMs, validateCbeffMs, datasharePostMs, totalMs));
 		if (response == null || (response.getErrors() != null && response.getErrors().size() > 0))
 			throw new DataShareException(
 					response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
