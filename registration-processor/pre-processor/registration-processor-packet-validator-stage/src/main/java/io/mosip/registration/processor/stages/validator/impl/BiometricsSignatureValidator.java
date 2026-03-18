@@ -194,9 +194,12 @@ public class BiometricsSignatureValidator {
 		LocalDateTime localdatetime = LocalDateTime
 				.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 		request.setRequesttime(localdatetime);
+		
+		System.out.println("Request for JWT validation: " + JsonUtils.javaObjectToJsonString(request));
 
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);
+		System.out.println("Response for JWT validation: " + JsonUtils.javaObjectToJsonString(responseWrapper));
 		if (responseWrapper.getResponse() != null) {
 			JWTSignatureVerifyResponseDto jwtResponse = mapper.convertValue(
 					responseWrapper.getResponse(), JWTSignatureVerifyResponseDto.class);
