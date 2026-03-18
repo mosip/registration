@@ -348,19 +348,30 @@ public class PriorityBasedPacketManagerService {
 
     private BiometricRecord getBiometricsInternal(String id, String person, List<String> modalities, String process, ProviderStageName stageName)
             throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+        long t0 = System.currentTimeMillis();
         try {
             Map<String, String> finalKeyMap = PacketManagerHelper.getKeyMap(stageName, providerConfiguration).isEmpty() ? null
                     : PacketManagerHelper.getKeyMap(stageName, providerConfiguration).entrySet().stream()
                     .filter(key -> key.getKey().contains(person))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            long keyMapMs = System.currentTimeMillis() - t0;
 
             // if there is no priority set for individual stage
             if (CollectionUtils.isEmpty(finalKeyMap)) {
-                return packetManagerService.getBiometrics(id, person, modalities, null, process);
+                long beforeGetBio = System.currentTimeMillis();
+                BiometricRecord result = packetManagerService.getBiometrics(id, person, modalities, null, process);
+                long getBiometricsMs = System.currentTimeMillis() - beforeGetBio;
+                long totalMs = System.currentTimeMillis() - t0;
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+                        String.format("PriorityBasedPacketManagerService::getBiometricsInternal path=noPriority keyMap=%d getBiometrics=%d total=%d",
+                                keyMapMs, getBiometricsMs, totalMs));
+                return result;
             }
 
             // else get fields based on priority set in individual stage level
+            long beforeInfo = System.currentTimeMillis();
             InfoResponseDto infoResponseDto = packetManagerService.info(id);
+            long infoMs = System.currentTimeMillis() - beforeInfo;
 
             if (infoResponseDto == null) {
                 throw new ApisResourceAccessException("Unable to get packet info for id: " + id);
@@ -368,16 +379,26 @@ public class PriorityBasedPacketManagerService {
 
             // if there is a type/subtype set in properties
             if (finalKeyMap.get(person) != null) {
+                long beforeContainer = System.currentTimeMillis();
                 ContainerInfoDto containerInfoDto = PacketManagerHelper.getContainerInfo(finalKeyMap, person, infoResponseDto);
                 modalities = CollectionUtils.isEmpty(modalities) ?
                         PacketManagerHelper.getTypeSubtypeModalities(containerInfoDto) : modalities;
-                return packetManagerService.getBiometrics(id, person, modalities,
+                long getContainerInfoMs = System.currentTimeMillis() - beforeContainer;
+                long beforeGetBio = System.currentTimeMillis();
+                BiometricRecord result = packetManagerService.getBiometrics(id, person, modalities,
                         containerInfoDto.getSource(), containerInfoDto.getProcess());
+                long getBiometricsMs = System.currentTimeMillis() - beforeGetBio;
+                long totalMs = System.currentTimeMillis() - t0;
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+                        String.format("PriorityBasedPacketManagerService::getBiometricsInternal path=singleContainer keyMap=%d info=%d getContainerInfo=%d getBiometrics=%d total=%d",
+                                keyMapMs, infoMs, getContainerInfoMs, getBiometricsMs, totalMs));
+                return result;
             }
 
             Set<ContainerInfoDto> containers = new HashSet<>();
             BiometricRecord biometricRecord = null;
 
+            long beforeBuildContainers = System.currentTimeMillis();
             for (String key : finalKeyMap.keySet()) {
                 ContainerInfoDto containerInfoDto = PacketManagerHelper.getBiometricContainerInfo(finalKeyMap, person, key, infoResponseDto);
                 if (containerInfoDto != null) {
@@ -389,12 +410,18 @@ public class PriorityBasedPacketManagerService {
                     }
                 }
             }
+            long buildContainersMs = System.currentTimeMillis() - beforeBuildContainers;
 
+            long getBiometricsLoopMs = 0;
+            int containerCount = 0;
             for (ContainerInfoDto containerInfoDto : containers) {
                 List<String> containerModalities = CollectionUtils.isEmpty(modalities) ?
                         PacketManagerHelper.getTypeSubtypeModalities(containerInfoDto) : modalities;
+                long beforeGetBio = System.currentTimeMillis();
                 BiometricRecord record = packetManagerService.getBiometrics(
                         id, person, containerModalities, containerInfoDto.getSource(), containerInfoDto.getProcess());
+                getBiometricsLoopMs += System.currentTimeMillis() - beforeGetBio;
+                containerCount++;
 
                 if (record != null) {
                     if (biometricRecord == null) {
@@ -406,10 +433,15 @@ public class PriorityBasedPacketManagerService {
                 }
             }
 
+            long totalMs = System.currentTimeMillis() - t0;
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+                    String.format("PriorityBasedPacketManagerService::getBiometricsInternal path=multiContainer keyMap=%d info=%d buildContainers=%d getBiometricsLoop=%d containers=%d total=%d",
+                            keyMapMs, infoMs, buildContainersMs, getBiometricsLoopMs, containerCount, totalMs));
             return biometricRecord;
         } catch (Exception e) {
+            long totalMs = System.currentTimeMillis() - t0;
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    id, "Error in getBiometricsInternal: " + e.getMessage());
+                    id, "Error in getBiometricsInternal after " + totalMs + "ms: " + e.getMessage());
             throw e;
         }
     }
