@@ -597,24 +597,31 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		BiometricRecord biometricRecord;
 		Map<String, String> tags;
 		Map<String, String> metaInfoMap;
+		long[] biometricsMs = { 0 }, tagsMs = { 0 }, metaInfoMs = { 0 };
 		try {
 			CompletableFuture<BiometricRecord> biometricsFuture = CompletableFuture.supplyAsync(() -> {
+				long start = System.currentTimeMillis();
 				try {
 					return priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
 							policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
 				} catch (Exception e) { throw new CompletionException(e); }
+				finally { biometricsMs[0] = System.currentTimeMillis() - start; }
 			}, executor);
 
 			CompletableFuture<Map<String, String>> tagsFuture = CompletableFuture.supplyAsync(() -> {
+				long start = System.currentTimeMillis();
 				try {
 					return packetManagerService.getAllTags(id);
 				} catch (Exception e) { throw new CompletionException(e); }
+				finally { tagsMs[0] = System.currentTimeMillis() - start; }
 			}, executor);
 
 			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
+				long start = System.currentTimeMillis();
 				try {
 					return priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE);
 				} catch (Exception e) { throw new CompletionException(e); }
+				finally { metaInfoMs[0] = System.currentTimeMillis() - start; }
 			}, executor);
 
 			try {
@@ -630,6 +637,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			executor.close();
 		}
 		long packetFetchMs = System.currentTimeMillis() - t0 - policyMs;
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				String.format("AbisHandlerStage::getDataShareUrl packetFetch breakdown(ms) getBiometrics=%d getAllTags=%d getMetaInfo=%d (wallClock=%d)",
+						biometricsMs[0], tagsMs[0], metaInfoMs[0], packetFetchMs));
 
 		String ageGroup = tags.get("AGE_GROUP");
 		Map<String, List<String>> ageGroupModalitySegmentMap;
