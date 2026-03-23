@@ -684,6 +684,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		abisReqEntity.setBioRefId(abisCommonRequestDto.getBioRefId());
 		abisReqEntity.setRefRegtrnId(abisCommonRequestDto.getRefRegtrnId());
 		abisReqEntity.setReqText(abisCommonRequestDto.getReqText());
+		abisReqEntity.setUpdBy(SYSTEM);
+		abisReqEntity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 		abisRequestRepositary.save(abisReqEntity);
 	}
 
