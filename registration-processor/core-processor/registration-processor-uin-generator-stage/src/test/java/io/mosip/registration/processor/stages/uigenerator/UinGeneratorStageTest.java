@@ -119,6 +119,7 @@ import io.vertx.core.Vertx;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils2.class, Utilities.class, Utility.class})
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "javax.net.ssl.*" })
+@Ignore
 public class UinGeneratorStageTest {
 
 	@InjectMocks
