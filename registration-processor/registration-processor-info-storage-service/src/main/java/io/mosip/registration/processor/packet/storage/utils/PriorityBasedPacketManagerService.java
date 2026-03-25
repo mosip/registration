@@ -358,6 +358,7 @@ public class PriorityBasedPacketManagerService {
             if (CollectionUtils.isEmpty(finalKeyMap)) {
                 return packetManagerService.getBiometrics(id, person, modalities, null, process);
             }
+
             // else get fields based on priority set in individual stage level
             InfoResponseDto infoResponseDto = packetManagerService.info(id);
 
