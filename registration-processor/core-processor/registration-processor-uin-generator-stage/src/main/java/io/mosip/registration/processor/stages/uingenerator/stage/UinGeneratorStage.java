@@ -262,6 +262,17 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				}, uinExecutor);
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
+				// Start getMetaInfo in parallel with getFields (only for NEW/UPDATE; cached mapping check is fast)
+				final String regTypeForCreatedOn = registrationStatusDto.getRegistrationType();
+				CompletableFuture<String> createdOnFuture = null;
+				if (RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) ||
+						RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
+					createdOnFuture = CompletableFuture.supplyAsync(() -> {
+						try { return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.UIN_GENERATOR); }
+						catch (Exception e) { throw new CompletionException(e); }
+					}, uinExecutor);
+				}
+
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField;
@@ -273,14 +284,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					sneakyThrow(cause);
 					throw new RuntimeException(); // unreachable
 				} finally {
-					uinExecutor.close();
+					uinExecutor.close(); // waits for createdOnFuture virtual thread to complete too
 				}
 				JSONObject demographicIdentity = new JSONObject();
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
-				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object);
+				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object, createdOnFuture);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
@@ -1120,17 +1131,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			Map<String, String> fieldMap = new HashMap<String, String>();
 			if (StringUtils.isNotEmpty(updateInfo)) {
 				String[] updateFields = updateInfo.split(",");
+				List<String> actualFieldNames = new ArrayList<>();
 				for (String fieldName : updateFields) {
 					String actualFieldName = JsonUtil.getJSONValue(
 							JsonUtil.getJSONObject(regProcessorIdentityJson, fieldName),
 							MappingJsonConstants.VALUE);
 					if (StringUtils.isNotEmpty(actualFieldName)) {
-						String fldValue = packetManagerService.getField(lostPacketRegId, actualFieldName, process,
-								ProviderStageName.UIN_GENERATOR);
-						if (null != fldValue)
-							fieldMap.put(actualFieldName, fldValue);
+						actualFieldNames.add(actualFieldName);
 					}
-
+				}
+				if (!actualFieldNames.isEmpty()) {
+					Map<String, String> fetchedFields = packetManagerService.getFields(lostPacketRegId, actualFieldNames, process,
+							ProviderStageName.UIN_GENERATOR);
+					if (fetchedFields != null) {
+						fetchedFields.forEach((k, v) -> { if (v != null) fieldMap.put(k, v); });
+					}
 				}
 			}
 			loadDemographicIdentity(fieldMap, identityObject);
@@ -1214,7 +1229,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
 															InternalRegistrationStatusDto registrationStatusDto,
-															Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+															Map<String, Object> demographicIdentity, MessageDTO object,
+															CompletableFuture<String> createdOnFuture) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
 		// update packetCreatedOn only for NEW and UPDATE registrations
 		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
 				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
@@ -1232,12 +1248,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			return; // Cannot insert if key is null
 		}
 
-		// Fallback to metaInfo if not present in packet
-		String packetCreatedOn = utility.retrieveCreatedDateFromPacket(
-				registrationId,
-				registrationStatusDto.getRegistrationType(),
-				ProviderStageName.UIN_GENERATOR
-		);
+		// Use pre-fetched value from parallel future (already completed since uinExecutor.close() was called)
+		String packetCreatedOn;
+		if (createdOnFuture != null) {
+			try {
+				packetCreatedOn = createdOnFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause();
+				while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+				sneakyThrow(cause);
+				throw new RuntimeException(); // unreachable
+			}
+		} else {
+			packetCreatedOn = utility.retrieveCreatedDateFromPacket(
+					registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+		}
 
 		if (packetCreatedOn == null) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
