@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -379,29 +383,84 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private void processCompleteAsProcessed(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			WorkflowActionException {
-		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
-				.getAdditionalInfoRequestByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
-						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
+
+		CompletableFuture<AdditionalInfoRequestDto> aiFuture;
+		CompletableFuture<InternalRegistrationStatusDto> statusFuture;
+
+		// Phase 1: getAdditionalInfoRequest + getRegistrationStatus are independent — run in parallel
+		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+			aiFuture = CompletableFuture.supplyAsync(() ->
+					additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcessAndIteration(
+							workflowInternalActionDTO.getRid(),
+							workflowInternalActionDTO.getReg_type(),
+							workflowInternalActionDTO.getIteration()), executor);
+
+			statusFuture = CompletableFuture.supplyAsync(() ->
+					registrationStatusService.getRegistrationStatus(
+							workflowInternalActionDTO.getRid(),
+							workflowInternalActionDTO.getReg_type(),
+							workflowInternalActionDTO.getIteration(),
+							workflowInternalActionDTO.getWorkflowInstanceId()), executor);
+
+			CompletableFuture.allOf(aiFuture, statusFuture).join();
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause() != null ? e.getCause() : e;
+			if (cause instanceof TablenotAccessibleException) throw (TablenotAccessibleException) cause;
+			if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+			throw new IOException("Parallel fetch failed for registration id: "
+					+ workflowInternalActionDTO.getRid(), cause);
+		}
+
+		AdditionalInfoRequestDto additionalInfoRequestDto = aiFuture.join();
+		InternalRegistrationStatusDto registrationStatusDto = statusFuture.join();
+
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(
+				RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
-		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		registrationStatusService.updateRegistrationStatusForWorkflowEngine(
+				registrationStatusDto, MODULE_ID, MODULE_NAME);
+
 		if (additionalInfoRequestDto != null) {
-			Map<String, String> tags = new HashMap<String, String>();
+			Map<String, String> tags = new HashMap<>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
 					RegistrationStatusCode.PROCESSED.toString());
-			packetManagerService.addOrUpdateTags(workflowInternalActionDTO.getRid(), tags);
-			InternalRegistrationStatusDto mainFlowregistrationStatusDto = registrationStatusService
-					.getRegistrationStatus(null, null, null, additionalInfoRequestDto.getWorkflowInstanceId());
-			mainFlowregistrationStatusDto
-					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
-			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
-			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
-			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
+
+			// Phase 2: addOrUpdateTags (HTTP) + getRegistrationStatus(mainFlow) (DB) are independent — run in parallel
+			CompletableFuture<Void> tagsFuture;
+			CompletableFuture<InternalRegistrationStatusDto> mainFlowFuture;
+
+			try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+				tagsFuture = CompletableFuture.runAsync(() -> {
+					try {
+						packetManagerService.addOrUpdateTags(workflowInternalActionDTO.getRid(), tags);
+					} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException |
+							 IOException e) {
+						throw new CompletionException(e);
+					}
+				}, executor);
+
+				mainFlowFuture = CompletableFuture.supplyAsync(() ->
+						registrationStatusService.getRegistrationStatus(
+								null, null, null, additionalInfoRequestDto.getWorkflowInstanceId()), executor);
+
+				CompletableFuture.allOf(tagsFuture, mainFlowFuture).join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause() != null ? e.getCause() : e;
+				if (cause instanceof ApisResourceAccessException) throw (ApisResourceAccessException) cause;
+				if (cause instanceof PacketManagerException) throw (PacketManagerException) cause;
+				if (cause instanceof TablenotAccessibleException) throw (TablenotAccessibleException) cause;
+				throw new IOException("Parallel execution failed for registration id: "
+						+ workflowInternalActionDTO.getRid(), cause);
+			}
+
+			InternalRegistrationStatusDto mainFlowRegistrationStatusDto = mainFlowFuture.join();
+			mainFlowRegistrationStatusDto.setLatestTransactionStatusCode(
+					RegistrationTransactionStatusCode.REPROCESS.toString());
+
+			workflowActionService.processWorkflowAction(
+					List.of(mainFlowRegistrationStatusDto),
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);

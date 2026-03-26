@@ -2878,7 +2878,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 
 	}
@@ -2903,7 +2903,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2928,7 +2928,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2950,7 +2950,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2972,7 +2972,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}
