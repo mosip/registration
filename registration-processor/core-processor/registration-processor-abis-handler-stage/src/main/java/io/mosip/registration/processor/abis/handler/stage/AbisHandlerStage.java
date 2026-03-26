@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.util.DateUtils2;
@@ -587,10 +591,43 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
-		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
-				policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		BiometricRecord biometricRecord;
+		Map<String, String> tags;
+		Map<String, String> metaInfoMap;
+		try {
+			CompletableFuture<BiometricRecord> biometricsFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
+							policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
 
-		Map<String, String> tags = packetManagerService.getAllTags(id);
+			CompletableFuture<Map<String, String>> tagsFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return packetManagerService.getAllTags(id);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			try {
+				biometricRecord = biometricsFuture.join();
+				tags = tagsFuture.join();
+				metaInfoMap = metaInfoFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause() != null ? e.getCause() : e;
+				if (cause instanceof Exception) throw (Exception) cause;
+				throw e;
+			}
+		} finally {
+			executor.close();
+		}
+
 		String ageGroup = tags.get("AGE_GROUP");
 		Map<String, List<String>> ageGroupModalitySegmentMap;
 		if(biometricModalitySegmentsMapforAgeGroup.containsKey(ageGroup)){
@@ -599,11 +636,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		else {
 			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
-		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
-				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE),
-				policyTypeAndSubTypeMap);
 
-		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
+		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
+				metaInfoMap, policyTypeAndSubTypeMap);
+
+		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord, id, process, metaInfoMap).getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -714,12 +751,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process)
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process,
+			Map<String, String> metaInfoMap)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			JSONException
 	{
 
-		String version = getRegClientVersionFromMetaInfo(id, process, priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
 		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			return biometricRecord;
 		}
