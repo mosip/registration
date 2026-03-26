@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,14 +219,16 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                             utility.getRefId(registrationId, regEntity.getReferenceId()),
                             new ByteArrayInputStream(encryptedByteArray));
                     final byte[] decryptedPacketBytes = IOUtils.toByteArray(decryptedPacket);
+                    // Unzip once; ByteArrayInputStream values are resettable for reuse in uploadPacket
+                    Map<String, InputStream> unzippedFiles = ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes));
                     if (scanFile(encryptedByteArray, registrationId,
-                            regEntity.getReferenceId(), ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(
-                                    decryptedPacketBytes)), dto, description, messageDTO)) {
+                            regEntity.getReferenceId(), unzippedFiles, dto, description, messageDTO)) {
                         int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
                         dto.setRetryCount(retrycount);
                         if (retrycount < getMaxRetryCount()) {
-
-                            messageDTO = uploadPacket(regEntity, dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), messageDTO, description);
+                            // Reset all ByteArrayInputStreams so uploadPacket can re-read them
+                            unzippedFiles.values().forEach(is -> ((ByteArrayInputStream) is).reset());
+                            messageDTO = uploadPacket(regEntity, dto, unzippedFiles, messageDTO, description);
                             if (messageDTO.getIsValid()) {
                                 dto.setLatestTransactionStatusCode(
                                         RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -506,39 +512,70 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
         object.setIsValid(false);
         String registrationId = dto.getRegistrationId();
-        // upload packets
+        // Fetch additionalInfoRequest once (instead of once per sub-packet in getFinalKey)
+        AdditionalInfoRequestDto additionalInfoRequestDto = isIterationAdditionEnabled ?
+                additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcessAndIteration(
+                        object.getRid(), object.getReg_type(), object.getIteration()) : null;
+        // Upload sub-packets and metadata in parallel using virtual threads
+        ExecutorService uploadExecutor = Executors.newVirtualThreadPerTaskExecutor();
         try {
+            // Phase 1: upload all ZIP sub-packets in parallel
+            List<CompletableFuture<Void>> zipFutures = new ArrayList<>();
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
-                    String objStoreKey = isIterationAdditionEnabled ?
-                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object)
-                            :
-                            entry.getKey().replace(ZIP, "");
-                    boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
-                            null, null, objStoreKey, entry.getValue());
-                    if (!result)
-                        throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
+                    final String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object, additionalInfoRequestDto)
+                            : entry.getKey().replace(ZIP, "");
+                    final InputStream entryStream = entry.getValue();
+                    final String entryKey = entry.getKey();
+                    zipFutures.add(CompletableFuture.runAsync(() -> {
+                        boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
+                                null, null, objStoreKey, entryStream);
+                        if (!result)
+                            throw new CompletionException(new ObjectStoreNotAccessibleException("Failed to store packet : " + entryKey));
+                    }, uploadExecutor));
                 }
             }
+            try {
+                CompletableFuture.allOf(zipFutures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                if (cause instanceof ObjectStoreNotAccessibleException) throw (ObjectStoreNotAccessibleException) cause;
+                throw new ObjectStoreNotAccessibleException(cause.getMessage(), cause);
+            }
 
-            // upload metadata
+            // Phase 2: upload all JSON metadata in parallel (after ZIPs are stored)
+            List<CompletableFuture<Void>> jsonFutures = new ArrayList<>();
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(JSON)) {
                     byte[] bytearray = IOUtils.toByteArray(entry.getValue());
-                    String jsonString = new String(bytearray);
-                    LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
-                    String objStoreKey = isIterationAdditionEnabled ?
-                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object)
-                            :
-                            entry.getKey().replace(JSON, "");
-                    objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
-                            null, null, objStoreKey, currentIdMap);
+                    LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(new String(bytearray), LinkedHashMap.class);
+                    final String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object, additionalInfoRequestDto)
+                            : entry.getKey().replace(JSON, "");
+                    jsonFutures.add(CompletableFuture.runAsync(() ->
+                            objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
+                                    null, null, objStoreKey, currentIdMap), uploadExecutor));
                 }
             }
+            try {
+                CompletableFuture.allOf(jsonFutures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                throw new ObjectStoreNotAccessibleException(cause.getMessage(), cause);
+            }
+        } catch (ObjectStoreNotAccessibleException e) {
+            object.setIsValid(false);
+            object.setInternalError(true);
+            throw e;
         } catch (Exception e) {
             object.setIsValid(false);
             object.setInternalError(true);
             throw new ObjectStoreNotAccessibleException(e.getMessage(), e);
+        } finally {
+            uploadExecutor.close();
         }
 
 
@@ -604,17 +641,15 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @param packetKey
      * @return
      */
-    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, MessageDTO messageDTO) {
+    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, MessageDTO messageDTO,
+                               AdditionalInfoRequestDto additionalInfoRequestDto) {
         String[] tempKeys = packetKey.split(FORWARD_SLASH);
         // if known format of source/process/objectName only then modify the process
         if (tempKeys != null && tempKeys.length == 3) {
             String source = tempKeys[0];
             String process = tempKeys[1];
             String objectName = tempKeys[2];
-            AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
-                .getAdditionalInfoRequestByRegIdAndProcessAndIteration(messageDTO.getRid(),
-                        messageDTO.getReg_type(), messageDTO.getIteration());
-
+            // additionalInfoRequestDto is pre-fetched once by caller to avoid repeated DB calls
             if (additionalInfoRequestDto != null &&
                         additionalInfoRequestDto.getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
                 return source + FORWARD_SLASH + process + "-" + messageDTO.getIteration() + FORWARD_SLASH + objectName;
