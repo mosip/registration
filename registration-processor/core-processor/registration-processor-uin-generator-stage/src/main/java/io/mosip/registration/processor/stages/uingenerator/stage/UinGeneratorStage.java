@@ -1158,11 +1158,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 															InternalRegistrationStatusDto registrationStatusDto,
 															Map<String, Object> demographicIdentity, MessageDTO object, List<String> defaultFields) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
 
-		if(!defaultFields.contains("packetCreatedOn")) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"packetCreatedOn not present in IdSchema: {}", object.getReg_type());
-			return;
-		}
 		// update packetCreatedOn only for NEW and UPDATE registrations
 		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
 				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
