@@ -42,14 +42,18 @@ public final class RegProcessorLogger {
 					.collect(Collectors.toMap(entry -> (String)entry.getKey(), entry -> (String)entry.getValue()));
 		}
 		Logger logger=  Logfactory.getSlf4jLogger(clazz);
-		String loggerName = clazz.getName();
-		if(loggingLevelMap.entrySet().stream().anyMatch( entry -> entry.getKey().equals(PROP_PREFIX+loggerName))) {
-			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-			ch.qos.logback.classic.Logger slf4jlogger=loggerContext.getLogger(loggerName);
-			if(slf4jlogger!=null) {
-			   slf4jlogger.setLevel(Level.valueOf(loggingLevelMap.get(PROP_PREFIX+loggerName)));
-			}
-		}
+        String loggerName = clazz.getName();
+
+		loggingLevelMap.entrySet().stream()
+				.filter(entry -> loggerName.startsWith(entry.getKey().replace(PROP_PREFIX, "")))
+				.findFirst()
+				.ifPresent(entry -> {
+					LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+					ch.qos.logback.classic.Logger slf4jlogger = loggerContext.getLogger(loggerName);
+					if (slf4jlogger != null) {
+						slf4jlogger.setLevel(Level.valueOf(entry.getValue()));
+					}
+				});
 		return logger;
 	}
 }
