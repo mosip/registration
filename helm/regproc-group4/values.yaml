@@ -127,7 +127,7 @@ additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
-    -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
+    -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive
     -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=3400m -Xms3900m -Xmx3900m
     -XX:+UseContainerSupport -XX:MaxMetaspaceSize=445m
     -XX:MetaspaceSize=128m
