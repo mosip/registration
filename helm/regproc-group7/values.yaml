@@ -131,7 +131,7 @@ additionalResources:
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:SoftMaxHeapSize=1700m -Xms1950m -Xmx1950m
     -XX:+UseContainerSupport -XX:MaxMetaspaceSize=256m
-    -XX:MetaspaceSize=100m 
+    -XX:MetaspaceSize=100m
     -XX:ReservedCodeCacheSize=128m -XX:InitialCodeCacheSize=32m
     -XX:+UseCodeCacheFlushing -XX:+ExitOnOutOfMemoryError
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
