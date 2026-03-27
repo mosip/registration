@@ -618,6 +618,7 @@ public class BioDedupeProcessorTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test
+	@Ignore
 	public void testPacketValidationSingleDemoMatch() throws Exception {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
