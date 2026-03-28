@@ -17,11 +17,11 @@ public class BiometricsXSDValidator {
 
     @Value("${mosip.kernel.xsdstorage-uri}")
     private String configServerFileStorageURL;
-
+    
     @Value("${mosip.kernel.xsdfile}")
     private String schemaFileName;
-
-    private byte[] xsd;
+    
+    private byte[] xsd = null;
 
     @PostConstruct
     public void init() throws Exception {
@@ -36,4 +36,5 @@ public class BiometricsXSDValidator {
         CbeffValidator.createXMLBytes(bir, xsd);
     }
 
+	
 }

@@ -319,6 +319,4 @@ public class PacketValidatorImpl implements PacketValidator {
             return true;
         }
     }
-
 }
-

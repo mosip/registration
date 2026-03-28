@@ -124,7 +124,7 @@
 		<packet.bio.dedupe.service.impl.version>1.3.1-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.3.1-SNAPSHOT</registration.processor.message.sender.version>
 
-		<!-- Kernel (external - keep at 1.3.0) -->
+		<!-- Kernel -->
 		<kernel.core.version>1.3.0</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.3.0</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.3.0</kernel.templatemanager.velocity.version>

@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -69,8 +70,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, String> generateTags(String workflowInstanceId, String registrationId, String process,
-    Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration)
+    public Map<String, String> generateTags(String workflowInstanceId, String registrationId, String process, 
+    Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap, int iteration) 
                 throws BaseCheckedException {
         try {
             Map<String, String> operationsDataMap = generateTagsFromOpertationsData(metaInfoMap);
@@ -83,13 +84,17 @@ public class MetaInfoTagGenerator implements TagGenerator {
             allTags.putAll(capturedRegisteredDevicesMap);
             return allTags;
         } catch (JSONException e) {
-            throw new ParsingException(
+            throw new ParsingException( 
                 PlatformErrorMessages.RPR_PCM_META_INFO_JSON_PARSING_FAILED.getMessage(), e);
+        } catch (IOException e) {
+            throw new BaseCheckedException(
+                PlatformErrorMessages.RPR_PCM_DATA_OBJECT_MAPPING_FAILED.getCode(), 
+                PlatformErrorMessages.RPR_PCM_DATA_OBJECT_MAPPING_FAILED.getMessage(), e);
         }
     }
 
 	private Map<String, String> generateTagsFromOpertationsData(Map<String, String> metaInfoMap)
-			throws JSONException, BaseCheckedException {
+			throws JSONException, IOException, BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
         String operationsDataString = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
         if(operationsDataString == null)
@@ -115,7 +120,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
     }
 
 	private Map<String, String> generateTagsFromMetaData(Map<String, String> metaInfoMap)
-			throws JSONException, BaseCheckedException {
+			throws JSONException, IOException, BaseCheckedException {
         Map<String, String> tags = new HashMap<String, String>();
         String metaDataString = metaInfoMap.get(JsonConstant.METADATA);
         if(metaDataString == null)
@@ -145,7 +150,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
         String capturedRegisteredDevicesString = metaInfoMap.get(JsonConstant.CAPTUREDREGISTEREDDEVICES);
         if(capturedRegisteredDevicesString == null)
             throw new BaseCheckedException(
-                PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(),
+                PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(), 
                 PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getMessage());
         JSONArray capturedRegisteredDevicesJsonArray = new JSONArray(capturedRegisteredDevicesString);
         // Build a map from deviceType -> digitalId in one pass O(n), then look up each type O(m) — avoids O(m*n)

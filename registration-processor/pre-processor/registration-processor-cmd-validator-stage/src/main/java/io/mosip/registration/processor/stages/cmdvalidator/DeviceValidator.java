@@ -155,16 +155,16 @@ public class DeviceValidator {
 				String value = packetManagerService.getField(registrationId, field, process,
 						ProviderStageName.PACKET_VALIDATOR);
 				if (value != null && !value.isEmpty()) {
-				BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
-						field, process, ProviderStageName.CMD_VALIDATOR);
-				if (biometricRecord == null)
-					throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
-							StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
-									+ " --> Biometrics not found for field " + field);
-				validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
+					BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(registrationId,
+							field, process, ProviderStageName.CMD_VALIDATOR);
+					if (biometricRecord == null)
+						throw new BaseCheckedException(StatusUtil.DEVICE_VALIDATION_FAILED.getCode(),
+								StatusUtil.DEVICE_VALIDATION_FAILED.getMessage()
+										+ " --> Biometrics not found for field " + field);
+					validateDevicesInBiometricRecord(biometricRecord, regOsi, registrationId);
+				}
 			}
 		}
-	}
 	}
 
 	private String getOperationsDataValue(String id, String process, String fileName, Map<String, String> metaInfo)

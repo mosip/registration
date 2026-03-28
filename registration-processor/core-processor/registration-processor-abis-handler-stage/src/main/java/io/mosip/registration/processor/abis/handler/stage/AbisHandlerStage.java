@@ -636,7 +636,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		else {
 			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
-
 		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
 				metaInfoMap, policyTypeAndSubTypeMap);
 

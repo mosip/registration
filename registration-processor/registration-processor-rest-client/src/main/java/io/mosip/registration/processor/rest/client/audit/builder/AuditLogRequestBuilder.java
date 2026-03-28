@@ -36,8 +36,10 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 @Component
 public class AuditLogRequestBuilder {
 
+	/** The logger. */
 	private final Logger regProcLogger = RegProcessorLogger.getLogger(AuditLogRequestBuilder.class);
 
+	/** The registration processor rest service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 
@@ -369,13 +371,9 @@ public class AuditLogRequestBuilder {
 		}, getExecutor());
 	}
 
-	// =========================================================================
-	// CONVENIENCE OVERLOAD — original signature preserved
-	// =========================================================================
-
+	@SuppressWarnings("unchecked")
 	public ResponseWrapper<AuditResponseDto> createAuditRequestBuilder(String description, String eventId,
-																	   String eventName, String eventType, String moduleId, String moduleName, String registrationId) {
-		return createAuditRequestBuilder(description, eventId, eventName, eventType, moduleId, moduleName,
-				registrationId, AuditLogConstant.REGISTRATION_ID);
+			String eventName, String eventType, String moduleId, String moduleName, String registrationId) {
+		return createAuditRequestBuilder(description, eventId, eventName, eventType, moduleId, moduleName, registrationId, AuditLogConstant.REGISTRATION_ID);
 	}
 }

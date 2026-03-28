@@ -331,7 +331,7 @@ public class PacketClassificationProcessor {
 
 	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, int iteration)
 			throws IOException, BaseCheckedException, NumberFormatException, JSONException {
-		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId,
+		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
 			requiredIdObjectFieldNames);
 
 		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();

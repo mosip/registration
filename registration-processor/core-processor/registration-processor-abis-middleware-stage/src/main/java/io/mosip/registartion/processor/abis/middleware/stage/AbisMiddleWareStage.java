@@ -412,7 +412,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto internalRegStatusDto = null;
 		String registrationId = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"AbisMiddlewareStage::processAbisResponse()::entry");
+				"AbisMiddlewareStage::consumerListener()::entry");
 		String moduleId = "";
 		String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 		boolean isTransactionSuccessful = true;
@@ -531,7 +531,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 					sendToAbisHandler(eventBus, bioRefId, registrationId, internalRegStatusDto.getRegistrationType(),
 							internalRegStatusDto.getIteration(), internalRegStatusDto.getWorkflowInstanceId());
-				}
+
+					}
 				} else {
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 							"",

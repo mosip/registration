@@ -387,15 +387,15 @@ public class PacketValidateProcessor {
 			}
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
 			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+                    .trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
 			packetValidationDto.setTransactionSuccessful(false);
 
 			description.setMessage(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.REVERSE_DATA_SYNC_FAILED.getCode());
-		} catch (RegistrationProcessorCheckedException e) {
+        } catch (RegistrationProcessorCheckedException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
@@ -594,7 +594,7 @@ public class PacketValidateProcessor {
 			if (regEntity.getOptionalValues() != null) {
 				String[] allNotificationTypes = notificationTypes.split("\\|");
 				boolean isProcessingSuccess;
-				InputStream inputStream = new ByteArrayInputStream(regEntity.getOptionalValues());
+			    InputStream inputStream = new ByteArrayInputStream(regEntity.getOptionalValues());
 				InputStream decryptedInputStream = decryptor.decrypt(
 						registrationId,
 						utility.getRefId(registrationId, regEntity.getReferenceId()),

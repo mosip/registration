@@ -291,6 +291,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 				}
+				
 
 				packetManagerService.addOrUpdateTags(regId, getQualityTags(regId, biometricRecord.getSegments()));
 
@@ -513,12 +514,16 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		}
 
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
+
 			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
+
 				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
 						&& bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
-					tags.put(qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
+
+					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
 					break;
 				}
+
 			}
 		}
 

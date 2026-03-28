@@ -64,7 +64,7 @@ public class AuditUtility {
 	 *
 	 * @param registrationId
 	 *            the registrationId
-	 *
+	 * 
 	 *
 	 */
 	public void saveAuditDetails(String registrationId, String process) {
@@ -112,12 +112,12 @@ public class AuditUtility {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		request.setHeaders(headers);
-
+		
 
 		request.setRequestBody(auditRequest);
 		request.setResponseType(AuditRespDTO.class);
 
 		return request;
 	}
-
+	 
 }

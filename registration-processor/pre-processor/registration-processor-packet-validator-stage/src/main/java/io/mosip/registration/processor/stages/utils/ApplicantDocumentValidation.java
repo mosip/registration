@@ -137,6 +137,7 @@ public class ApplicantDocumentValidation {
             executor.close();
         }
 
+
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "ApplicantDocumentValidation::validateApplicantData::exit");
         return true;
