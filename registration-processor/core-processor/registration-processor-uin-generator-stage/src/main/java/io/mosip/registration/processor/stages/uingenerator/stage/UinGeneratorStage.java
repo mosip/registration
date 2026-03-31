@@ -250,8 +250,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
 				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						"defaultFields present in IdSchema: {}", String.join(", ", defaultFields));
+				regProcLogger.info(
+						LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId,
+						"defaultFields present in IdSchema: " + String.join(", ", defaultFields)
+				);
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
 						defaultFields, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
