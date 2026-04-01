@@ -121,21 +121,21 @@ resources:
     cpu: 1000m
     memory: 4000Mi
   requests:
-    cpu: 500m
-    memory: 2400Mi
+    cpu: 1000m
+    memory: 4000Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:+ZProactive -XX:ZCollectionInterval=5
-    -Xms2800m -Xmx2800m -XX:SoftMaxHeapSize=2400m
+    -Xms2400m -Xmx2400m -XX:SoftMaxHeapSize=2000m
     -Djdk.virtualThreadScheduler.parallelism=2
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=1
-    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=256m
-    -XX:MetaspaceSize=100m -XX:ReservedCodeCacheSize=160m
-    -XX:InitialCodeCacheSize=48m -XX:+UseCodeCacheFlushing
+    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=320m
+    -XX:MetaspaceSize=80m -XX:ReservedCodeCacheSize=120m
+    -XX:InitialCodeCacheSize=30m -XX:+UseCodeCacheFlushing
     -XX:+ExitOnOutOfMemoryError
     -Djava.security.egd=file:/dev/urandom
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
