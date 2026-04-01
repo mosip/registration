@@ -4,6 +4,7 @@
 set -e
 
 echo "Downloading pre-requisites install scripts"
+wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
 wget --no-check-certificate --no-cache --no-cookies $artifactory_url_env/artifactory/libs-release-local/deployment/docker/id-authentication/configure_biosdk.sh -O configure_biosdk.sh
 
 echo "Installating pre-requisites.."
