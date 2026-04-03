@@ -1165,9 +1165,15 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 															Map<String, Object> demographicIdentity, MessageDTO object, List<String> defaultFields) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
 
 		// Skip processing if 'packetCreatedOn' is not part of IdSchema
-		if(!defaultFields.contains("packetCreatedOn")) {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"packetCreatedOn field not present in IdSchema. Skipping update.");
+		if (!defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
+			Object schemaVersion = demographicIdentity.get(MappingJsonConstants.IDSCHEMA_VERSION);
+			regProcLogger.info(
+					LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					"packetCreatedOn not found in packet idSchemaVersion {}. Skipping addition to identity attributes.",
+					schemaVersion
+			);
 			return;
 		}
 
