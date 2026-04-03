@@ -251,9 +251,6 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
-//				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-//						"defaultFields present in IdSchema: {}", String.join(", ", defaultFields));
-
 				regProcLogger.info(
 						LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(),
@@ -1166,6 +1163,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
 															InternalRegistrationStatusDto registrationStatusDto,
 															Map<String, Object> demographicIdentity, MessageDTO object, List<String> defaultFields) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+
+		// Skip processing if 'packetCreatedOn' is not part of IdSchema
+		if(!defaultFields.contains("packetCreatedOn")) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"packetCreatedOn not present in IdSchema: {}", object.getReg_type());
+			return;
+		}
 
 		// update packetCreatedOn only for NEW and UPDATE registrations
 		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
