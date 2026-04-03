@@ -253,8 +253,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(),
 						registrationId,
-						"Packet idSchemaVersion: {}",
-						schemaVersion
+						"Packet idSchemaVersion: " + schemaVersion
 				);
 				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
