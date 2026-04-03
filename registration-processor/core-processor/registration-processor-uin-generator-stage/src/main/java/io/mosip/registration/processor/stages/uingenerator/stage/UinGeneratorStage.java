@@ -1167,7 +1167,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		// Skip processing if 'packetCreatedOn' is not part of IdSchema
 		if(!defaultFields.contains("packetCreatedOn")) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"packetCreatedOn not present in IdSchema: {}", object.getReg_type());
+					"packetCreatedOn field not present in IdSchema. Skipping update.");
 			return;
 		}
 
