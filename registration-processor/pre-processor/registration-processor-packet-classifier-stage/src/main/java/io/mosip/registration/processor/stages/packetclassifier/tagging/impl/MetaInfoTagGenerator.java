@@ -153,7 +153,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
         for (int i = 0; i < capturedRegisteredDevicesJsonArray.length(); i++) {
             JSONObject digitalId = capturedRegisteredDevicesJsonArray.getJSONObject(i)
                     .getJSONObject(JsonConstant.DIGITALID);
-            deviceTypeToDigitalId.putIfAbsent(digitalId.getString(JsonConstant.DIGITALIDTYPE), digitalId);
+            deviceTypeToDigitalId.put(digitalId.getString(JsonConstant.DIGITALIDTYPE), digitalId);
         }
         for(String deviceType : capturedRegisteredDeviceTypes) {
             JSONObject digitalId = deviceTypeToDigitalId.get(deviceType);
