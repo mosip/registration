@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -216,6 +217,7 @@ public class QualityClassifierStageTest {
 
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
+		ReflectionTestUtils.setField(qualityClassifierStage, "qualityExecutor", Executors.newFixedThreadPool(5));
 		ReflectionTestUtils.setField(qualityClassifierStage, "modalities", Arrays.asList("Iris", "Finger", "Face"));
 
 		registrationStatusDto = new InternalRegistrationStatusDto();

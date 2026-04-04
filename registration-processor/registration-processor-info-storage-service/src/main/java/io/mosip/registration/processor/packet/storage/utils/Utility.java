@@ -116,7 +116,6 @@ public class Utility {
 	private Integer expectedPacketProcessingDurationHours;
 
 
-	private static final String VALUE = "value";
 	public static final String EXCEPTION = "EXCEPTION";
 	public static final String TRUE = "TRUE";
 
@@ -141,9 +140,8 @@ public class Utility {
 				"Utility::getApplicantAge()::entry");
 
 		// Batch DOB and AGE into a single getFields() call instead of two sequential HTTP calls
-		JSONObject identityMappingJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String dobField = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.DOB), VALUE);
-		String ageField = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityMappingJson, MappingJsonConstants.AGE), VALUE);
+		String dobField = getMappedFieldName(MappingJsonConstants.DOB);
+		String ageField = getMappedFieldName(MappingJsonConstants.AGE);
 		List<String> fieldsToFetch = new ArrayList<>();
 		if (dobField != null) fieldsToFetch.add(dobField);
 		if (ageField != null) fieldsToFetch.add(ageField);
@@ -159,12 +157,8 @@ public class Utility {
 		} else {
 			String uin = getUIn(id, process, stageName);
 			JSONObject identityJSONOject = utilities.retrieveIdrepoJson(uin);
-			JSONObject regProcessorIdentityJson = utilities
-					.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String ageKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-			String dobKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
+			String ageKey = getMappedFieldName(MappingJsonConstants.AGE);
+			String dobKey = getMappedFieldName(MappingJsonConstants.DOB);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
@@ -674,10 +668,7 @@ public class Utility {
 		List<Documents> documents = utilities.retrieveIdrepoDocument(uin);
 
 		// Step 2: Load mapping JSON and extract the label for individual biometrics
-		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String individualBiometricsLabel = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-				MappingJsonConstants.VALUE);
+		String individualBiometricsLabel = getMappedFieldName(MappingJsonConstants.INDIVIDUAL_BIOMETRICS);
 
 		// Step 3: Find the biometric document
 		String biometricDoc = null;
