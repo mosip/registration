@@ -67,7 +67,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
  * The Class QualityCheckerStage.
- * 
+ *
  * @author M1048358 Alok Ranjan
  */
 @Component
@@ -137,7 +137,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	 * result in a random behaviour of tagging. In range, upper and lower values are
 	 * inclusive.
 	 */
-	
+
 	@Value("#{${mosip.regproc.quality.classifier.tagging.quality.ranges:{'level-1':'0-10','level-2':'10-20','level-3':'20-30','level-4':'30-40','level-5':'40-50','level-6':'50-60','level-7':'60-70','level-8':'70-80','level-9':'80-90','level-10':'90-101',}}}")
 	private Map<String, String> qualityClassificationRangeMap;
 
@@ -145,13 +145,13 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.quality.classifier.tagging.quality.prefix:Biometric_Quality-}")
 	private String qualityTagPrefix;
 
-    /** The tag value that will be used by default when the packet does not have value for the biometric tag field */
-    @Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
-    private String biometricNotAvailableTagValue;
+	/** The tag value that will be used by default when the packet does not have value for the biometric tag field */
+	@Value("${mosip.regproc.quality.classifier.tagging.quality.biometric-not-available-tag-value}")
+	private String biometricNotAvailableTagValue;
 
-    /** modality arrays that needs to be tagged */
-    @Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
-    private List<String> modalities;
+	/** modality arrays that needs to be tagged */
+	@Value("#{'${mosip.regproc.quality.classifier.tagging.quality.modalities}'.split(',')}")
+	private List<String> modalities;
 
 	private static String RANGE_DELIMITER = "-";
 
@@ -163,6 +163,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	/** Cache of bio provider instances per BiometricType — getBioProvider() called once per type, not per BIR */
 	private final Map<BiometricType, iBioProviderApi> bioProviderCache = new ConcurrentHashMap<>();
+
+	/** Shared virtual-thread executor — initialized once, reused across all records and both call sites */
+	private final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(QualityClassifierStage.class);
@@ -212,7 +215,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#process(
 	 * java.lang.Object)
@@ -232,8 +235,9 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 				object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
 
 		try {
-			// Fire getBiometricsByMappingJsonKey in parallel with getFieldByMappingJsonKey — both hit packet manager
-			// For the common case (biometrics present) this saves one sequential HTTP round-trip
+			// Fire getBiometricsByMappingJsonKey via a virtual thread in parallel with the blocking
+			// getFieldByMappingJsonKey call on the worker thread — saves one sequential HTTP round-trip.
+			// Uses the shared virtualThreadExecutor (not ForkJoinPool.commonPool) to avoid queuing under load.
 			CompletableFuture<BiometricRecord> biometricFuture = CompletableFuture.supplyAsync(() -> {
 				try {
 					return basedPacketManagerService.getBiometricsByMappingJsonKey(regId,
@@ -242,7 +246,7 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 				} catch (Exception e) {
 					throw new CompletionException(e);
 				}
-			});
+			}, virtualThreadExecutor);
 
 			String individualBiometricsObject = basedPacketManagerService.getFieldByMappingJsonKey(regId,
 					MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(),
@@ -291,7 +295,6 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 				}
-				
 
 				packetManagerService.addOrUpdateTags(regId, getQualityTags(regId, biometricRecord.getSegments()));
 
@@ -337,18 +340,18 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 
 		} catch (BiometricException e) {
-							registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-				registrationStatusDto.setStatusComment(trimExceptionMsg
-						.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
-				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
-				registrationStatusDto.setLatestTransactionStatusCode(
-						registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId,
-						PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-				object.setInternalError(Boolean.TRUE);
-				description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
-				description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(trimExceptionMsg
+					.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+			object.setInternalError(Boolean.TRUE);
+			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 		} catch (JsonProcessingException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
@@ -376,19 +379,19 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
 		} catch (PacketManagerNonRecoverableException e) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
-                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-            registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
-            registrationStatusDto.setStatusComment(trimExceptionMsg
-                    .trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + e.getMessage()));
-            registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
-            registrationStatusDto.setLatestTransactionStatusCode(
-                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
-            description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage());
-            description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
-            object.setInternalError(Boolean.TRUE);
-        } catch (PacketManagerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
+							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
+			registrationStatusDto.setStatusComment(trimExceptionMsg
+					.trimExceptionMessage(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+			object.setInternalError(Boolean.TRUE);
+		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
 							+ org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
@@ -460,49 +463,42 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 		ConcurrentHashMap<String, List<Float>> bioTypeScoreMap = new ConcurrentHashMap<>();
 
-		// Use virtual threads to run bio SDK quality checks in parallel.
-		// Virtual threads are ideal here because bio SDK calls are typically I/O-bound (HTTP to biometric service).
-		// Previously ForkJoinPool.submit().join() blocked the Vert.x worker thread; virtual threads avoid that.
-		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-		try {
-			List<CompletableFuture<Void>> futures = birs.stream()
-					.filter(bir -> {
-						if (bir.getOthers() != null) {
-							for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
-								if (EXCEPTION.equals(other.getKey()) && TRUE.equals(other.getValue()))
-									return false;
-							}
+		// Use the shared virtualThreadExecutor — avoids creating/destroying an executor per record.
+		List<CompletableFuture<Void>> futures = birs.stream()
+				.filter(bir -> {
+					if (bir.getOthers() != null) {
+						for (Map.Entry<String, String> other : bir.getOthers().entrySet()) {
+							if (EXCEPTION.equals(other.getKey()) && TRUE.equals(other.getValue()))
+								return false;
 						}
+					}
+					BiometricType biometricType = bir.getBdbInfo().getType().get(0);
+					return !biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name());
+				})
+				.map(bir -> CompletableFuture.runAsync(() -> {
+					try {
 						BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-						return !biometricType.name().equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name());
-					})
-					.map(bir -> CompletableFuture.runAsync(() -> {
-						try {
-							BiometricType biometricType = bir.getBdbInfo().getType().get(0);
-							BIR[] birArray = {bir};
-							float[] qualityScoreResponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
-							float score = qualityScoreResponse[0];
-							String bioType = biometricType.value();
-							bioTypeScoreMap.computeIfAbsent(bioType, k -> Collections.synchronizedList(new ArrayList<>())).add(score);
-						} catch (BiometricException e) {
-							throw new CompletionException(e);
-						}
-					}, executor))
-					.collect(Collectors.toList());
+						BIR[] birArray = {bir};
+						float[] qualityScoreResponse = getBioSdkInstance(biometricType).getSegmentQuality(birArray, null);
+						float score = qualityScoreResponse[0];
+						String bioType = biometricType.value();
+						bioTypeScoreMap.computeIfAbsent(bioType, k -> Collections.synchronizedList(new ArrayList<>())).add(score);
+					} catch (BiometricException e) {
+						throw new CompletionException(e);
+					}
+				}, virtualThreadExecutor))
+				.collect(Collectors.toList());
 
-			try {
-				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-			} catch (CompletionException e) {
-				Throwable cause = e.getCause();
-				while (cause instanceof CompletionException && cause.getCause() != null)
-					cause = cause.getCause();
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, "BiometricException occurred : " + ExceptionUtils.getStackTrace(cause));
-				if (cause instanceof BiometricException) throw (BiometricException) cause;
-				throw new RuntimeException("Exception occurred in getQualityTags()", cause);
-			}
-		} finally {
-			executor.close();
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause();
+			while (cause instanceof CompletionException && cause.getCause() != null)
+				cause = cause.getCause();
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "BiometricException occurred : " + ExceptionUtils.getStackTrace(cause));
+			if (cause instanceof BiometricException) throw (BiometricException) cause;
+			throw new RuntimeException("Exception occurred in getQualityTags()", cause);
 		}
 
 		// Compute minimum score per modality, then map to quality range tag
@@ -514,16 +510,12 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 		}
 
 		for (Entry<String, Float> bioTypeMinEntry : bioTypeMinScoreMap.entrySet()) {
-
 			for (Entry<String, int[]> qualityRangeEntry : parsedQualityRangeMap.entrySet()) {
-
 				if (bioTypeMinEntry.getValue() >= qualityRangeEntry.getValue()[0]
 						&& bioTypeMinEntry.getValue() < qualityRangeEntry.getValue()[1]) {
-
-					tags.put( qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
+					tags.put(qualityTagPrefix.concat(bioTypeMinEntry.getKey()), qualityRangeEntry.getKey());
 					break;
 				}
-
 			}
 		}
 

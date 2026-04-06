@@ -29,14 +29,9 @@ import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 
 @Component
 public class PriorityBasedPacketManagerService {
-
-    private static Logger regProcLogger = RegProcessorLogger.getLogger(PriorityBasedPacketManagerService.class);
 
     @Autowired
     private Utilities utilities;

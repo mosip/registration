@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PostConstruct;
 
@@ -61,10 +60,6 @@ public class PacketManagerService {
 
     @Autowired
     private RegistrationProcessorRestClientService<Object> restApi;
-
-    // Cache for Info API responses (per packet ID) - improves performance for repeated info() calls
-    private final Map<String, InfoResponseDto> infoCache = new ConcurrentHashMap<>();
-    private static final long INFO_CACHE_TTL_MS = 5000; // 5 second TTL
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -274,7 +269,7 @@ public class PacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-   /* public InfoResponseDto info(String id)
+    public InfoResponseDto info(String id)
             throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
@@ -295,53 +290,7 @@ public class PacketManagerService {
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
-        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
-
-        return infoResponseDto;
-    }*/
-
-    /**
-     * OPTIMIZED: info() with simple caching to reduce repeated API calls
-     */
-    public InfoResponseDto info(String id)
-            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-        // Quick cache check for repeated calls within 5 seconds
-        if (infoCache.containsKey(id)) {
-            return infoCache.get(id);
-        }
-
-        InfoRequestDto infoRequestDto = new InfoRequestDto(id);
-
-        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
-        request.setId(ID);
-        request.setVersion(VERSION);
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(infoRequestDto);
-        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
-
-        if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
-            ErrorDTO errorDTO = response.getErrors().iterator().next();
-            if (OBJECT_DOESNOT_EXISTS_ERROR_CODE.equalsIgnoreCase(errorDTO.getErrorCode()))
-                throw new ObjectDoesnotExistsException(errorDTO.getErrorCode(), errorDTO.getMessage());
-            else
-                throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
-        }
-
-        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
-
-        // Cache the result
-        infoCache.put(id, infoResponseDto);
-
-        // Clear cache after TTL (simple approach)
-        new java.util.Timer().schedule(new java.util.TimerTask() {
-            @Override
-            public void run() {
-                infoCache.remove(id);
-            }
-        }, INFO_CACHE_TTL_MS);
-
-        return infoResponseDto;
+        return objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
     }
 
     public void addOrUpdateTags(String id, Map<String, String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {

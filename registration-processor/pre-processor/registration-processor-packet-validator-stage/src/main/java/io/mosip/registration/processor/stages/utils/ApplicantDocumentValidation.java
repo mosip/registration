@@ -75,9 +75,11 @@ public class ApplicantDocumentValidation {
         boolean needIntroducerBio = fieldValues.get(introducerBiometricLabel) != null;
 
         // Fire all document + biometrics fetches in parallel using virtual threads
-        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-        try {
-            Map<String, CompletableFuture<Document>> docFutures = new LinkedHashMap<>();
+        Map<String, CompletableFuture<Document>> docFutures = new LinkedHashMap<>();
+        CompletableFuture<BiometricRecord> individualBioFuture;
+        CompletableFuture<BiometricRecord> introducerBioFuture;
+
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (String docValue : docsToFetch) {
                 docFutures.put(docValue, CompletableFuture.supplyAsync(() -> {
                     try {
@@ -86,55 +88,55 @@ public class ApplicantDocumentValidation {
                 }, executor));
             }
 
-            CompletableFuture<BiometricRecord> individualBioFuture = needIndividualBio
+            individualBioFuture = needIndividualBio
                     ? CompletableFuture.supplyAsync(() -> {
                         try {
                             return packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.PACKET_VALIDATOR);
                         } catch (Exception e) { throw new CompletionException(e); }
                     }, executor) : null;
 
-            CompletableFuture<BiometricRecord> introducerBioFuture = needIntroducerBio
+            introducerBioFuture = needIntroducerBio
                     ? CompletableFuture.supplyAsync(() -> {
                         try {
                             return packetManagerService.getBiometricsByMappingJsonKey(registrationId, MappingJsonConstants.INTRODUCER_BIO, process, ProviderStageName.PACKET_VALIDATOR);
                         } catch (Exception e) { throw new CompletionException(e); }
                     }, executor) : null;
 
-            // Validate documents
-            for (Map.Entry<String, CompletableFuture<Document>> entry : docFutures.entrySet()) {
-                try {
-                    if (entry.getValue().join() == null) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + entry.getKey());
-                        return false;
-                    }
-                } catch (CompletionException e) { rethrowChecked(e); }
+            // Wait for ALL tasks before closing the executor — ensures executor.close() is always instant
+            List<CompletableFuture<?>> allFutures = new ArrayList<>(docFutures.values());
+            if (individualBioFuture != null) allFutures.add(individualBioFuture);
+            if (introducerBioFuture != null) allFutures.add(introducerBioFuture);
+            try {
+                CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                rethrowChecked(e);
             }
+        } // executor.close() — all tasks already done, returns immediately
 
-            // Validate INDIVIDUAL_BIOMETRICS presence
-            if (individualBioFuture != null) {
-                try {
-                    BiometricRecord biometricRecord = individualBioFuture.join();
-                    if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
-                        regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + applicantBiometricLabel);
-                        return false;
-                    }
-                    if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, biometricRecord);
-                } catch (CompletionException e) { rethrowChecked(e); }
+        // Validate results — all futures already completed, .join() is instant
+        for (Map.Entry<String, CompletableFuture<Document>> entry : docFutures.entrySet()) {
+            if (entry.getValue().join() == null) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + entry.getKey());
+                return false;
             }
+        }
 
-            // Validate INTRODUCER_BIO presence
-            if (introducerBioFuture != null) {
-                try {
-                    BiometricRecord biometricRecord = introducerBioFuture.join();
-                    if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
-                        return false;
-                    if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INTRODUCER_BIO, biometricRecord);
-                } catch (CompletionException e) { rethrowChecked(e); }
+        if (individualBioFuture != null) {
+            BiometricRecord biometricRecord = individualBioFuture.join();
+            if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "Missing document : " + applicantBiometricLabel);
+                return false;
             }
-        } finally {
-            executor.close();
+            if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, biometricRecord);
+        }
+
+        if (introducerBioFuture != null) {
+            BiometricRecord biometricRecord = introducerBioFuture.join();
+            if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0)
+                return false;
+            if (fetchedBiometrics != null) fetchedBiometrics.put(MappingJsonConstants.INTRODUCER_BIO, biometricRecord);
         }
 
 

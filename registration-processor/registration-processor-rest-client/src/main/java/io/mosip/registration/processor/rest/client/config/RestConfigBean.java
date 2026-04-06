@@ -36,8 +36,4 @@ public class RestConfigBean {
 	}
 
 
-	@Bean(name = "auditExecutor")
-	public Executor auditExecutor() {
-		return Executors.newVirtualThreadPerTaskExecutor();
-	}
 }
