@@ -95,10 +95,6 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Value("${mosip.kernel.applicant.type.age.limit}")
 	private String ageLimit;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/**
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
@@ -117,7 +113,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
 
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
 				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT, messageExpiryTimeLimit);
 	}

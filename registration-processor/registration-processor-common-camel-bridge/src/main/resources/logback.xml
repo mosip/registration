@@ -4,8 +4,15 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- Queue up to 1000 events before discarding; never block the calling thread -->
+        <queueSize>2000</queueSize>
+        <neverBlock>false</neverBlock>
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="ASYNC_STDOUT" />
     </root>
 
 </configuration>

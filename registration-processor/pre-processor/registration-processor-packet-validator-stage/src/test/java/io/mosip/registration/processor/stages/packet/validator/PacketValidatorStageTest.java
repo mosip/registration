@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -112,7 +113,8 @@ public class PacketValidatorStageTest {
 	@Test
 	public void testDeployVerticle() {
 
-		ReflectionTestUtils.setField(packetValidatorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(packetValidatorStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(packetValidatorStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(packetValidatorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(packetValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		packetValidatorStage.deployVerticle();

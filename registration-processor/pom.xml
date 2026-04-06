@@ -66,8 +66,8 @@
 		<h2.version>1.4.195</h2.version>
 		<postgresql.version>42.2.2</postgresql.version>
 
-		<!-- Lombok -->
-		<lombok.version>1.18.8</lombok.version>
+		<!-- Lombok (1.18.38+ fixes TypeTag::UNKNOWN with Java 21+; 1.18.30+ for Java 21) -->
+		<lombok.version>1.18.38</lombok.version>
 
 		<!-- For Cache -->
 		<ignite.version>2.3.0</ignite.version>
@@ -446,9 +446,16 @@
 					<configuration>
 						<source>${maven.compiler.source}</source>
 						<target>${maven.compiler.target}</target>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
 						<compilerArgs>
-                        <arg>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-        </compilerArgs>
+							<arg>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+						</compilerArgs>
 					</configuration>
 				</plugin>
 				<plugin>

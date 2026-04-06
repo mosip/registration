@@ -413,7 +413,7 @@ public class SecurezoneNotificationStageTest {
         entity1.setWorkflowInstanceId("78fc3d34-03f5-11ec-9a03-0242ac130003");
 
         ctx = setContext();
-        ReflectionTestUtils.setField(notificationStage, "workerPoolSize", 10);
+        ReflectionTestUtils.setField(notificationStage, "defaultWorkerPoolSize", 10);
         ReflectionTestUtils.setField(notificationStage, "clusterManagerUrl", "/dummyPath");
         ReflectionTestUtils.setField(notificationStage, "messageExpiryTimeLimit", Long.valueOf(0));
         ReflectionTestUtils.setField(notificationStage, "mainProcesses", Arrays.asList("NEW","UPDATE","LOST"));

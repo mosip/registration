@@ -57,10 +57,6 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
     @Autowired
     WorkflowInstanceApi workflowInstanceApi;
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	@Value("${mosip.regproc.workflow-manager.workflowaction.eventbus.port}")
 	private String eventBusPort;
 
@@ -110,7 +106,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 
 
 	}

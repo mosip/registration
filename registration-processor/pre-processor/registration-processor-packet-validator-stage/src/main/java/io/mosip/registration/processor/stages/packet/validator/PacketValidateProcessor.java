@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils2;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -87,7 +85,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
-@Transactional
 public class PacketValidateProcessor {
 
 	/**
@@ -195,11 +192,16 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
-			setPacketCreatedDateTime(registrationStatusDto);
-			boolean isValidSupervisorStatus = isValidSupervisorStatus(object);
+			// Fetch metaInfo once and reuse for setPacketCreatedDateTime, validate (biometricsXSDValidation), and reverseDataSync
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			setPacketCreatedDateTime(registrationStatusDto, metaInfo);
+			// Fetch entity once for supervisor status check and sendNotification (eliminates duplicate DB call)
+			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
+			boolean isValidSupervisorStatus = regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED);
 			if (isValidSupervisorStatus) {
 				Boolean isValid = compositePacketValidator.validate(object.getRid(),
-						registrationStatusDto.getRegistrationType(), packetValidationDto);
+						registrationStatusDto.getRegistrationType(), packetValidationDto, metaInfo);
 
 				if (isValid) {
 					// save audit details
@@ -223,9 +225,9 @@ public class PacketValidateProcessor {
 							.setStatusComment(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getMessage());
 					registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getCode());
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-					// ReverseDataSync
+					// ReverseDataSync (reuse metaInfo to avoid second getMetaInfo call)
 					reverseDataSync(registrationId, registrationStatusDto.getRegistrationType(), description,
-							packetValidationDto);
+							packetValidationDto, metaInfo);
 
 					packetValidationDto.setTransactionSuccessful(true);
 					description.setMessage(
@@ -279,8 +281,11 @@ public class PacketValidateProcessor {
 			}
 			object.setInternalError(Boolean.FALSE);
 			registrationStatusDto.setUpdatedBy(USER);
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(object.getWorkflowInstanceId());
-			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful(),isValidSupervisorStatus);
+			// Send notification in virtual thread -- result already determined, notification does not affect it
+			final boolean transactionSuccessful = packetValidationDto.isTransactionSuccessful();
+			final boolean finalIsValidSupervisorStatus = isValidSupervisorStatus;
+			final InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
+			Thread.ofVirtual().start(() -> sendNotification(regEntity, finalRegistrationStatusDto, transactionSuccessful, finalIsValidSupervisorStatus));
 		} catch (PacketManagerNonRecoverableException exc) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
@@ -464,10 +469,12 @@ public class PacketValidateProcessor {
 	}
 
 
-	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	private void setPacketCreatedDateTime(InternalRegistrationStatusDto registrationStatusDto, Map<String, String> metaInfo) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 		try {
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(
-					registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			if (metaInfo == null) {
+				metaInfo = packetManagerService.getMetaInfo(
+						registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(), ProviderStageName.PACKET_VALIDATOR);
+			}
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateformat);
 			String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
 			if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
@@ -490,24 +497,15 @@ public class PacketValidateProcessor {
 		}
 	}
 
-		private boolean isValidSupervisorStatus(MessageDTO messageDTO) {
-			SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-			if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
-				return true;
-
-			} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
-				return false;
-			}
-			return false;
-		}
 
 	@SuppressWarnings("unchecked")
 	private void reverseDataSync(String id, String process, LogDescription description,
-			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
+								 PacketValidationDto packetValidationDto, Map<String, String> metaInfoMap) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+		if (metaInfoMap == null) {
+			metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+		}
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);
@@ -516,9 +514,8 @@ public class PacketValidateProcessor {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
-						preRegId = fieldValue.getValue();
+					if (jsonObject.optString("label").equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
+						preRegId = jsonObject.optString("value");
 						break;
 					}
 
