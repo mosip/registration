@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -139,7 +140,8 @@ public class FinalizationStageTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(finalizationStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(finalizationStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(finalizationStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(finalizationStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(finalizationStage, "clusterManagerUrl", "/dummyPath");
 

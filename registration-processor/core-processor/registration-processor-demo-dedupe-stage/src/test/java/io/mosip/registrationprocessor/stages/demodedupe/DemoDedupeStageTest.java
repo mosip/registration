@@ -107,7 +107,7 @@ public class DemoDedupeStageTest {
 	 */
 	@Test
 	public void testDeployVerticle() {
-		ReflectionTestUtils.setField(demoDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(demoDedupeStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		demoDedupeStage.deployVerticle();
@@ -124,7 +124,7 @@ public class DemoDedupeStageTest {
 	
 	@Test
 	public void testStart() {
-		ReflectionTestUtils.setField(demoDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(demoDedupeStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		

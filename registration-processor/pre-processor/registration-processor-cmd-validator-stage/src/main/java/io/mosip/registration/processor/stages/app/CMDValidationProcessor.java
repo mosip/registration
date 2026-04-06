@@ -160,7 +160,7 @@ public class CMDValidationProcessor {
 			}
 
 			if (deviceValidationProcessList !=null && !deviceValidationProcessList.isEmpty() && deviceValidationProcessList.contains(registrationStatusDto.getRegistrationType())) {
-				deviceValidator.validate(regOsi,registrationStatusDto.getRegistrationType(), registrationStatusDto.getRegistrationId());
+				deviceValidator.validate(regOsi, registrationStatusDto.getRegistrationType(), registrationStatusDto.getRegistrationId(), metaInfo);
 			}
 
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());

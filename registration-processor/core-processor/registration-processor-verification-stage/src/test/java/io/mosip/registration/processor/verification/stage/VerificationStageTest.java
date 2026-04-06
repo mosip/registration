@@ -116,7 +116,7 @@ public class VerificationStageTest {
 		ReflectionTestUtils.setField(verificationstage, "mosipConnectionFactory", mosipConnectionFactory);
 		ReflectionTestUtils.setField(verificationstage, "mosipQueueManager", mosipQueueManager);
 		//ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
-		ReflectionTestUtils.setField(verificationstage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(verificationstage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(verificationstage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(verificationstage, "clusterManagerUrl", "/dummyPath");
 		List<String> trustedPackageList = new ArrayList();

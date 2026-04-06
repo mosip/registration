@@ -14,6 +14,8 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -76,6 +78,8 @@ public class ReprocessingSchedulerTest {
 		fooLogger = (Logger) LoggerFactory.getLogger(ReprocessorVerticle.class);
 		listAppender = new ListAppender<>();
 		Mockito.when(vertx.eventBus()).thenReturn(Vertx.vertx().eventBus());
+		ReflectionTestUtils.setField(reprocessorVerticle, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(reprocessorVerticle, "clusterManagerUrl", "/dummyPath");
 	}
 
 	/**

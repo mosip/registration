@@ -144,10 +144,6 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.verification.queue.url}")
 	private String url;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.verification.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -158,7 +154,7 @@ public class VerificationStage extends MosipVerticleAPIManager {
 	 * Deploy stage.
 	 */
 	public void deployVerticle() {
-		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consume(mosipEventBus, MessageBusAddress.VERIFICATION_BUS_IN, messageExpiryTimeLimit);
 		queue = getQueueConnection();
 		if (queue != null) {

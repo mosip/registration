@@ -266,7 +266,7 @@ public class UinGeneratorStageTest {
 
 	@Before
 	public void setup() throws Exception {
-		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(uinGeneratorStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(uinGeneratorStage, "updateInfo", "phone");
@@ -2878,7 +2878,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 
 	}
@@ -2893,17 +2893,13 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("NEW");
 
-		Map<String, String> metaInfo = new HashMap<>();
-		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-3-08T12:00:00Z");
-
-		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, "2019-01-17T06:29:01.940Z");
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2918,17 +2914,13 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("UPDATE");
 
-		Map<String, String> metaInfo = new HashMap<>();
-		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
-
-		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, "2019-01-17T06:29:01.940Z");
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2950,7 +2942,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2972,7 +2964,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}

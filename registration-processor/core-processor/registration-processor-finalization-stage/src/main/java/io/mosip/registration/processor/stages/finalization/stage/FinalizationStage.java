@@ -73,10 +73,6 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	@Value("${mosip.regproc.biometric.extraction.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 	
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-	
 	/** The registration status service. */
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -107,7 +103,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	 */
 	public void deployVerticle() {
 		
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.FINALIZATION_BUS_IN,
 				MessageBusAddress.FINALIZATION_BUS_OUT, messageExpiryTimeLimit);
 	}

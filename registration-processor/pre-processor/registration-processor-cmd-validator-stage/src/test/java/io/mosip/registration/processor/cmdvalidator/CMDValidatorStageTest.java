@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.core.abstractverticle.EventDTO;
@@ -109,8 +110,9 @@ public class CMDValidatorStageTest {
 
 	@Test
 	public void testDeployVerticle() {
-		
-		ReflectionTestUtils.setField(cmdValidatorStage, "workerPoolSize", 10);
+
+		ReflectionTestUtils.setField(cmdValidatorStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(cmdValidatorStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(cmdValidatorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(cmdValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		cmdValidatorStage.deployVerticle();

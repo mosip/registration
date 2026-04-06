@@ -46,10 +46,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.packet.uploader.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -76,7 +72,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl ,workerPoolSize);
+		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_UPLOADER_IN,
 				MessageBusAddress.PACKET_UPLOADER_OUT, messageExpiryTimeLimit);
 	}

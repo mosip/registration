@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 
@@ -135,10 +136,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 	
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.abis.middleware.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -163,12 +160,15 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static final String ABIS_QUEUE_NOT_FOUND = "ABIS_QUEUE_NOT_FOUND";
 	private static final String TEXT_MESSAGE = "text";
 
+	/** Lock for thread-safe JMS send (shared session is not thread-safe). */
+	private final Object sendLock = new Object();
+
 	/**
 	 * Get all the abis queue details,register listener to outbound queue's
 	 */
 	public void deployVerticle() {
 		try {
-			mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+			mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 			this.consume(mosipEventBus, MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN, messageExpiryTimeLimit);
 			abisQueueDetails = utility.getAbisQueueDetails();
 			for (AbisQueueDetails abisQueue : abisQueueDetails) {
@@ -178,15 +178,32 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				QueueListener listener = new QueueListener() {
 					@Override
 					public void setListener(Message message) {
+						String payload;
 						try {
-							consumerListener(message, abisInBoundaddress, queue, mosipEventBus,
-								inboundMessageTTL);
-						} catch (Exception e) {
-
+							payload = extractPayloadFromMessage(message);
+						} catch (JMSException e) {
 							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-									LoggerFileConstant.REGISTRATIONID.toString(), "", ExceptionUtils.getStackTrace(e));
-
+									LoggerFileConstant.REGISTRATIONID.toString(), "",
+									"AbisMiddlewareStage::setListener()::Failed to extract payload from message",
+									ExceptionUtils.getStackTrace(e));
+							return;
 						}
+						vertx.executeBlocking(promise -> {
+							try {
+								processAbisResponse(payload, abisInBoundaddress, queue, mosipEventBus, inboundMessageTTL);
+								promise.complete();
+							} catch (Exception e) {
+								regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+										LoggerFileConstant.REGISTRATIONID.toString(), "", ExceptionUtils.getStackTrace(e));
+								promise.fail(e);
+							}
+						}, false, ar -> {
+							if (ar.failed()) {
+								regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+										LoggerFileConstant.REGISTRATIONID.toString(), "",
+										"AbisMiddlewareStage::setListener()::Worker completed with failure");
+							}
+						});
 					}
 				};
 				mosipQueueManager.consume(queue, abisQueue.getOutboundQueueName(), listener);
@@ -327,10 +344,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				validateNullCheck(abisQueue, ABIS_QUEUE_NOT_FOUND);
 				byte[] reqBytearray = abisIdentifyRequest.getReqText();
 
+				// Mark SENT in DB before sending to queue to prevent race condition where
+				// ABIS responds before the status update, causing the response to be dropped.
+				updateAbisRequest(true, abisIdentifyRequest, internalRegDto);
 				boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 						abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-
-				updateAbisRequest(isAddedToQueue, abisIdentifyRequest, internalRegDto);
+				if (!isAddedToQueue) {
+					updateAbisRequest(false, abisIdentifyRequest, internalRegDto);
+				}
 			}
 
 		}
@@ -343,10 +364,13 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 			byte[] reqBytearray = abisInprogressRequest.getReqText();
 
+			// Mark SENT in DB before sending to queue to prevent race condition.
+			updateAbisRequest(true, abisInprogressRequest, internalRegDto);
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-
-			updateAbisRequest(isAddedToQueue, abisInprogressRequest, internalRegDto);
+			if (!isAddedToQueue) {
+				updateAbisRequest(false, abisInprogressRequest, internalRegDto);
+			}
 		}
 		// send all identify requests for already processed insert requests
 		for (AbisRequestDto abisAlreadyProcessedInsertRequest : abisAlreadyprocessedInsertRequestList) {
@@ -358,14 +382,30 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					.filter(dto -> dto.getAbisAppCode().equals(abisAlreadyProcessedInsertRequest.getAbisAppCode()))
 					.collect(Collectors.toList());
 			byte[] reqBytearray = identifyRequest.get(0).getReqText();
+			// Mark SENT in DB before sending to queue to prevent race condition.
+			updateAbisRequest(true, identifyRequest.get(0), internalRegDto);
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-			updateAbisRequest(isAddedToQueue, identifyRequest.get(0), internalRegDto);
-
+			if (!isAddedToQueue) {
+				updateAbisRequest(false, identifyRequest.get(0), internalRegDto);
+			}
 		}
 	}
 
-	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue,
+	/**
+	 * Extracts payload from JMS message. Must be called on the JMS delivery thread.
+	 */
+	private String extractPayloadFromMessage(Message message) throws JMSException {
+		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
+			return ((TextMessage) message).getText();
+		}
+		return new String(((ActiveMQBytesMessage) message).getContent().data);
+	}
+
+	/**
+	 * Processes ABIS response on worker thread. Offloaded from JMS delivery thread for faster message consumption.
+	 */
+	public void processAbisResponse(String response, String abisInBoundAddress, MosipQueue queue,
 			MosipEventBus eventBus, int inboundMessageTTL)
 			throws RegistrationProcessorCheckedException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
@@ -376,14 +416,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		String moduleId = "";
 		String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 		boolean isTransactionSuccessful = true;
-		String response = null;
 		LogDescription description = new LogDescription();
 		try {
-			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
-				TextMessage textMessage = (TextMessage) message;
-				response =textMessage.getText();
-			} else
-				response = new String(((ActiveMQBytesMessage) message).getContent().data);
 			JSONObject inserOrIdentifyResponse = JsonUtil.objectMapperReadValue(response, JSONObject.class);
 			String requestId = JsonUtil.getJSONValue(inserOrIdentifyResponse, REQUESTID);
 			String batchId = packetInfoManager.getBatchIdByRequestId(requestId);
@@ -428,9 +462,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 							.collect(Collectors.toList());
 					validateNullCheck(abisIdentifyRequest, "IDENTIFY_REQUESTS_NOT_FOUND");
 					AbisRequestDto abisIdentifyRequestDto = abisIdentifyRequest.get(0);
+					// Mark SENT in DB before sending to queue to prevent race condition where
+					// ABIS responds before the status update, causing the identify response to be dropped.
+					updateAbisRequest(true, abisIdentifyRequestDto, internalRegStatusDto);
 					boolean isAddedToQueue = sendToQueue(queue, new String(abisIdentifyRequestDto.getReqText()),
 							abisInBoundAddress, inboundMessageTTL);
-					updateAbisRequest(isAddedToQueue, abisIdentifyRequestDto, internalRegStatusDto);
+					if (!isAddedToQueue) {
+						updateAbisRequest(false, abisIdentifyRequestDto, internalRegStatusDto);
+					}
 				} else {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
@@ -546,7 +585,23 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"AbisMiddlewareStage::consumerListener()::Exit()");
+				"AbisMiddlewareStage::processAbisResponse()::Exit()");
+	}
+
+	/**
+	 * Entry point for ABIS queue consumer. Extracts payload and delegates to processAbisResponse.
+	 * Used when processing synchronously (e.g. unit tests). Production flow uses offloading via executeBlocking.
+	 */
+	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue,
+			MosipEventBus eventBus, int inboundMessageTTL) throws RegistrationProcessorCheckedException {
+		try {
+			String payload = extractPayloadFromMessage(message);
+			processAbisResponse(payload, abisInBoundAddress, queue, eventBus, inboundMessageTTL);
+		} catch (JMSException e) {
+			throw new RegistrationProcessorCheckedException(
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+		}
 	}
 
 	private void validateNullCheck(Object obj, String errorMessage) {
@@ -570,12 +625,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				"AbisMiddlewareStage::sendToQueue()::Entry");
 		boolean isAddedToQueue;
 		try {
-			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
-				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString,
-					abisQueueAddress, messageTTL);
-			else
-				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(),
-					abisQueueAddress, messageTTL);
+			synchronized (sendLock) {
+				if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
+					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString,
+						abisQueueAddress, messageTTL);
+				else
+					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(),
+						abisQueueAddress, messageTTL);
+			}
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage:: sent to abis queue ::" + abisReqTextString);
@@ -643,6 +700,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		abisReqEntity.setBioRefId(abisCommonRequestDto.getBioRefId());
 		abisReqEntity.setRefRegtrnId(abisCommonRequestDto.getRefRegtrnId());
 		abisReqEntity.setReqText(abisCommonRequestDto.getReqText());
+		abisReqEntity.setUpdBy(SYSTEM);
+		abisReqEntity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 		abisRequestRepositary.save(abisReqEntity);
 	}
 
