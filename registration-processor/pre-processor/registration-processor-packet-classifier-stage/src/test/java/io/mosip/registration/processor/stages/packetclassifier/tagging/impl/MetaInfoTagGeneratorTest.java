@@ -111,10 +111,15 @@ public class MetaInfoTagGeneratorTest {
 	
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForMetaDataIOException() throws BaseCheckedException {
+		Whitebox.setInternalState(metaInfoTagGenerator, "operationsDataTagLabels", operationsDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "metaDataTagLabels", metaDataTagLabels);
+		Whitebox.setInternalState(metaInfoTagGenerator, "capturedRegisteredDeviceTypes",
+				capturedRegisteredDeviceTypes);
 
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.OPERATIONSDATA,
 				"[ {\n  \"label\" : \"officerId\",\n  \"values\" : \"110119\"\n}]");
+		// No METADATA entry — generateTagsFromMetaData throws BaseCheckedException
 		metaInfoTagGenerator.generateTags("12345", "1234", "NEW", null, metaInfoMap, 0);
 	}
 

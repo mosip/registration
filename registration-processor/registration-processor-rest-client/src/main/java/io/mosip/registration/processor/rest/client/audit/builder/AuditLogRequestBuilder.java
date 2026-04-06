@@ -23,7 +23,7 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 
 /**
  * The Class AuditRequestBuilder.
- *
+ * 
  * @author Rishabh Keshari
  */
 @Component
