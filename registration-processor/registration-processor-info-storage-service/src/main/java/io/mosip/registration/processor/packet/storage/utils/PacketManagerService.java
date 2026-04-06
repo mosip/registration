@@ -70,8 +70,8 @@ public class PacketManagerService {
         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public String getField(String id, String field, String source, String process)
-            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public String getField(String id, String field, String source, String process)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDto fieldDto = new FieldDto(id, field, source, process, false);
 
         RequestWrapper<FieldDto> request = new RequestWrapper<>();
@@ -269,8 +269,8 @@ public class PacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-    public InfoResponseDto info(String id)
-            throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+	public InfoResponseDto info(String id)
+			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         InfoRequestDto infoRequestDto = new InfoRequestDto(id);
 
         RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
@@ -290,7 +290,9 @@ public class PacketManagerService {
             throw new PacketManagerException(errorDTO.getErrorCode(), errorDTO.getMessage());
         }
 
-        return objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+
+        return infoResponseDto;
     }
 
     public void addOrUpdateTags(String id, Map<String, String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {

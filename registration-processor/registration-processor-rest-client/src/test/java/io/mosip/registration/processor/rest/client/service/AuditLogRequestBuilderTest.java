@@ -1,9 +1,8 @@
 package io.mosip.registration.processor.rest.client.service;
 
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
@@ -56,59 +55,45 @@ public class AuditLogRequestBuilderTest {
 		Mockito.when(env.getProperty(AUDIT_SERVICE_ID)).thenReturn("mosip.applicanttype.getApplicantType");
 		Mockito.when(env.getProperty(REG_PROC_APPLICATION_VERSION)).thenReturn("1.0");
 		Mockito.when(env.getProperty(DATETIME_PATTERN)).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		auditLogRequestBuilder.init();
+
 	}
 
 	@Test
 	public void createAuditRequestBuilderTest() throws ApisResourceAccessException {
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
-		dto = new AuditResponseDto();
+		dto=new AuditResponseDto();
 		dto.setStatus(true);
 		responseWrapper.setResponse(dto);
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
-		auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD", "123456789", ApiName.AUDIT);
-		verify(registrationProcessorRestService, timeout(2000)).postApi(any(), any(), any(), any(), any());
+		assertTrue(auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD", "123456789", ApiName.AUDIT).getResponse().isStatus());
+
 	}
 
 	@Test
 	public void createAuditRequestBuilderForModuleTest() throws ApisResourceAccessException {
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
-		dto = new AuditResponseDto();
+		dto=new AuditResponseDto();
 		dto.setStatus(true);
 		responseWrapper.setResponse(dto);
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
-		auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD", "moduleID", "moduleName", "123456789");
-		verify(registrationProcessorRestService, timeout(2000)).postApi(any(), any(), any(), any(), any());
+		assertTrue(auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD","moduleID","moduleName", "123456789").getResponse().isStatus());
+
 	}
 
 	@Test
-	public void createAuditRequestBuilderFailureTest() throws ApisResourceAccessException, InterruptedException {
-		fooLogger = (Logger) LoggerFactory.getLogger(AuditLogRequestBuilder.class);
-		listAppender = new ListAppender<>();
-		listAppender.start();
-		fooLogger.addAppender(listAppender);
+	public void createAuditRequestBuilderFailureTest() throws ApisResourceAccessException {
+		 fooLogger = (Logger) LoggerFactory.getLogger(AuditLogRequestBuilder.class);
+	     listAppender = new ListAppender<>();
+	     listAppender.start();
+	     fooLogger.addAppender(listAppender);
 		ApisResourceAccessException exp = new ApisResourceAccessException("errorMessage");
 		Mockito.when(registrationProcessorRestService.postApi(any(), any(), any(), any(), any())).thenThrow(exp);
 
 		auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD", "123456789", ApiName.AUDIT);
-		auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD", "moduleID", "moduleName", "123456789");
-
-		// Wait for both async audit calls to complete before asserting logs
-		verify(registrationProcessorRestService, timeout(2000).times(2)).postApi(any(), any(), any(), any(), any());
-
-		// Poll until the error log appears (catch block runs just after postApi throws)
-		long deadline = System.currentTimeMillis() + 3000;
-		boolean found = false;
-		while (System.currentTimeMillis() < deadline) {
-			found = listAppender.list.stream()
-				.anyMatch(e -> e.getLevel() == Level.ERROR
-						&& "RPR-RCT-001 --> errorMessage".equals(e.getFormattedMessage()));
-			if (found) break;
-			Thread.sleep(50);
-		}
+		auditLogRequestBuilder.createAuditRequestBuilder("abcde", "200", "ADD", "ADD","moduleID","moduleName", "123456789");
 
 		Assertions.assertThat(listAppender.list)
-			.extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
-			.contains(Tuple.tuple(Level.ERROR, "RPR-RCT-001 --> errorMessage"));
+        .extracting( ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
+		.contains(Tuple.tuple( Level.ERROR, "RPR-RCT-001 --> errorMessage"));
 	}
 }

@@ -1240,7 +1240,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		// packetCreatedOn is only fetched for NEW and UPDATE — null means not applicable
 		if (packetCreatedOn == null) {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-					"Skipping update of packetCreatedOn. registrationType: {}", object.getReg_type());
+					"Unable to find the packetCreatedOn from packet for registrationType: {}. Skipping update of packetCreatedOn. ", object.getReg_type());
 			return;
 		}
 

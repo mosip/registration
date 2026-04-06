@@ -208,17 +208,15 @@ public class PacketValidateProcessor {
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					String finalRegistrationId = registrationId;
 
-					// Fetch audits + fire async audit REST calls in virtual thread — not on critical path
-					Thread.ofVirtual().start(() -> {
-						try {
-							auditUtility.saveAuditDetails(finalRegistrationId,
-									finalRegistrationStatusDto.getRegistrationType());
-						} catch (Exception e) {
-							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-									LoggerFileConstant.REGISTRATIONID.toString(),
-									"auditUtility.saveAuditDetails failed for rid " + finalRegistrationId, "");
-						}
-					});
+					try {
+						auditUtility.saveAuditDetails(finalRegistrationId,
+								finalRegistrationStatusDto.getRegistrationType());
+					} catch (Exception e) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(),
+								description.getCode() + " Inside Runnable ", "");
+
+					}
 
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());

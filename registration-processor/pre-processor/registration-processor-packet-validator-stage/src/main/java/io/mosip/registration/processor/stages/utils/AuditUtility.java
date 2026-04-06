@@ -1,10 +1,14 @@
 package io.mosip.registration.processor.stages.utils;
 
-import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -18,7 +22,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,12 +75,33 @@ public class AuditUtility {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "AuditUtility::saveAuditDetails()::entry");
 			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, process, ProviderStageName.PACKET_VALIDATOR);
-			if (CollectionUtils.isNotEmpty(audits)) {
-				// Fire-and-forget: submit audit requests without blocking worker thread
-				audits.forEach(audit -> {
-					AsyncRequestDTO request = buildRequest(audit);
-					restHelper.requestAsync(request);
-				});
+			if (CollectionUtils.isEmpty(audits)) {
+				return;
+			}
+			List<CompletableFuture<Void>> futures = new ArrayList<>(audits.size());
+			try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+				for (FieldResponseDto audit : audits) {
+					futures.add(CompletableFuture.runAsync(() -> {
+						try {
+							AsyncRequestDTO request = buildRequest(audit);
+							Supplier<Object> supplier = restHelper.requestAsync(request);
+							supplier.get();
+						} catch (Exception e) {
+							throw new CompletionException(e);
+						}
+					}, executor));
+				}
+				try {
+					CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+				} catch (CompletionException e) {
+					Throwable cause = e.getCause();
+					while (cause instanceof CompletionException && cause.getCause() != null) {
+						cause = cause.getCause();
+					}
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId,
+							"AuditUtility::saveAuditDetails::parallel audit failed " + ExceptionUtils.getStackTrace(cause));
+				}
 			}
 		} catch (RuntimeException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

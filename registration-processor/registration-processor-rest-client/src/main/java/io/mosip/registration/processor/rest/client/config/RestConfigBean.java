@@ -9,9 +9,6 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 @Configuration
 public class RestConfigBean {
 	
@@ -34,6 +31,4 @@ public class RestConfigBean {
 	public RestTemplateBuilder getRestTemplateBuilder() {
 		return new RestTemplateBuilder();
 	}
-
-
 }
