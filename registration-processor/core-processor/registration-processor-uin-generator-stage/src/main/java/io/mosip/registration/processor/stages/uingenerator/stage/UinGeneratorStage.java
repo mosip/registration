@@ -1163,8 +1163,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
-					"packetCreatedOn not found in packet idSchemaVersion {}. Skipping addition to identity attributes.",
-					schemaVersion
+					"packetCreatedOn not found in packet idSchemaVersion " + schemaVersion +
+							". Skipping addition to identity attributes."
 			);
 			return;
 		}
