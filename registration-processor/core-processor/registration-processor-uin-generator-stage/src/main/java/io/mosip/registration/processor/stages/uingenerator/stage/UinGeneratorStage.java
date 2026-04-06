@@ -253,16 +253,17 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			} else {
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
-						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+						defaultFields, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 				JSONObject demographicIdentity = new JSONObject();
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
-				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object);
+				updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object, defaultFields);
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
@@ -1167,7 +1168,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
 															InternalRegistrationStatusDto registrationStatusDto,
-															Map<String, Object> demographicIdentity, MessageDTO object) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+															Map<String, Object> demographicIdentity, MessageDTO object, List<String> defaultFields) throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
+
+		// Skip processing if 'packetCreatedOn' is not part of IdSchema
+		if (!defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
+			Object schemaVersion = demographicIdentity.get(MappingJsonConstants.IDSCHEMA_VERSION);
+			regProcLogger.info(
+					LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					"packetCreatedOn not found in packet idSchemaVersion " + schemaVersion +
+							". Skipping addition to identity attributes."
+			);
+			return;
+		}
+
 		// update packetCreatedOn only for NEW and UPDATE registrations
 		if (!RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) &&
 				!RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
