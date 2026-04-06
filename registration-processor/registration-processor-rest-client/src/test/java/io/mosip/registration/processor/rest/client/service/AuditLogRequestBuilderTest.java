@@ -82,7 +82,7 @@ public class AuditLogRequestBuilderTest {
 	}
 
 	@Test
-	public void createAuditRequestBuilderFailureTest() throws ApisResourceAccessException {
+	public void createAuditRequestBuilderFailureTest() throws ApisResourceAccessException, InterruptedException {
 		fooLogger = (Logger) LoggerFactory.getLogger(AuditLogRequestBuilder.class);
 		listAppender = new ListAppender<>();
 		listAppender.start();
@@ -95,6 +95,17 @@ public class AuditLogRequestBuilderTest {
 
 		// Wait for both async audit calls to complete before asserting logs
 		verify(registrationProcessorRestService, timeout(2000).times(2)).postApi(any(), any(), any(), any(), any());
+
+		// Poll until the error log appears (catch block runs just after postApi throws)
+		long deadline = System.currentTimeMillis() + 3000;
+		boolean found = false;
+		while (System.currentTimeMillis() < deadline) {
+			found = listAppender.list.stream()
+				.anyMatch(e -> e.getLevel() == Level.ERROR
+						&& "RPR-RCT-001 --> errorMessage".equals(e.getFormattedMessage()));
+			if (found) break;
+			Thread.sleep(50);
+		}
 
 		Assertions.assertThat(listAppender.list)
 			.extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
