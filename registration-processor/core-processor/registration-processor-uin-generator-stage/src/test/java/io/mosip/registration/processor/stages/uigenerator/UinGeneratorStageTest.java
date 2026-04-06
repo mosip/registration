@@ -2647,6 +2647,9 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("NEW");
 
+		// important: packetCreatedOn must exist so method doesn't exit early
+		List<String> defaultFields = Arrays.asList("UIN", "name", "email", "packetCreatedOn");
+
 		when(utility.getUIn(any(),any(),any(ProviderStageName.class))).thenReturn("123456");
 		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
@@ -2655,7 +2658,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, defaultFields);
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 
 	}
@@ -2674,13 +2677,16 @@ public class UinGeneratorStageTest {
 		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-3-08T12:00:00Z");
 
 		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+
+		// schema fields must contain packetCreatedOn
+		List<String> defaultFields = Arrays.asList("fullName", "dateOfBirth", "packetCreatedOn");
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, defaultFields);
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2699,13 +2705,16 @@ public class UinGeneratorStageTest {
 		metaInfo.put(MappingJsonConstants.PACKET_CREATED_ON, "2025-10-13T12:00:00Z");
 
 		when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+
+		// schema fields must include packetCreatedOn
+		List<String> defaultFields = Arrays.asList("name", "email", "packetCreatedOn");
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
 		org.json.simple.JSONObject demographicIdentity = new org.json.simple.JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, defaultFields);
 
 		assertEquals("2019-01-17T06:29:01.940Z", demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2720,6 +2729,8 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("NEW");
 
+		// schema fields must contain packetCreatedOn
+		List<String> defaultFields = Arrays.asList("name", "email", "packetCreatedOn");
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 		when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
 
@@ -2727,7 +2738,7 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, defaultFields);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}
@@ -2742,6 +2753,8 @@ public class UinGeneratorStageTest {
 		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
 		internalRegistrationStatusDto.setRegistrationType("LOST");
 
+		// schema must contain packetCreatedOn
+		List<String> defaultFields = Arrays.asList("name", "email", "packetCreatedOn");
 		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 		when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any())).thenReturn(null);
 
@@ -2749,8 +2762,40 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
 
 		ReflectionTestUtils.invokeMethod(uinGeneratorStage, "updatePacketCreatedOnInDemographicIdentity",
-				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO);
+				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, defaultFields);
 
+		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
+	@Test
+	public void testPacketCreatedOn_NotPresentInSchema_ShouldSkipUpdate() {
+
+		String rid = "10031100110005020190313110030";
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid(rid);
+		messageDTO.setReg_type("NEW");
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("NEW");
+
+		// Simulate old schema where packetCreatedOn is NOT present
+		List<String> defaultFields = Arrays.asList("name", "email", "dateOfBirth");
+
+		JSONObject demographicIdentity = new JSONObject();
+		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
+
+		ReflectionTestUtils.invokeMethod(
+				uinGeneratorStage,
+				"updatePacketCreatedOnInDemographicIdentity",
+				rid,
+				internalRegistrationStatusDto,
+				demographicIdentity,
+				messageDTO,
+				defaultFields
+		);
+
+		// packetCreatedOn should not be added
 		assertNull(demographicIdentity.get("packetCreatedOn"));
 	}
 
