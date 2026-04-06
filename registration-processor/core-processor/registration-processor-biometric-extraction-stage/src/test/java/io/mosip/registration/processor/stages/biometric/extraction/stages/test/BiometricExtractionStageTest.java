@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -162,7 +163,8 @@ public class BiometricExtractionStageTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(biometricExtractionStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(biometricExtractionStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(biometricExtractionStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(biometricExtractionStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(biometricExtractionStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(biometricExtractionStage, "partnerPolicyIdsJson", "[{'partnerId':'mpartner-default-auth','policyId':'mpolicy-default-auth'},{'partnerId':'mpartner-default-print','policyId':'mpolicy-default-print'},{'partnerId':'mpartner-default-print','policyId':'mpolicy-default-qrcode'},{'partnerId':'mpartner-default-print','policyId':'mpolicy-default-euin'}]" );

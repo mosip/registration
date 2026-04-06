@@ -635,8 +635,9 @@ public class BioDedupeProcessorTest {
 		Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095010", IDENTITY)).thenReturn(obj1);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
-		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
-		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+		LinkedHashMap<String, String> fieldsMap = new LinkedHashMap<>();
+		fieldsMap.put("dob", "2016/01/01");
+		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldsMap);		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
 		assertTrue(messageDto.getIsValid());

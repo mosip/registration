@@ -67,6 +67,7 @@ public class PacketManagerService {
     @PostConstruct
     private void setObjectMapper() {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
 	public String getField(String id, String field, String source, String process)

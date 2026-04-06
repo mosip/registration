@@ -235,7 +235,7 @@ public class BiometricAuthenticationStageTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(biometricAuthenticationStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(biometricAuthenticationStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "ageLimit", "5");

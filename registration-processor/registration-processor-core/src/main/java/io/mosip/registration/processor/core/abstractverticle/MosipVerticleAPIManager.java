@@ -67,6 +67,26 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	@Value("${mosip.regproc.health-check.handler-timeout:2000}")
 	private long healthCheckTimeOut;
 
+	/** Default worker pool size; can be overridden per stage via {getPropertyPrefix()}worker.pool.size */
+	@Value("${worker.pool.size}")
+	private Integer defaultWorkerPoolSize;
+
+	/**
+	 * Returns worker pool size for this stage. Resolves per-stage override from
+	 * {getPropertyPrefix()}worker.pool.size first; if not set, returns default from worker.pool.size.
+	 */
+	protected int getWorkerPoolSize() {
+		String key = getPropertyPrefix() + "worker.pool.size";
+		String override = environment.getProperty(key);
+		if (override != null && !override.trim().isEmpty()) {
+			try {
+				return Integer.parseInt(override.trim());
+			} catch (NumberFormatException e) {
+				return defaultWorkerPoolSize != null ? defaultWorkerPoolSize : 1;
+			}
+		}
+		return defaultWorkerPoolSize != null ? defaultWorkerPoolSize : 1;
+	}
 
 	/**
 	 * This method creates a body handler for the routes

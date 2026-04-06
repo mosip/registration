@@ -3,15 +3,22 @@ package io.mosip.registration.processor.stages.validator.impl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import jakarta.annotation.PostConstruct;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +70,17 @@ public class BiometricsSignatureValidator {
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.common.before-cbeff-others-attibute.reg-client-versions:}')}")
 	private List<String> regClientVersionsBeforeCbeffOthersAttritube;
 
+	private String dateTimePattern;
+	private DateTimeFormatter dateTimeFormatter;
+
+	@PostConstruct
+	public void init() {
+		dateTimePattern = env.getProperty(DATETIME_PATTERN);
+		dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+	}
+
 	public void validateSignature(String id, String process, BiometricRecord biometricRecord,
-			Map<String, String> metaInfoMap) throws JSONException, BiometricSignatureValidationException,
+								  Map<String, String> metaInfoMap) throws JSONException, BiometricSignatureValidationException,
 			ApisResourceAccessException, PacketManagerException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException {
 
 		// backward compatibility check
@@ -75,6 +91,8 @@ public class BiometricsSignatureValidator {
 
 		List<BIR> birs = biometricRecord.getSegments();
 
+		// Collect tokens for all non-exception BIR segments first
+		List<String> tokensToValidate = new ArrayList<>();
 		for (BIR bir : birs) {
 			HashMap<String, String> othersInfo = bir.getOthers();
 			if (othersInfo == null) {
@@ -91,14 +109,49 @@ public class BiometricsSignatureValidator {
 				}
 			}
 
-			if (exceptionValue) {
-				continue;
+			if (!exceptionValue) {
+				tokensToValidate.add(BiometricsSignatureHelper.extractJWTToken(bir));
 			}
-
-			String token = BiometricsSignatureHelper.extractJWTToken(bir);
-			validateJWTToken(id, token);
 		}
 
+		if (tokensToValidate.isEmpty()) {
+			return;
+		}
+
+		// Validate all JWT tokens in parallel using virtual threads (fail-fast: cancel remaining on first failure)
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		try {
+			List<CompletableFuture<Void>> futures = tokensToValidate.stream()
+					.map(token -> CompletableFuture.runAsync(() -> {
+						try {
+							validateJWTToken(id, token);
+						} catch (Exception e) {
+							throw new CompletionException(e);
+						}
+					}, executor))
+					.collect(Collectors.toList());
+
+			try {
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+			} catch (CompletionException e) {
+				// Interrupt remaining in-flight threads immediately (fail-fast)
+				executor.shutdownNow();
+				Throwable cause = e.getCause();
+				if (cause instanceof BiometricSignatureValidationException) {
+					throw (BiometricSignatureValidationException) cause;
+				} else if (cause instanceof ApisResourceAccessException) {
+					throw (ApisResourceAccessException) cause;
+				} else if (cause instanceof io.mosip.kernel.core.util.exception.JsonProcessingException) {
+					throw (io.mosip.kernel.core.util.exception.JsonProcessingException) cause;
+				} else if (cause instanceof IOException) {
+					throw (IOException) cause;
+				} else {
+					throw new IOException("Biometric signature validation failed", cause);
+				}
+			}
+		} finally {
+			executor.close(); // waits for any still-running threads to finish (fast after shutdownNow)
+		}
 	}
 
 	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
@@ -111,9 +164,8 @@ public class BiometricsSignatureValidator {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
-					FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
-					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
-						version = fieldValue.getValue();
+					if (jsonObject.optString("label").equalsIgnoreCase(JsonConstant.REGCLIENTVERSION)) {
+						version = jsonObject.optString("value");
 						break;
 					}
 				}
@@ -139,16 +191,15 @@ public class BiometricsSignatureValidator {
 
 		request.setRequest(jwtSignatureVerifyRequestDto);
 		request.setVersion("1.0");
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+				.parse(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern), dateTimeFormatter);
 		request.setRequesttime(localdatetime);
 
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);
 		if (responseWrapper.getResponse() != null) {
-			JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(
-					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
+			JWTSignatureVerifyResponseDto jwtResponse = mapper.convertValue(
+					responseWrapper.getResponse(), JWTSignatureVerifyResponseDto.class);
 
 			if (!jwtResponse.isSignatureValid()) {
 				regProcLogger.error(LoggerFileConstant.REGISTRATIONID.toString(), id,

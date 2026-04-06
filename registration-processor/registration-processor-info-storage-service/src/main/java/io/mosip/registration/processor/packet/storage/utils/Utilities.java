@@ -248,6 +248,9 @@ public class Utilities {
 
 	private JSONObject regProcessorAbisJson = null;
 
+	/** Cached ABIS queue connections; reused to avoid creating new connections per packet. */
+	private volatile List<AbisQueueDetails> abisQueueDetailsCache = null;
+
 	public static void initialize(Map<String, String> reader, Map<String, String> writer) {
 		readerConfiguration = reader;
 		writerConfiguration = writer;
@@ -484,53 +487,63 @@ public class Utilities {
 	 *                                               checked exception
 	 */
 	public List<AbisQueueDetails> getAbisQueueDetails() throws RegistrationProcessorCheckedException {
-		List<AbisQueueDetails> abisQueueDetailsList = new ArrayList<>();
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"Utilities::getAbisQueueDetails()::entry");
-
-		try {
-			if(regProcessorAbisJson==null) {
-				String registrationProcessorAbis = Utilities.getJson(configServerFileStorageURL, registrationProcessorAbisJson);
-				regProcessorAbisJson = JsonUtil.objectMapperReadValue(registrationProcessorAbis, JSONObject.class);
-			}
-			JSONArray regProcessorAbisArray = JsonUtil.getJSONArray(regProcessorAbisJson, ABIS);
-
-			for (Object jsonObject : regProcessorAbisArray) {
-				AbisQueueDetails abisQueueDetails = new AbisQueueDetails();
-				JSONObject json = new JSONObject((Map) jsonObject);
-				String userName = validateAbisQueueJsonAndReturnValue(json, USERNAME);
-				String password = validateAbisQueueJsonAndReturnValue(json, PASSWORD);
-				String brokerUrl = validateAbisQueueJsonAndReturnValue(json, BROKERURL);
-				String failOverBrokerUrl = FAIL_OVER + brokerUrl + "," + brokerUrl + RANDOMIZE_FALSE;
-				String typeOfQueue = validateAbisQueueJsonAndReturnValue(json, TYPEOFQUEUE);
-				String inboundQueueName = validateAbisQueueJsonAndReturnValue(json, INBOUNDQUEUENAME);
-				String outboundQueueName = validateAbisQueueJsonAndReturnValue(json, OUTBOUNDQUEUENAME);
-				String queueName = validateAbisQueueJsonAndReturnValue(json, NAME);
-				int inboundMessageTTL = validateAbisQueueJsonAndReturnIntValue(json, INBOUNDMESSAGETTL);
-				MosipQueue mosipQueue = mosipConnectionFactory.createConnection(typeOfQueue, userName, password,
-						failOverBrokerUrl, trustedPackages);
-				if (mosipQueue == null)
-					throw new QueueConnectionNotFound(
-							PlatformErrorMessages.RPR_PIS_ABIS_QUEUE_CONNECTION_NULL.getMessage());
-
-				abisQueueDetails.setMosipQueue(mosipQueue);
-				abisQueueDetails.setInboundQueueName(inboundQueueName);
-				abisQueueDetails.setOutboundQueueName(outboundQueueName);
-				abisQueueDetails.setName(queueName);
-				abisQueueDetails.setInboundMessageTTL(inboundMessageTTL);
-				abisQueueDetailsList.add(abisQueueDetails);
-
-			}
-		} catch (IOException e) {
-			throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+		List<AbisQueueDetails> cached = abisQueueDetailsCache;
+		if (cached != null) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"Utilities::getAbisQueueDetails()::returning cached connections");
+			return cached;
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"Utilities::getAbisQueueDetails()::exit");
+		synchronized (this) {
+			cached = abisQueueDetailsCache;
+			if (cached != null) {
+				return cached;
+			}
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"Utilities::getAbisQueueDetails()::entry");
 
-		return abisQueueDetailsList;
+			List<AbisQueueDetails> abisQueueDetailsList = new ArrayList<>();
+			try {
+				if(regProcessorAbisJson==null) {
+					String registrationProcessorAbis = Utilities.getJson(configServerFileStorageURL, registrationProcessorAbisJson);
+					regProcessorAbisJson = JsonUtil.objectMapperReadValue(registrationProcessorAbis, JSONObject.class);
+				}
+				JSONArray regProcessorAbisArray = JsonUtil.getJSONArray(regProcessorAbisJson, ABIS);
 
+				for (Object jsonObject : regProcessorAbisArray) {
+					AbisQueueDetails abisQueueDetails = new AbisQueueDetails();
+					JSONObject json = new JSONObject((Map) jsonObject);
+					String userName = validateAbisQueueJsonAndReturnValue(json, USERNAME);
+					String password = validateAbisQueueJsonAndReturnValue(json, PASSWORD);
+					String brokerUrl = validateAbisQueueJsonAndReturnValue(json, BROKERURL);
+					String failOverBrokerUrl = FAIL_OVER + brokerUrl + "," + brokerUrl + RANDOMIZE_FALSE;
+					String typeOfQueue = validateAbisQueueJsonAndReturnValue(json, TYPEOFQUEUE);
+					String inboundQueueName = validateAbisQueueJsonAndReturnValue(json, INBOUNDQUEUENAME);
+					String outboundQueueName = validateAbisQueueJsonAndReturnValue(json, OUTBOUNDQUEUENAME);
+					String queueName = validateAbisQueueJsonAndReturnValue(json, NAME);
+					int inboundMessageTTL = validateAbisQueueJsonAndReturnIntValue(json, INBOUNDMESSAGETTL);
+					MosipQueue mosipQueue = mosipConnectionFactory.createConnection(typeOfQueue, userName, password,
+							failOverBrokerUrl, trustedPackages);
+					if (mosipQueue == null)
+						throw new QueueConnectionNotFound(
+								PlatformErrorMessages.RPR_PIS_ABIS_QUEUE_CONNECTION_NULL.getMessage());
+
+					abisQueueDetails.setMosipQueue(mosipQueue);
+					abisQueueDetails.setInboundQueueName(inboundQueueName);
+					abisQueueDetails.setOutboundQueueName(outboundQueueName);
+					abisQueueDetails.setName(queueName);
+					abisQueueDetails.setInboundMessageTTL(inboundMessageTTL);
+					abisQueueDetailsList.add(abisQueueDetails);
+
+				}
+				abisQueueDetailsCache = abisQueueDetailsList;
+			} catch (IOException e) {
+				throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+						PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+			}
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"Utilities::getAbisQueueDetails()::exit");
+			return abisQueueDetailsList;
+		}
 	}
 
 	/**
