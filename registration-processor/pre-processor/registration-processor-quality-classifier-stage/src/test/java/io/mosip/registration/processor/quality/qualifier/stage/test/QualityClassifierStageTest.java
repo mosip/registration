@@ -217,7 +217,7 @@ public class QualityClassifierStageTest {
 
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
-		ReflectionTestUtils.setField(qualityClassifierStage, "qualityExecutor", Executors.newFixedThreadPool(5));
+		ReflectionTestUtils.setField(qualityClassifierStage, "virtualThreadExecutor", Executors.newFixedThreadPool(5));
 		ReflectionTestUtils.setField(qualityClassifierStage, "modalities", Arrays.asList("Iris", "Finger", "Face"));
 
 		registrationStatusDto = new InternalRegistrationStatusDto();
