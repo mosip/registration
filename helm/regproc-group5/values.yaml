@@ -128,16 +128,15 @@ additionalResources:
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
-    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=3300m -Xms2300m
-    -Xmx3900m -XX:ActiveProcessorCount=1
+    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=4000m -Xms4400m
+    -Xmx4400m -XX:ActiveProcessorCount=1
     -Djdk.virtualThreadScheduler.parallelism=1
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=1
-    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=480m
-    -XX:MetaspaceSize=120m -XX:+TieredCompilation
-    -XX:ReservedCodeCacheSize=180m -XX:InitialCodeCacheSize=45m
-    -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
-    -XX:+UseCompressedOops
+    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=384m
+    -XX:MetaspaceSize=128m  -XX:ReservedCodeCacheSize=128m
+    -XX:InitialCodeCacheSize=32m -XX:+UseCodeCacheFlushing
+    -XX:+HeapDumpOnOutOfMemoryError -XX:+UseCompressedOops
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
 containerSecurityContext:
