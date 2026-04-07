@@ -46,8 +46,8 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipid/registration-processor-common-camel-bridge
-  tag: 1.3.0
+  repository: mosipqa/registration-processor-common-camel-bridge
+  tag: 1.3.x
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -114,15 +114,21 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 1000m
-    memory: 3000Mi
-  requests:
-    cpu: 500m
+    cpu: 600m
     memory: 2000Mi
+  requests:
+    cpu: 300m
+    memory: 1000Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
-  javaOpts: "-Xms1350M -Xmx2250M"
+  javaOpts: >-
+    -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive
+    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=800m -Xms800m -Xmx1300m
+    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=160m
+    -XX:MetaspaceSize=40m
+    -XX:ReservedCodeCacheSize=60m -XX:InitialCodeCacheSize=15m
+    -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
 containerSecurityContext:
