@@ -70,7 +70,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * @author Vishwanath V
  */
 @Service
-@Transactional
 public class PacketClassificationProcessor {
 
 	/**
