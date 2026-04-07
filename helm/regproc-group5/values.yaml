@@ -118,24 +118,24 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 800m
-    memory: 4000Mi
+    cpu: 1000m
+    memory: 6000Mi
   requests:
-    cpu: 800m
-    memory: 4000Mi
+    cpu: 500m
+    memory: 3000Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
-    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=2000m -Xms2400m
-    -Xmx2400m -XX:ActiveProcessorCount=1
+    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=3300m -Xms2300m
+    -Xmx3900m -XX:ActiveProcessorCount=1
     -Djdk.virtualThreadScheduler.parallelism=1
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=1
-    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=320m
-    -XX:MetaspaceSize=80m -XX:+TieredCompilation
-    -XX:ReservedCodeCacheSize=120m -XX:InitialCodeCacheSize=30m
+    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=480m
+    -XX:MetaspaceSize=120m -XX:+TieredCompilation
+    -XX:ReservedCodeCacheSize=180m -XX:InitialCodeCacheSize=45m
     -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
     -XX:+UseCompressedOops
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
