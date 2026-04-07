@@ -124,7 +124,7 @@ additionalResources:
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
-    -XX:ZUncommitDelay=60 -XX:+UseContainerSupport -Xms1800m -Xmx1800m
+    -XX:ZUncommitDelay=60 -XX:+UseContainerSupport -Xms950m -Xmx1800m
     -XX:SoftMaxHeapSize=1600m -XX:MaxMetaspaceSize=256m -XX:MetaspaceSize=128m
     -XX:+TieredCompilation -XX:ReservedCodeCacheSize=128m
     -XX:InitialCodeCacheSize=32m -XX:+UseCodeCacheFlushing

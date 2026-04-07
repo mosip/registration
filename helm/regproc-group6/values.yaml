@@ -128,7 +128,7 @@ additionalResources:
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
-    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=1800m -Xms2050m -Xmx2050m
+    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=1800m -Xms1150m -Xmx2050m
     -XX:ActiveProcessorCount=1
     -Djdk.virtualThreadScheduler.parallelism=1
     -Djdk.virtualThreadScheduler.maxPoolSize=64

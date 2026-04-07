@@ -129,7 +129,7 @@ additionalResources:
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:+ZProactive -XX:ZCollectionInterval=5
-    -Xms2800m -Xmx2800m -XX:SoftMaxHeapSize=2400m
+    -Xms1500m -Xmx2800m -XX:SoftMaxHeapSize=2400m
     -Djdk.virtualThreadScheduler.parallelism=2
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=1
