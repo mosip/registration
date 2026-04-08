@@ -617,9 +617,15 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
             }
             else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
-                packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
-                if(packet==null) {
-                    throw new ObjectStoreNotAccessibleException("Failed to get packet : " +packetId);
+                try (InputStream objectStream = objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null,
+                        packetId)) {
+                    if (objectStream == null) {
+                        throw new ObjectStoreNotAccessibleException("Failed to get packet : " + packetId);
+                    }
+                    packet = IOUtils.toByteArray(objectStream);
+                }
+                if (packet == null) {
+                    throw new ObjectStoreNotAccessibleException("Failed to get packet : " + packetId);
                 }
             }
         } catch (ApisResourceAccessException e) {

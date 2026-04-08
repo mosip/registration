@@ -3027,11 +3027,17 @@ public class UinGeneratorStageTest {
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.NEW.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
 		clearInvocations(utility);
 
 		uinGeneratorStage.process(messageDTO);
 
-		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"), anyString(),
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
+				eq(RegistrationType.NEW.name()),
 				eq(ProviderStageName.UIN_GENERATOR));
 	}
 
@@ -3057,12 +3063,191 @@ public class UinGeneratorStageTest {
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
 		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.UPDATE.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
 		clearInvocations(utility);
 
 		uinGeneratorStage.process(messageDTO);
 
-		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"), anyString(),
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
+				eq(RegistrationType.UPDATE.name()),
 				eq(ProviderStageName.UIN_GENERATOR));
+	}
+
+	/**
+	 * packetCreatedOn is fetched only when {@code reg_type} is NEW or UPDATE. RES_UPDATE does not update biometrics the
+	 * same way and must not trigger {@code retrieveCreatedDateFromPacket} even if the schema includes packetCreatedOn.
+	 */
+	@Test
+	public void testProcessResUpdate_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.RES_UPDATE.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.RES_UPDATE.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+	}
+
+	/**
+	 * ACTIVATED packets must not trigger {@code retrieveCreatedDateFromPacket}; only literal NEW/UPDATE {@code reg_type}
+	 * values start that fetch when the schema includes packetCreatedOn.
+	 */
+	@Test
+	public void testProcessActivated_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.ACTIVATED.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.ACTIVATED.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+	}
+
+	/**
+	 * DEACTIVATED packets must not trigger {@code retrieveCreatedDateFromPacket} when packetCreatedOn is in the schema.
+	 */
+	@Test
+	public void testProcessDeactivated_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.DEACTIVATED.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.DEACTIVATED.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+	}
+
+	/**
+	 * External process codes mapped to internal UPDATE (e.g. CRVS_UPDATE) must not trigger
+	 * {@code retrieveCreatedDateFromPacket}; only a literal UPDATE {@code reg_type} does, alongside NEW.
+	 */
+	@Test
+	public void testProcessMappedUpdate_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		@SuppressWarnings("unchecked")
+		Map<String, String> previousMapping = (Map<String, String>) ReflectionTestUtils.getField(uinGeneratorStage,
+				"additionalProcessCategoryMapping");
+		try {
+			Map<String, String> externalInternalMap = new HashMap<>();
+			externalInternalMap.put("CRVS_UPDATE", RegistrationType.UPDATE.name());
+			ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", externalInternalMap);
+			when(utilities.getInternalProcess(any(), eq("CRVS_UPDATE")))
+					.thenReturn(RegistrationType.UPDATE.name());
+
+			MessageDTO messageDTO = new MessageDTO();
+			messageDTO.setRid("27847657360002520181210094052");
+			messageDTO.setReg_type("CRVS_UPDATE");
+
+			when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+					MappingJsonConstants.PACKET_CREATED_ON));
+
+			IdResponseDTO idResponseDTO = new IdResponseDTO();
+			ResponseDTO responseDTO = new ResponseDTO();
+			responseDTO.setStatus("ACTIVATED");
+			idResponseDTO.setErrors(null);
+			idResponseDTO.setId("mosip.id.update");
+			idResponseDTO.setResponse(responseDTO);
+			idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+			idResponseDTO.setVersion("1.0");
+
+			when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+			when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+			when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+			InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+			internalRegistrationStatusDto.setRegistrationType("CRVS_UPDATE");
+			when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+					.thenReturn(internalRegistrationStatusDto);
+
+			clearInvocations(utility);
+
+			MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+			verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+			assertFalse(result.getInternalError());
+		} finally {
+			ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", previousMapping);
+			Mockito.reset(utilities);
+		}
 	}
 
 }
