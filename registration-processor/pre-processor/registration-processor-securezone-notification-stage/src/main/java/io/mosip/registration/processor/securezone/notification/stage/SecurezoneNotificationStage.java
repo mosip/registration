@@ -212,23 +212,15 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 		messageDTO.setIsValid(Boolean.FALSE);
 		boolean isTransactionSuccessful = false;
 		try {
-			long getRegistrationStatusStartTime = System.currentTimeMillis();
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(messageDTO.getRid(),
 					messageDTO.getReg_type(), messageDTO.getIteration(), messageDTO.getWorkflowInstanceId());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					messageDTO.getRid(), "Perf_SecurezoneNotificationStage_process_getRegistrationStatus"
-							+ " -- elapsedTime: " + (System.currentTimeMillis() - getRegistrationStatusStartTime) + "ms");
 
 			boolean isDuplicatePacket = false;
 			if (registrationStatusDto != null) {
 				registrationStatusDto.setLatestTransactionTypeCode(
 						RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
 				registrationStatusDto.setRegistrationStageName(getStageName());
-				long isDuplicateStartTime = System.currentTimeMillis();
 				isDuplicatePacket = isDuplicatePacketForSameReqId(messageDTO);
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						messageDTO.getRid(), "Perf_SecurezoneNotificationStage_process_isDuplicatePacketForSameReqId"
-								+ " -- elapsedTime: " + (System.currentTimeMillis() - isDuplicateStartTime) + "ms");
 			} else {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), messageDTO.getRid(),
@@ -308,55 +300,35 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 					? PlatformSuccessMessages.RPR_SEZ_SECUREZONE_NOTIFICATION.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.SECUREZONE_NOTIFICATION.toString();
-			long updateRegistrationStatusStartTime = System.currentTimeMillis();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					messageDTO.getRid(), "Perf_SecurezoneNotificationStage_process_updateRegistrationStatus"
-							+ " -- elapsedTime: " + (System.currentTimeMillis() - updateRegistrationStatusStartTime) + "ms");
 			if (isTransactionSuccessful)
 				description.setMessage(PlatformSuccessMessages.RPR_SEZ_SECUREZONE_NOTIFICATION.getMessage());
 			String eventId = isTransactionSuccessful ? EventId.RPR_401.toString() : EventId.RPR_405.toString();
 			String eventName = isTransactionSuccessful ? EventName.GET.toString() : EventName.EXCEPTION.toString();
 			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
-			long createAuditStartTime = System.currentTimeMillis();
 			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
 					moduleId, moduleName, messageDTO.getRid());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					messageDTO.getRid(), "Perf_SecurezoneNotificationStage_process_createAuditRequestBuilder"
-							+ " -- elapsedTime: " + (System.currentTimeMillis() - createAuditStartTime) + "ms");
 		}
 		return messageDTO;
 	}
 
 	private boolean isDuplicatePacketForSameReqId(MessageDTO messageDTO) {
 		boolean isDuplicate = false;
-		long findByWorkflowInstanceIdStartTime = System.currentTimeMillis();
 		SyncRegistrationEntity entity = syncRegistrationService
 				.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
-		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				messageDTO.getRid(), "Perf_SecurezoneNotificationStage_isDuplicatePacketForSameReqId_findByWorkflowInstanceId"
-						+ " -- elapsedTime: " + (System.currentTimeMillis() - findByWorkflowInstanceIdStartTime) + "ms");
 
 		if (entity.getAdditionalInfoReqId() == null && mainProcesses.contains(entity.getRegistrationType())) {
 			// find all main process records for same registrationId.
-			long findByRegistrationIdStartTime = System.currentTimeMillis();
 			List<SyncRegistrationEntity> entities = syncRegistrationService
 					.findByRegistrationId(entity.getRegistrationId());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					messageDTO.getRid(), "Perf_SecurezoneNotificationStage_isDuplicatePacketForSameReqId_findByRegistrationId"
-							+ " -- elapsedTime: " + (System.currentTimeMillis() - findByRegistrationIdStartTime) + "ms");
 			List<SyncRegistrationEntity> mainProcessEntities = entities.stream()
 					.filter(e -> e.getAdditionalInfoReqId() == null).collect(Collectors.toList());
 			isDuplicate = checkDuplicates(messageDTO, mainProcessEntities);
 		} else {
 			// find all records for same additionalInfoReqId.
-			long findByAdditionalInfoReqIdStartTime = System.currentTimeMillis();
 			List<SyncRegistrationEntity> entities = syncRegistrationService
 					.findByAdditionalInfoReqId(entity.getAdditionalInfoReqId());
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					messageDTO.getRid(), "Perf_SecurezoneNotificationStage_isDuplicatePacketForSameReqId_findByAdditionalInfoReqId"
-							+ " -- elapsedTime: " + (System.currentTimeMillis() - findByAdditionalInfoReqIdStartTime) + "ms");
 			// if multiple records are present for same additionalInfoReqId then check in
 			// registration table how many packets are received
 			isDuplicate = checkDuplicates(messageDTO, entities);
@@ -370,13 +342,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 					.collect(Collectors.toList());
 			List<InternalRegistrationStatusDto> dtos = new ArrayList<>();
 			for (String workflowInstanceId : workflowInstanceIds) {
-				long getRegStatusStartTime = System.currentTimeMillis();
 				InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus(messageDTO.getRid(),
 						messageDTO.getReg_type(), messageDTO.getIteration(), workflowInstanceId);
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						messageDTO.getRid(), "Perf_SecurezoneNotificationStage_checkDuplicates_getRegistrationStatus"
-								+ " workflowInstanceId: " + workflowInstanceId
-								+ " -- elapsedTime: " + (System.currentTimeMillis() - getRegStatusStartTime) + "ms");
 				if (dto != null)
 					dtos.add(dto);
 			}
