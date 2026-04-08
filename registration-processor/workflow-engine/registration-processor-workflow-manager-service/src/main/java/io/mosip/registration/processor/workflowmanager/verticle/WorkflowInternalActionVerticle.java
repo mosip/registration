@@ -486,7 +486,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 					RegistrationStatusCode.PROCESSED.toString());
 
 			packetManagerService.addOrUpdateTags(rid, tags);
-
 			InternalRegistrationStatusDto mainFlowregistrationStatusDto = registrationStatusService
 					.getRegistrationStatus(null, null, null, additionalInfoRequestDto.getWorkflowInstanceId());
 
