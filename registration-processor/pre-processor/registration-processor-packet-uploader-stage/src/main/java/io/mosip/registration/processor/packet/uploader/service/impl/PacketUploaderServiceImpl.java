@@ -649,7 +649,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             String source = tempKeys[0];
             String process = tempKeys[1];
             String objectName = tempKeys[2];
-            // additionalInfoRequestDto is pre-fetched once by caller to avoid repeated DB calls
             if (additionalInfoRequestDto != null &&
                     additionalInfoRequestDto.getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
                 return source + FORWARD_SLASH + process + "-" + messageDTO.getIteration() + FORWARD_SLASH + objectName;

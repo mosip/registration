@@ -9,7 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -263,7 +267,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
 
-		try {
+		try (ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
 			// Round 1: fire all independent calls in parallel
 			CompletableFuture<InternalRegistrationStatusDto> registrationStatusFuture =
 					CompletableFuture.supplyAsync(() -> {
@@ -275,7 +279,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			CompletableFuture<Map<String, String>> metaInfoFuture =
 					CompletableFuture.supplyAsync(() -> {
@@ -285,7 +289,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			CompletableFuture<BiometricRecord> biometricsFuture =
 					CompletableFuture.supplyAsync(() -> {
@@ -296,7 +300,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			// Chain: mappingJson -> idSchemaVersionValue -> schemaVersion (sequential dependencies)
 			CompletableFuture<String> schemaVersionFuture =
@@ -313,7 +317,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			// Round 2: once schemaVersion is known, fire fieldTypeMap and fieldMap in parallel
 			CompletableFuture<Map<String, String>> fieldTypeMapFuture =
@@ -323,7 +327,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			CompletableFuture<Map<String, String>> fieldMapFuture =
 					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
@@ -335,7 +339,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-					});
+					}, virtualThreadExecutor);
 
 			// Collect all results
 			InternalRegistrationStatusDto registrationStatusDto = registrationStatusFuture.get();
@@ -355,20 +359,81 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new BaseCheckedException(
+			throw new BaseUncheckedException(
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
 					"Thread interrupted during anonymous profile processing", e);
 		} catch (ExecutionException e) {
-			Throwable cause = e.getCause() != null ? e.getCause() : e;
-			if (cause instanceof IOException) throw (IOException) cause;
-			if (cause instanceof JSONException) throw (JSONException) cause;
-			if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
-			throw new BaseCheckedException(
-					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-					"Error during anonymous profile processing: " + cause.getMessage(), cause);
+			rethrowUnwrappedCause(unwrapAsyncException(e));
 		}
 
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
+	}
+
+	/**
+	 * Unwraps failures from {@link CompletableFuture#get()} / async lambdas so types match sequential 1.3.x propagation.
+	 */
+	private static Throwable unwrapAsyncException(Throwable throwable) {
+		if (throwable == null) {
+			return null;
+		}
+		Throwable t = throwable;
+		while (t.getCause() != null
+				&& (t instanceof ExecutionException
+						|| t instanceof CompletionException
+						|| t.getClass() == RuntimeException.class)) {
+			// Only move down through async/get() wrappers; stop on real failures (e.g. TablenotAccessibleException)
+			t = t.getCause();
+		}
+		return t;
+	}
+
+	/**
+	 * Rethrows the root failure from async work so {@link #process(MessageDTO)} sees the same exception types
+	 * as sequential calls (e.g. {@link TablenotAccessibleException} vs generic wrapping).
+	 */
+	private static void rethrowUnwrappedCause(Throwable t)
+			throws IOException, JSONException, BaseCheckedException {
+		if (t instanceof Error) {
+			throw (Error) t;
+		}
+		if (t instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
+			throw new BaseUncheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					"Thread interrupted during anonymous profile processing",
+					(InterruptedException) t);
+		}
+		if (t instanceof TablenotAccessibleException) {
+			throw (TablenotAccessibleException) t;
+		}
+		if (t instanceof DateTimeParseException) {
+			throw (DateTimeParseException) t;
+		}
+		if (t instanceof WorkflowInternalActionException) {
+			throw (WorkflowInternalActionException) t;
+		}
+		if (t instanceof IOException) {
+			throw (IOException) t;
+		}
+		if (t instanceof JSONException) {
+			throw (JSONException) t;
+		}
+		if (t instanceof BaseCheckedException) {
+			throw (BaseCheckedException) t;
+		}
+		if (t instanceof RuntimeException) {
+			throw (RuntimeException) t;
+		}
+		if (t instanceof Exception) {
+			throw new BaseCheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					t.getMessage() != null ? t.getMessage() : "Error during anonymous profile processing",
+					(Exception) t);
+		}
+		throw new BaseCheckedException(
+				PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+				"Error during anonymous profile processing: " + t,
+				new Exception(t));
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {

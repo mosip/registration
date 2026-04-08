@@ -7,6 +7,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertNull;
@@ -2967,6 +2971,98 @@ public class UinGeneratorStageTest {
 				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
+	/**
+	 * Schema without packetCreatedOn: process() must not call retrieveCreatedDateFromPacket (MOSIP-44732 behaviour).
+	 */
+	@Test
+	public void testProcessNew_WhenPacketCreatedOnNotInSchema_SkipsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "email", "dateOfBirth"));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testProcessNew_WhenPacketCreatedOnInSchema_CallsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		clearInvocations(utility);
+
+		uinGeneratorStage.process(messageDTO);
+
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"), anyString(),
+				eq(ProviderStageName.UIN_GENERATOR));
+	}
+
+	@Test
+	public void testProcessUpdate_WhenPacketCreatedOnInSchema_CallsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		clearInvocations(utility);
+
+		uinGeneratorStage.process(messageDTO);
+
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"), anyString(),
+				eq(ProviderStageName.UIN_GENERATOR));
 	}
 
 }
