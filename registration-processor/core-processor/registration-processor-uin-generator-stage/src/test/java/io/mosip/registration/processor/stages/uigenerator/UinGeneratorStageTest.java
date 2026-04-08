@@ -3003,6 +3003,7 @@ public class UinGeneratorStageTest {
 
 		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -3034,11 +3035,13 @@ public class UinGeneratorStageTest {
 
 		clearInvocations(utility);
 
-		uinGeneratorStage.process(messageDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
 
 		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
 				eq(RegistrationType.NEW.name()),
 				eq(ProviderStageName.UIN_GENERATOR));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -3070,11 +3073,13 @@ public class UinGeneratorStageTest {
 
 		clearInvocations(utility);
 
-		uinGeneratorStage.process(messageDTO);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
 
 		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
 				eq(RegistrationType.UPDATE.name()),
 				eq(ProviderStageName.UIN_GENERATOR));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	/**
@@ -3115,6 +3120,7 @@ public class UinGeneratorStageTest {
 
 		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	/**
@@ -3155,6 +3161,7 @@ public class UinGeneratorStageTest {
 
 		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	/**
@@ -3194,60 +3201,50 @@ public class UinGeneratorStageTest {
 
 		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
 		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	/**
-	 * External process codes mapped to internal UPDATE (e.g. CRVS_UPDATE) must not trigger
-	 * {@code retrieveCreatedDateFromPacket}; only a literal UPDATE {@code reg_type} does, alongside NEW.
+	 * External workflow type on the message (e.g. CRVS_UPDATE, mapped to internal UPDATE via config elsewhere) must
+	 * not trigger {@code retrieveCreatedDateFromPacket}. The stage only starts that fetch when
+	 * {@code object.getReg_type()} is the literal strings NEW or UPDATE — not when the type is an external code that
+	 * maps to UPDATE later (see {@code utilities.getInternalProcess} on the UIN-update branch only).
 	 */
 	@Test
 	public void testProcessMappedUpdate_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
 			throws Exception {
-		@SuppressWarnings("unchecked")
-		Map<String, String> previousMapping = (Map<String, String>) ReflectionTestUtils.getField(uinGeneratorStage,
-				"additionalProcessCategoryMapping");
-		try {
-			Map<String, String> externalInternalMap = new HashMap<>();
-			externalInternalMap.put("CRVS_UPDATE", RegistrationType.UPDATE.name());
-			ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", externalInternalMap);
-			when(utilities.getInternalProcess(any(), eq("CRVS_UPDATE")))
-					.thenReturn(RegistrationType.UPDATE.name());
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type("CRVS_UPDATE");
 
-			MessageDTO messageDTO = new MessageDTO();
-			messageDTO.setRid("27847657360002520181210094052");
-			messageDTO.setReg_type("CRVS_UPDATE");
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
 
-			when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
-					MappingJsonConstants.PACKET_CREATED_ON));
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
 
-			IdResponseDTO idResponseDTO = new IdResponseDTO();
-			ResponseDTO responseDTO = new ResponseDTO();
-			responseDTO.setStatus("ACTIVATED");
-			idResponseDTO.setErrors(null);
-			idResponseDTO.setId("mosip.id.update");
-			idResponseDTO.setResponse(responseDTO);
-			idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
-			idResponseDTO.setVersion("1.0");
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
 
-			when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
-			when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
-			when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("CRVS_UPDATE");
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
 
-			InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
-			internalRegistrationStatusDto.setRegistrationType("CRVS_UPDATE");
-			when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
-					.thenReturn(internalRegistrationStatusDto);
+		clearInvocations(utility);
 
-			clearInvocations(utility);
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
 
-			MessageDTO result = uinGeneratorStage.process(messageDTO);
-
-			verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
-			assertFalse(result.getInternalError());
-		} finally {
-			ReflectionTestUtils.setField(uinGeneratorStage, "additionalProcessCategoryMapping", previousMapping);
-			Mockito.reset(utilities);
-		}
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 }
