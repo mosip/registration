@@ -7,6 +7,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertNull;
@@ -2967,6 +2971,280 @@ public class UinGeneratorStageTest {
 				rid, internalRegistrationStatusDto, demographicIdentity, messageDTO, null);
 
 		assertNull(demographicIdentity.get("packetCreatedOn"));
+	}
+
+	/**
+	 * Schema without packetCreatedOn: process() must not call retrieveCreatedDateFromPacket (MOSIP-44732 behaviour).
+	 */
+	@Test
+	public void testProcessNew_WhenPacketCreatedOnNotInSchema_SkipsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "email", "dateOfBirth"));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testProcessNew_WhenPacketCreatedOnInSchema_CallsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.NEW.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
+				eq(RegistrationType.NEW.name()),
+				eq(ProviderStageName.UIN_GENERATOR));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testProcessUpdate_WhenPacketCreatedOnInSchema_CallsRetrieveCreatedDateFromPacket() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.UPDATE.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.UPDATE.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, times(1)).retrieveCreatedDateFromPacket(eq("27847657360002520181210094052"),
+				eq(RegistrationType.UPDATE.name()),
+				eq(ProviderStageName.UIN_GENERATOR));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	/**
+	 * packetCreatedOn is fetched only when {@code reg_type} is NEW or UPDATE. RES_UPDATE does not update biometrics the
+	 * same way and must not trigger {@code retrieveCreatedDateFromPacket} even if the schema includes packetCreatedOn.
+	 */
+	@Test
+	public void testProcessResUpdate_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.RES_UPDATE.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.RES_UPDATE.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	/**
+	 * ACTIVATED packets must not trigger {@code retrieveCreatedDateFromPacket}; only literal NEW/UPDATE {@code reg_type}
+	 * values start that fetch when the schema includes packetCreatedOn.
+	 */
+	@Test
+	public void testProcessActivated_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.ACTIVATED.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.ACTIVATED.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	/**
+	 * DEACTIVATED packets must not trigger {@code retrieveCreatedDateFromPacket} when packetCreatedOn is in the schema.
+	 */
+	@Test
+	public void testProcessDeactivated_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.DEACTIVATED.name());
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType(RegistrationType.DEACTIVATED.name());
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	/**
+	 * External workflow type on the message (e.g. CRVS_UPDATE, mapped to internal UPDATE via config elsewhere) must
+	 * not trigger {@code retrieveCreatedDateFromPacket}. The stage only starts that fetch when
+	 * {@code object.getReg_type()} is the literal strings NEW or UPDATE — not when the type is an external code that
+	 * maps to UPDATE later (see {@code utilities.getInternalProcess} on the UIN-update branch only).
+	 */
+	@Test
+	public void testProcessMappedUpdate_WhenPacketCreatedOnInSchema_DoesNotCallRetrieveCreatedDateFromPacket()
+			throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type("CRVS_UPDATE");
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("name", "dob", "gender",
+				MappingJsonConstants.PACKET_CREATED_ON));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(idResponseDTO);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(identityObj);
+		when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(documentObj);
+
+		InternalRegistrationStatusDto internalRegistrationStatusDto = new InternalRegistrationStatusDto();
+		internalRegistrationStatusDto.setRegistrationType("CRVS_UPDATE");
+		when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(internalRegistrationStatusDto);
+
+		clearInvocations(utility);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+
+		verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), any(), any(ProviderStageName.class));
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 }

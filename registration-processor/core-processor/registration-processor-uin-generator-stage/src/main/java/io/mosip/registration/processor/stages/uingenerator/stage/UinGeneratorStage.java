@@ -260,20 +260,34 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					} catch (Exception e) { throw new CompletionException(e); }
 				}, uinExecutor);
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+				List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
-				// Start retrieveCreatedDateFromPacket in parallel for NEW/UPDATE only
 				final String regTypeForCreatedOn = registrationStatusDto.getRegistrationType();
 				CompletableFuture<String> createdOnFuture = null;
-				if (RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) ||
-						RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
-					createdOnFuture = CompletableFuture.supplyAsync(() -> {
-						try { return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.UIN_GENERATOR); }
-						catch (Exception e) { throw new CompletionException(e); }
-					}, uinExecutor);
+
+				// Start retrieveCreatedDateFromPacket in parallel if schema contains the packetCreatedOn and packet type NEW or UPDATE.
+				if (defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
+					if (RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) ||
+							RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
+						createdOnFuture = CompletableFuture.supplyAsync(() -> {
+							try {
+								return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.UIN_GENERATOR);
+							} catch (Exception e) {
+								throw new CompletionException(e);
+							}
+						}, uinExecutor);
+					}
+				} else {
+					regProcLogger.info(
+							LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId,
+							"packetCreatedOn not found in packet idSchemaVersion " + schemaVersion
+									+ ". Skipping retrieveCreatedDateFromPacket.");
 				}
 
 				Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
-						idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
+						defaultFields, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
 
 				// Resolve both futures before closing the executor
 				String uinField;

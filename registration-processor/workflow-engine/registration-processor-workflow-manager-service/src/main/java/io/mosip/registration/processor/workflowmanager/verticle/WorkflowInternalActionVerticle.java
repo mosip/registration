@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -100,10 +102,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflow-manager.internal.action.eventbus.port}")
 	private String eventBusPort;
 
-    @Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
-    private int defaultMaxAllowedIteration;
-    
-    @Value("${mosip.anonymous.profile.eventbus.address}")
+	@Value("${mosip.regproc.workflow-manager.internal.action.max-allowed-iteration}")
+	private int defaultMaxAllowedIteration;
+
+	@Value("${mosip.anonymous.profile.eventbus.address}")
 	private String anonymousProfileBusAddress;
 
 	@Autowired
@@ -119,7 +121,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private AnonymousProfileService anonymousProfileService;
 
 	private MosipEventBus mosipEventBus = null;
-	
+
 	public static String MODULE_NAME = ModuleName.WORKFLOW_INTERNAL_ACTION.toString();
 
 	public static String MODULE_ID = PlatformSuccessMessages.RPR_WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode();
@@ -130,7 +132,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private Utilities utility;
-	
+
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
@@ -163,8 +165,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		return Integer.parseInt(eventBusPort);
 	}
 	@Override
-	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
-			long messageExpiryTimeLimit) {
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
+						long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -190,37 +192,37 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		try {
 			workflowInternalActionCode = WorkflowInternalActionCode.valueOf(workflowInternalActionDTO.getActionCode());
 			switch (workflowInternalActionCode) {
-			case MARK_AS_PAUSED:
-				processPacketForPaused(workflowInternalActionDTO);
-				break;
-			case COMPLETE_AS_PROCESSED:
-				processCompleteAsProcessed(workflowInternalActionDTO);
-				break;
-			case COMPLETE_AS_REJECTED:
-				processCompleteAsRejected(workflowInternalActionDTO);
-				break;
-			case COMPLETE_AS_FAILED:
-				processCompleteAsFailed(workflowInternalActionDTO);
-				break;
-			case MARK_AS_REPROCESS:
-				processMarkAsReprocess(workflowInternalActionDTO);
-				break;
-			case PAUSE_AND_REQUEST_ADDITIONAL_INFO:
-				processPauseAndRequestAdditionalInfo(workflowInternalActionDTO);
-				break;
-			case RESTART_PARENT_FLOW:
-				processRestartParentFlow(workflowInternalActionDTO);
-				break;
-			case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
-				processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
-				break;
-			case ANONYMOUS_PROFILE:
-				processAnonymousProfile(workflowInternalActionDTO);
-				break;
-			default:
-				throw new WorkflowInternalActionException(
-						PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getCode(),
-						PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getMessage());
+				case MARK_AS_PAUSED:
+					processPacketForPaused(workflowInternalActionDTO);
+					break;
+				case COMPLETE_AS_PROCESSED:
+					processCompleteAsProcessed(workflowInternalActionDTO);
+					break;
+				case COMPLETE_AS_REJECTED:
+					processCompleteAsRejected(workflowInternalActionDTO);
+					break;
+				case COMPLETE_AS_FAILED:
+					processCompleteAsFailed(workflowInternalActionDTO);
+					break;
+				case MARK_AS_REPROCESS:
+					processMarkAsReprocess(workflowInternalActionDTO);
+					break;
+				case PAUSE_AND_REQUEST_ADDITIONAL_INFO:
+					processPauseAndRequestAdditionalInfo(workflowInternalActionDTO);
+					break;
+				case RESTART_PARENT_FLOW:
+					processRestartParentFlow(workflowInternalActionDTO);
+					break;
+				case COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW:
+					processCompleteAsRejectedWithoutParentFlow(workflowInternalActionDTO);
+					break;
+				case ANONYMOUS_PROFILE:
+					processAnonymousProfile(workflowInternalActionDTO);
+					break;
+				default:
+					throw new WorkflowInternalActionException(
+							PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getCode(),
+							PlatformErrorMessages.RPR_WIA_UNKNOWN_WORKFLOW_ACTION.getMessage());
 
 			}
 			isTransactionSuccessful = true;
@@ -260,36 +262,178 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private void processAnonymousProfile(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws IOException, JSONException, BaseCheckedException {
 
-		String json = null;
 		String registrationId = workflowInternalActionDTO.getRid();
 		String registrationType = workflowInternalActionDTO.getReg_type();
 
 		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				registrationId, registrationType, workflowInternalActionDTO.getIteration(),
-				workflowInternalActionDTO.getWorkflowInstanceId());
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String idSchemaVersionValue = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
-		String schemaVersion = priorityBasedpacketManagerService.getFieldByMappingJsonKey(registrationId,
-				idSchemaVersionValue, registrationType, ProviderStageName.WORKFLOW_MANAGER);
-		Map<String,String> fieldTypeMap = idSchemaUtil.getIdSchemaFieldTypes(
-				Double.parseDouble(schemaVersion));
-		Map<String, String> fieldMap = priorityBasedpacketManagerService.getFields(registrationId,
-				idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), registrationType,
-				ProviderStageName.WORKFLOW_MANAGER);
-		Map<String, String> metaInfoMap = priorityBasedpacketManagerService.getMetaInfo(registrationId,
-				registrationType,
-				ProviderStageName.WORKFLOW_MANAGER);
-		BiometricRecord biometricRecord = priorityBasedpacketManagerService.getBiometrics(registrationId,
-				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationType, ProviderStageName.WORKFLOW_MANAGER);
-		json = anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap, fieldTypeMap,
-				metaInfoMap, registrationStatusDto.getStatusCode(), registrationStatusDto.getRegistrationStageName());
-		anonymousProfileService.saveAnonymousProfile(registrationId, registrationStatusDto.getRegistrationStageName(), json);
-		
-		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
+		try (ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+			// Round 1: fire all independent calls in parallel
+			CompletableFuture<InternalRegistrationStatusDto> registrationStatusFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							return registrationStatusService.getRegistrationStatus(
+									registrationId, registrationType,
+									workflowInternalActionDTO.getIteration(),
+									workflowInternalActionDTO.getWorkflowInstanceId());
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			CompletableFuture<Map<String, String>> metaInfoFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							return priorityBasedpacketManagerService.getMetaInfo(
+									registrationId, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			CompletableFuture<BiometricRecord> biometricsFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							return priorityBasedpacketManagerService.getBiometrics(
+									registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
+									registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			// Chain: mappingJson -> idSchemaVersionValue -> schemaVersion (sequential dependencies)
+			CompletableFuture<String> schemaVersionFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							JSONObject regProcessorIdentityJson =
+									utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+							String idSchemaVersionValue = JsonUtil.getJSONValue(
+									JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
+									MappingJsonConstants.VALUE);
+							return priorityBasedpacketManagerService.getFieldByMappingJsonKey(
+									registrationId, idSchemaVersionValue, registrationType,
+									ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			// Round 2: once schemaVersion is known, fire fieldTypeMap and fieldMap in parallel
+			CompletableFuture<Map<String, String>> fieldTypeMapFuture =
+					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
+						try {
+							return idSchemaUtil.getIdSchemaFieldTypes(Double.parseDouble(schemaVersion));
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			CompletableFuture<Map<String, String>> fieldMapFuture =
+					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
+						try {
+							return priorityBasedpacketManagerService.getFields(
+									registrationId,
+									idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)),
+									registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}, virtualThreadExecutor);
+
+			// Collect all results
+			InternalRegistrationStatusDto registrationStatusDto = registrationStatusFuture.get();
+			Map<String, String> metaInfoMap = metaInfoFuture.get();
+			BiometricRecord biometricRecord = biometricsFuture.get();
+			Map<String, String> fieldTypeMap = fieldTypeMapFuture.get();
+			Map<String, String> fieldMap = fieldMapFuture.get();
+
+			String json = anonymousProfileService.buildJsonStringFromPacketInfo(
+					biometricRecord, fieldMap, fieldTypeMap,
+					metaInfoMap, registrationStatusDto.getStatusCode(),
+					registrationStatusDto.getRegistrationStageName());
+			anonymousProfileService.saveAnonymousProfile(
+					registrationId, registrationStatusDto.getRegistrationStageName(), json);
+
+			this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
+
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new BaseUncheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					"Thread interrupted during anonymous profile processing", e);
+		} catch (ExecutionException e) {
+			rethrowUnwrappedCause(unwrapAsyncException(e));
+		}
 
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
+	}
+
+	/**
+	 * Unwraps failures from {@link CompletableFuture#get()} / async lambdas so types match sequential 1.3.x propagation.
+	 */
+	private static Throwable unwrapAsyncException(Throwable throwable) {
+		if (throwable == null) {
+			return null;
+		}
+		Throwable t = throwable;
+		while (t.getCause() != null
+				&& (t instanceof ExecutionException
+						|| t instanceof CompletionException
+						|| t.getClass() == RuntimeException.class)) {
+			// Only move down through async/get() wrappers; stop on real failures (e.g. TablenotAccessibleException)
+			t = t.getCause();
+		}
+		return t;
+	}
+
+	/**
+	 * Rethrows the root failure from async work so {@link #process(MessageDTO)} sees the same exception types
+	 * as sequential calls (e.g. {@link TablenotAccessibleException} vs generic wrapping).
+	 */
+	private static void rethrowUnwrappedCause(Throwable t)
+			throws IOException, JSONException, BaseCheckedException {
+		if (t instanceof Error) {
+			throw (Error) t;
+		}
+		if (t instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
+			throw new BaseUncheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					"Thread interrupted during anonymous profile processing",
+					(InterruptedException) t);
+		}
+		if (t instanceof TablenotAccessibleException) {
+			throw (TablenotAccessibleException) t;
+		}
+		if (t instanceof DateTimeParseException) {
+			throw (DateTimeParseException) t;
+		}
+		if (t instanceof WorkflowInternalActionException) {
+			throw (WorkflowInternalActionException) t;
+		}
+		if (t instanceof IOException) {
+			throw (IOException) t;
+		}
+		if (t instanceof JSONException) {
+			throw (JSONException) t;
+		}
+		if (t instanceof BaseCheckedException) {
+			throw (BaseCheckedException) t;
+		}
+		if (t instanceof RuntimeException) {
+			throw (RuntimeException) t;
+		}
+		if (t instanceof Exception) {
+			throw new BaseCheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					t.getMessage() != null ? t.getMessage() : "Error during anonymous profile processing",
+					(Exception) t);
+		}
+		throw new BaseCheckedException(
+				PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+				"Error during anonymous profile processing: " + t,
+				new Exception(t));
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -306,8 +450,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processMarkAsReprocess(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
+				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REPROCESS.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -323,8 +467,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
+				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -355,21 +499,21 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.getAdditionalInfoRequestByRegIdAndProcessAndIteration(workflowInternalActionDTO.getRid(),
 						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
 						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-		
+
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
 					RegistrationStatusCode.REJECTED.toString());
 			packetManagerService.addOrUpdateTags(workflowInternalActionDTO.getRid(), tags);
 			InternalRegistrationStatusDto mainFlowregistrationStatusDto = registrationStatusService
-				.getRegistrationStatus(null, null, null, additionalInfoRequestDto.getWorkflowInstanceId());
+					.getRegistrationStatus(null, null, null, additionalInfoRequestDto.getWorkflowInstanceId());
 			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
 			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
@@ -383,84 +527,41 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private void processCompleteAsProcessed(WorkflowInternalActionDTO workflowInternalActionDTO)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			WorkflowActionException {
+		String rid = workflowInternalActionDTO.getRid();
+		regProcLogger.info("processCompleteAsProcessed START for rid: {}", rid);
 
-		CompletableFuture<AdditionalInfoRequestDto> aiFuture;
-		CompletableFuture<InternalRegistrationStatusDto> statusFuture;
+		AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
+				.getAdditionalInfoRequestByRegIdAndProcessAndIteration(rid,
+						workflowInternalActionDTO.getReg_type(), workflowInternalActionDTO.getIteration());
 
-		// Phase 1: getAdditionalInfoRequest + getRegistrationStatus are independent — run in parallel
-		try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-			aiFuture = CompletableFuture.supplyAsync(() ->
-					additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcessAndIteration(
-							workflowInternalActionDTO.getRid(),
-							workflowInternalActionDTO.getReg_type(),
-							workflowInternalActionDTO.getIteration()), executor);
-
-			statusFuture = CompletableFuture.supplyAsync(() ->
-					registrationStatusService.getRegistrationStatus(
-							workflowInternalActionDTO.getRid(),
-							workflowInternalActionDTO.getReg_type(),
-							workflowInternalActionDTO.getIteration(),
-							workflowInternalActionDTO.getWorkflowInstanceId()), executor);
-
-			CompletableFuture.allOf(aiFuture, statusFuture).join();
-		} catch (CompletionException e) {
-			Throwable cause = e.getCause() != null ? e.getCause() : e;
-			if (cause instanceof TablenotAccessibleException) throw (TablenotAccessibleException) cause;
-			if (cause instanceof RuntimeException) throw (RuntimeException) cause;
-			throw new IOException("Parallel fetch failed for registration id: "
-					+ workflowInternalActionDTO.getRid(), cause);
-		}
-
-		AdditionalInfoRequestDto additionalInfoRequestDto = aiFuture.join();
-		InternalRegistrationStatusDto registrationStatusDto = statusFuture.join();
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
+				.getRegistrationStatus(rid, workflowInternalActionDTO.getReg_type(),
+						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-		registrationStatusDto.setLatestTransactionTypeCode(
-				RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
-		registrationStatusService.updateRegistrationStatusForWorkflowEngine(
-				registrationStatusDto, MODULE_ID, MODULE_NAME);
+
+		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
 
 		if (additionalInfoRequestDto != null) {
-			Map<String, String> tags = new HashMap<>();
+			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
 					RegistrationStatusCode.PROCESSED.toString());
 
-			// Phase 2: addOrUpdateTags (HTTP) + getRegistrationStatus(mainFlow) (DB) are independent — run in parallel
-			CompletableFuture<Void> tagsFuture;
-			CompletableFuture<InternalRegistrationStatusDto> mainFlowFuture;
+			packetManagerService.addOrUpdateTags(rid, tags);
 
-			try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-				tagsFuture = CompletableFuture.runAsync(() -> {
-					try {
-						packetManagerService.addOrUpdateTags(workflowInternalActionDTO.getRid(), tags);
-					} catch (ApisResourceAccessException | PacketManagerException | JsonProcessingException |
-							 IOException e) {
-						throw new CompletionException(e);
-					}
-				}, executor);
+			InternalRegistrationStatusDto mainFlowregistrationStatusDto = registrationStatusService
+					.getRegistrationStatus(null, null, null, additionalInfoRequestDto.getWorkflowInstanceId());
 
-				mainFlowFuture = CompletableFuture.supplyAsync(() ->
-						registrationStatusService.getRegistrationStatus(
-								null, null, null, additionalInfoRequestDto.getWorkflowInstanceId()), executor);
 
-				CompletableFuture.allOf(tagsFuture, mainFlowFuture).join();
-			} catch (CompletionException e) {
-				Throwable cause = e.getCause() != null ? e.getCause() : e;
-				if (cause instanceof ApisResourceAccessException) throw (ApisResourceAccessException) cause;
-				if (cause instanceof PacketManagerException) throw (PacketManagerException) cause;
-				if (cause instanceof TablenotAccessibleException) throw (TablenotAccessibleException) cause;
-				throw new IOException("Parallel execution failed for registration id: "
-						+ workflowInternalActionDTO.getRid(), cause);
-			}
+			mainFlowregistrationStatusDto
+					.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+			List<InternalRegistrationStatusDto> internalRegistrationStatusDtos = new ArrayList<InternalRegistrationStatusDto>();
+			internalRegistrationStatusDtos.add(mainFlowregistrationStatusDto);
 
-			InternalRegistrationStatusDto mainFlowRegistrationStatusDto = mainFlowFuture.join();
-			mainFlowRegistrationStatusDto.setLatestTransactionStatusCode(
-					RegistrationTransactionStatusCode.REPROCESS.toString());
-
-			workflowActionService.processWorkflowAction(
-					List.of(mainFlowRegistrationStatusDto),
+			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
@@ -470,8 +571,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	private void processPacketForPaused(WorkflowInternalActionDTO workflowInternalActionDTO) {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-			.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
-				workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
+				.getRegistrationStatus(workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getReg_type(),
+						workflowInternalActionDTO.getIteration(), workflowInternalActionDTO.getWorkflowInstanceId());
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED.toString());
 		registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
 		registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
@@ -486,7 +587,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			if(pauseRuleIds.isEmpty())
 				pauseRuleIds=matchedRuleId;
 			else
-			pauseRuleIds=pauseRuleIds+","+matchedRuleId;
+				pauseRuleIds=pauseRuleIds+","+matchedRuleId;
 		}
 		registrationStatusDto.setPauseRuleIds(pauseRuleIds);
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
@@ -512,14 +613,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	}
 
 	private void updateDTOsAndLogError(LogDescription description, String registrationId,
-			PlatformErrorMessages platformErrorMessages, Exception e) {
+									   PlatformErrorMessages platformErrorMessages, Exception e) {
 		description.setMessage(platformErrorMessages.getMessage());
 		description.setCode(platformErrorMessages.getCode());
 		regProcLogger.error("Error in  WorkflowEventUpdateVerticle  for registration id {} {} {} {}", registrationId,
 				platformErrorMessages.getMessage(), e.getMessage(), ExceptionUtils.getStackTrace(e));
 
 	}
-	
+
 	@Override
 	protected String getPropertyPrefix() {
 		return STAGE_PROPERTY_PREFIX;
@@ -612,7 +713,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		} else {
 			List<AdditionalInfoRequestDto> additionalInfoRequestDtos = additionalInfoRequestService.
 					getAdditionalInfoRequestByRegIdAndProcess(
-						workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getAdditionalInfoProcess());
+							workflowInternalActionDTO.getRid(), workflowInternalActionDTO.getAdditionalInfoProcess());
 			String iteration=env.getProperty("mosip.regproc.workflow-manager.internal.action.max-allowed-iteration." + workflowInternalActionDTO.getAdditionalInfoProcess());
 			int maxAllowedIteration;
 			if(iteration!=null) {
@@ -624,22 +725,22 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				workflowInternalActionDTO.setActionMessage(StatusUtil.WORKFLOW_INTERNAL_ACTION_REJECTED_ITERATIONS_EXCEEDED_LIMIT.getMessage());
 				processCompleteAsRejected(workflowInternalActionDTO);
 			}else {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
-			registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
-			registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
-			if (workflowInternalActionDTO.getResumeTimestamp() != null) {
-				LocalDateTime resumeTimeStamp = DateUtils2
-						.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
-				registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
-			}
-			registrationStatusDto.setUpdatedBy(USER);
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
-			registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
-			registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-			String additionalRequestId = createAdditionalInfoRequest(workflowInternalActionDTO,additionalInfoRequestDtos);
-			sendWorkflowPausedForAdditionalInfoEvent(registrationStatusDto, additionalRequestId,
-					workflowInternalActionDTO.getAdditionalInfoProcess());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PAUSED_FOR_ADDITIONAL_INFO.toString());
+				registrationStatusDto.setStatusComment(workflowInternalActionDTO.getActionMessage());
+				registrationStatusDto.setDefaultResumeAction(workflowInternalActionDTO.getDefaultResumeAction());
+				if (workflowInternalActionDTO.getResumeTimestamp() != null) {
+					LocalDateTime resumeTimeStamp = DateUtils2
+							.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
+					registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
+				}
+				registrationStatusDto.setUpdatedBy(USER);
+				registrationStatusDto
+						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
+				registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
+				registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
+				String additionalRequestId = createAdditionalInfoRequest(workflowInternalActionDTO,additionalInfoRequestDtos);
+				sendWorkflowPausedForAdditionalInfoEvent(registrationStatusDto, additionalRequestId,
+						workflowInternalActionDTO.getAdditionalInfoProcess());
 			}
 		}
 	}
@@ -670,7 +771,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	}
 
 	private void sendWorkflowPausedForAdditionalInfoEvent(InternalRegistrationStatusDto registrationStatusDto,
-			String additonalInfoRequestId, String additionalInfoProcess) {
+														  String additonalInfoRequestId, String additionalInfoProcess) {
 		WorkflowPausedForAdditionalInfoEventDTO workflowPausedForAdditionalInfoEventDTO = new WorkflowPausedForAdditionalInfoEventDTO();
 		workflowPausedForAdditionalInfoEventDTO.setInstanceId(registrationStatusDto.getRegistrationId());
 		workflowPausedForAdditionalInfoEventDTO.setWorkflowType(registrationStatusDto.getRegistrationType());
