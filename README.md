@@ -109,7 +109,7 @@ The project can be set up in two ways:
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before you begin, make sure you have the following installed:
 
 - **JDK**: 21.0.3
 - **Maven**: 3.9.6
