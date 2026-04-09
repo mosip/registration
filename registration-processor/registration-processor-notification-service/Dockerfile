@@ -80,12 +80,16 @@ VOLUME ${work_dir}/logs ${work_dir}/Glowroot
 
 ADD ./target/registration-processor-notification-service-*.jar registration-processor-notification-service.jar
 
+COPY configure_start.sh ${work_dir}/configure_start.sh
+
 # change permissions of file inside working dir
-RUN chown -R ${container_user}:${container_user} /home/${container_user}
+RUN sed -i 's/\r$//' ${work_dir}/configure_start.sh \
+    && chmod +x ${work_dir}/configure_start.sh \
+    && chown -R ${container_user}:${container_user_group} ${work_dir}
 
 # select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
 
-ENTRYPOINT ["./configure_start.sh"]
+ENTRYPOINT ["sh", "configure_start.sh"]
 
 CMD java -Dloader.path="${loader_path_env}" -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-notification-service.jar; \
