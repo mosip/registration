@@ -692,13 +692,13 @@ public class VerificationServiceImpl implements VerificationService {
 	 */
 	private boolean successFlow(VerificationResponseDTO manualVerificationDTO, VerificationEntity entity,
 			InternalRegistrationStatusDto registrationStatusDto, MessageDTO messageDTO, LogDescription description)
-			throws JsonProcessingException {
+			throws JsonProcessingException, com.fasterxml.jackson.core.JsonProcessingException {
 
 		boolean isTransactionSuccessful = false;
 		String statusCode = manualVerificationDTO.getReturnValue() == 1 ? ManualVerificationStatus.APPROVED.name()
 				: ManualVerificationStatus.REJECTED.name();
 
-		String responsetext = JsonUtils.javaObjectToJsonString(manualVerificationDTO);
+		String responsetext = mapper.writeValueAsString(manualVerificationDTO);
 		responsetext = StringUtils.isNotEmpty(responsetext) ? responsetext.replaceAll("\\s+", "") : responsetext;
 
 		entity.setStatusCode(statusCode);
