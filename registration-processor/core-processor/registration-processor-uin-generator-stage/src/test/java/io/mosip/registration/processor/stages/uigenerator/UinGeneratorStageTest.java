@@ -2992,7 +2992,7 @@ public class UinGeneratorStageTest {
 	}
 
 	@Test
-	public void testPacketCreatedOn_NotPresentInSchema_ShouldSkipUpdate() {
+	public void testPacketCreatedOn_NotPresentInSchema_ShouldSkipUpdate() throws IOException, PacketManagerException, ApisResourceAccessException, JsonProcessingException {
 
 		String rid = "10031100110005020190313110030";
 
@@ -3005,6 +3005,10 @@ public class UinGeneratorStageTest {
 
 		// Simulate old schema where packetCreatedOn is NOT present
 		List<String> defaultFields = Arrays.asList("name", "email", "dateOfBirth");
+		// Keep downstream prerequisites valid so this test proves schema-based skip specifically
+		when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+		when(utility.retrieveCreatedDateFromPacket(
+				rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn("2025-03-08T12:00:00Z");
 
 		JSONObject demographicIdentity = new JSONObject();
 		demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, 1.0);
