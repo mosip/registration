@@ -124,7 +124,7 @@ additionalResources:
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive
     -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=200m -Xms400m -Xmx700m
-    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=512m
+    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=384m
     -XX:MetaspaceSize=128m
     -XX:ReservedCodeCacheSize=64m -XX:InitialCodeCacheSize=16m
     -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
