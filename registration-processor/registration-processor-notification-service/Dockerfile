@@ -85,7 +85,7 @@ COPY configure_start.sh ${work_dir}/configure_start.sh
 # change permissions of file inside working dir
 RUN sed -i 's/\r$//' ${work_dir}/configure_start.sh \
     && chmod +x ${work_dir}/configure_start.sh \
-    && chown -R ${container_user}:${container_user} ${work_dir}
+    && chown -R ${container_user}:${container_user_group} ${work_dir}
 
 # select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
