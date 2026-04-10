@@ -69,4 +69,4 @@ CREATE INDEX IF NOT EXISTS idx_workflow_active_true ON regprc.registration USING
 CREATE INDEX IF NOT EXISTS idx_registration_workflow_instance_id ON regprc.registration(workflow_instance_id desc);
 CREATE INDEX IF NOT EXISTS idx_registration_sts_resume ON regprc.registration(status_code, resume_timestamp, default_resume_action);
 
-CREATE INDEX CONCURRENTLY idx_registration_reprocessor ON regprc.registration (latest_trn_status_code, latest_trn_dtimes, reg_process_retry_count, status_code);
+CREATE INDEX idx_registration_reprocessor ON regprc.registration (latest_trn_status_code, latest_trn_dtimes, reg_process_retry_count, status_code);
