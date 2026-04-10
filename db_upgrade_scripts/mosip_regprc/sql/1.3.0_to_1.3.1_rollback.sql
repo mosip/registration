@@ -1,1 +1,1 @@
-\echo 'Rollback Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
+DROP INDEX IF EXISTS regprc.idx_registration_reprocessor;
