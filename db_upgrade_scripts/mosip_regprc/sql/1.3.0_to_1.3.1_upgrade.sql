@@ -1,2 +1,1 @@
 CREATE INDEX idx_registration_reprocessor ON regprc.registration (latest_trn_status_code, latest_trn_dtimes, reg_process_retry_count, status_code);
-CREATE INDEX idx_reg_transaction_reg_id ON regprc.registration_transaction (reg_id);
