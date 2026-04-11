@@ -47,6 +47,7 @@ import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -55,6 +56,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.common.PartitionInfo;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
+import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecords;
 import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordsImpl;
@@ -97,6 +99,56 @@ public class KafkaMosipEventBusTest {
 			.thenReturn(kafkaProducer);
 
 		eventTracingHandler = new EventTracingHandler(tracing, "kafka");
+		mockKafkaProducerWriteResult(false, null);
+	}
+
+
+	private void mockKafkaProducerWriteResult(boolean failed, Throwable cause) {
+		AsyncResult producerAsyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(producerAsyncResult.failed()).thenReturn(failed);
+		Mockito.when(producerAsyncResult.succeeded()).thenReturn(!failed);
+		Mockito.when(producerAsyncResult.cause()).thenReturn(cause);
+		doAnswer((Answer<KafkaProducer<String, String>>) arguments -> {
+			((Handler<AsyncResult>) arguments.getArgument(1)).handle(producerAsyncResult);
+			return kafkaProducer;
+		}).when(kafkaProducer).write(any(KafkaProducerRecord.class), any(Handler.class));
+	}
+
+	private void mockCommitResult(boolean succeeded) {
+		AsyncResult<Void> voidAsyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(voidAsyncResult.succeeded()).thenReturn(succeeded);
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+			((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+			return null;
+		}).when(kafkaConsumer).commit(anyMap(), any());
+	}
+
+	private EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> prepareSuccessfulEventHandler() {
+		EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler =
+			Mockito.mock(EventHandler.class);
+		doAnswer((Answer<AsyncResult<MessageDTO>>) arguments -> {
+			AsyncResult<MessageDTO> asyncResultForMessageDTO = Mockito.mock(AsyncResult.class);
+			Mockito.when(asyncResultForMessageDTO.succeeded()).thenReturn(true);
+			MessageDTO messageDTO = new MessageDTO();
+			messageDTO.setRid("1001");
+			messageDTO.setReg_type(RegistrationType.NEW.name());
+			Mockito.when(asyncResultForMessageDTO.result()).thenReturn(messageDTO);
+			((Handler<AsyncResult<MessageDTO>>) arguments.getArgument(1))
+				.handle(asyncResultForMessageDTO);
+			return null;
+		}).when(eventHandler).handle(any(), any());
+		return eventHandler;
+	}
+
+	private KafkaConsumerRecord<String, String> prepareKafkaConsumerRecord() {
+		KafkaConsumerRecord<String, String> record = Mockito.mock(KafkaConsumerRecord.class);
+		Mockito.when(record.headers()).thenReturn(new ArrayList<>());
+		Mockito.when(record.key()).thenReturn("1001");
+		Mockito.when(record.value()).thenReturn("{\"rid\":\"1001\", \"reg_type\": \"NEW\" }");
+		Mockito.when(record.topic()).thenReturn(MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress());
+		Mockito.when(record.partition()).thenReturn(0);
+		Mockito.when(record.offset()).thenReturn(10L);
+		return record;
 	}
 
 	@After
@@ -304,6 +356,54 @@ public class KafkaMosipEventBusTest {
 				values.get(i).entrySet().iterator().next().getValue().getOffset() == i+1);
 		}
 		verify(kafkaProducer, times(testDataCount)).write(any(), any());
+	}
+
+
+	@Test
+	public void testProcessRecordCommitsAfterProducerWriteSuccess(TestContext testContext) {
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
+			"single", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
+		mockCommitResult(true);
+
+		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
+			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), true);
+
+		assertTrue(result.succeeded());
+		InOrder inOrder = Mockito.inOrder(kafkaProducer, kafkaConsumer);
+		inOrder.verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+		inOrder.verify(kafkaConsumer, times(1)).commit(anyMap(), any());
+	}
+
+	@Test
+	public void testProcessRecordFailsAndDoesNotCommitWhenProducerWriteFails(TestContext testContext) {
+		RuntimeException producerException = new RuntimeException("producer write failed");
+		mockKafkaProducerWriteResult(true, producerException);
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
+			"single", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
+
+		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
+			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), true);
+
+		assertTrue(result.failed());
+		assertEquals(producerException, result.cause());
+		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+	}
+
+	@Test
+	public void testProcessRecordFailsBatchFutureWhenProducerWriteFails(TestContext testContext) {
+		RuntimeException producerException = new RuntimeException("producer write failed");
+		mockKafkaProducerWriteResult(true, producerException);
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
+			"batch", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
+
+		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
+			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), false);
+
+		assertTrue(result.failed());
+		assertEquals(producerException, result.cause());
+		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
 	}
 
 	@Test
