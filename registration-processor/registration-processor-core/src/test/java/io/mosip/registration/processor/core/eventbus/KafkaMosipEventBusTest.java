@@ -123,6 +123,15 @@ public class KafkaMosipEventBusTest {
 		}).when(kafkaConsumer).commit(anyMap(), any());
 	}
 
+	private void mockResumeResult(boolean succeeded) {
+		AsyncResult<Void> voidAsyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(voidAsyncResult.succeeded()).thenReturn(succeeded);
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+			((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+			return null;
+		}).when(kafkaConsumer).resume(any(io.vertx.kafka.client.common.TopicPartition.class), any());
+	}
+
 	private EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> prepareSuccessfulEventHandler() {
 		EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler =
 			Mockito.mock(EventHandler.class);
@@ -361,6 +370,7 @@ public class KafkaMosipEventBusTest {
 
 	@Test
 	public void testProcessRecordCommitsAfterProducerWriteSuccess(TestContext testContext) {
+		Async async = testContext.async();
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
 			"single", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
 		mockCommitResult(true);
@@ -368,42 +378,62 @@ public class KafkaMosipEventBusTest {
 		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
 			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), true);
 
-		assertTrue(result.succeeded());
-		InOrder inOrder = Mockito.inOrder(kafkaProducer, kafkaConsumer);
-		inOrder.verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
-		inOrder.verify(kafkaConsumer, times(1)).commit(anyMap(), any());
+		result.onComplete(handler -> {
+			assertTrue(handler.succeeded());
+			InOrder inOrder = Mockito.inOrder(kafkaProducer, kafkaConsumer);
+			inOrder.verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+			inOrder.verify(kafkaConsumer, times(1)).commit(anyMap(), any());
+			async.complete();
+		});
+		async.await();
 	}
 
 	@Test
 	public void testProcessRecordFailsAndDoesNotCommitWhenProducerWriteFails(TestContext testContext) {
+		Async async = testContext.async();
 		RuntimeException producerException = new RuntimeException("producer write failed");
 		mockKafkaProducerWriteResult(true, producerException);
+		mockResumeResult(true);
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
 			"single", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
 
 		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
 			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), true);
 
-		assertTrue(result.failed());
-		assertEquals(producerException, result.cause());
-		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
-		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+		result.onComplete(handler -> {
+			assertTrue(handler.failed());
+			assertEquals(producerException, handler.cause());
+			verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+			verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+			verify(kafkaConsumer, times(1)).resume(
+				any(io.vertx.kafka.client.common.TopicPartition.class), any());
+			async.complete();
+		});
+		async.await();
 	}
 
 	@Test
 	public void testProcessRecordFailsBatchFutureWhenProducerWriteFails(TestContext testContext) {
+		Async async = testContext.async();
 		RuntimeException producerException = new RuntimeException("producer write failed");
 		mockKafkaProducerWriteResult(true, producerException);
+		mockResumeResult(true);
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1",
 			"batch", "100", "30000", 60000, eventTracingHandler, caffeineCacheManager);
 
 		Future<Void> result = kafkaMosipEventBus.processRecord(MessageBusAddress.PACKET_UPLOADER_OUT,
 			prepareSuccessfulEventHandler(), prepareKafkaConsumerRecord(), false);
 
-		assertTrue(result.failed());
-		assertEquals(producerException, result.cause());
-		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
-		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+		result.onComplete(handler -> {
+			assertTrue(handler.failed());
+			assertEquals(producerException, handler.cause());
+			verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class), any(Handler.class));
+			verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+			verify(kafkaConsumer, times(1)).resume(
+				any(io.vertx.kafka.client.common.TopicPartition.class), any());
+			async.complete();
+		});
+		async.await();
 	}
 
 	@Test

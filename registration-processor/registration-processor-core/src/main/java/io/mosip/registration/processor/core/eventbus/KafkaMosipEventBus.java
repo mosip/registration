@@ -333,6 +333,14 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			promise.fail(failureMessage);
 	}
 
+	private void resumeRecordPartition(KafkaConsumerRecord<String, String> record) {
+		Promise<Void> resumePromise = Promise.promise();
+		resumePartition(new TopicPartition(record.topic(), record.partition()), resumePromise);
+		resumePromise.future().onFailure(cause -> logger.error(
+			"Partition resume failed for topic: {} partition: {}",
+			record.topic(), record.partition(), cause));
+	}
+
 	private void setMDCContextMap(Map<String, String> mdc) {
 		if(mdc != null)
 			MDC.setContextMap(mdc);
@@ -373,6 +381,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 						setMDCContextMap(mdc);
 						if(handler.failed()) {
 							logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
+							resumeRecordPartition(record);
 							failPromise(promise, handler.cause(), "Failed kafkaProducer.write");
 						} else {
 							logger.info("Success kafkaProducer.write {} ", handler.result());
