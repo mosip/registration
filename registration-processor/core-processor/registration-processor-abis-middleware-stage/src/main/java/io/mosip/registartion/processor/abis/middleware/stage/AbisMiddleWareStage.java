@@ -503,7 +503,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 				AbisIdentifyResponseDto abisIdentifyResponseDto = JsonUtil.readValueWithUnknownProperties(response,
 						AbisIdentifyResponseDto.class);
-				if (!isInsertSuccess(abisIdentifyResponseDto)){
+				if (!abisIdentifyResponseDto.getReturnValue().equalsIgnoreCase("1")){
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 					internalRegStatusDto.setStatusComment(
