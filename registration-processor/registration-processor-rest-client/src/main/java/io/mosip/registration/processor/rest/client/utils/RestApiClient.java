@@ -176,9 +176,11 @@ public class RestApiClient {
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
+			System.out.println("[RestApiClient] >>> putApi HTTP PUT URI: " + uri + " | requestBody: " + requestType);
 			response = (ResponseEntity<T>) localRestTemplate.exchange(uri, HttpMethod.PUT,
 					setRequestHeader(requestType, mediaType), responseClass);
 			result = response.getBody();
+			System.out.println("[RestApiClient] <<< putApi HTTP response body: " + result);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));

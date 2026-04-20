@@ -401,7 +401,10 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 			}
 
 			try {
+				System.out.println("[RegistrationProcessorRestClientServiceImpl] >>> putApi URL: " + builder.toUriString()
+						+ " | requestBody: " + requestedData);
 				obj = restApiClient.putApi(builder.toUriString(), requestedData, responseType, mediaType);
+				System.out.println("[RegistrationProcessorRestClientServiceImpl] <<< putApi response: " + obj);
 
 			} catch (Exception e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

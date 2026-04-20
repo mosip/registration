@@ -368,7 +368,13 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 			queryValue.append(dto.getAttributeName());
 		}
 		List<String> segments=List.of(registrationId);
+		System.out.println("[BiometricExtractionStage] >>> Calling putApi - ApiName: " + ApiName.IDREPOEXTRACTBIOMETRICS
+				+ " | segments: " + segments
+				+ " | queryParamName: " + queryParmeter.toString()
+				+ " | queryParamValue: " + queryValue.toString()
+				+ " | requestBody: null");
 		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, queryParmeter.toString(), queryValue.toString(), null, IdResponseDTO.class, null);
+		System.out.println("[BiometricExtractionStage] <<< putApi response: " + response);
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
 			ErrorDTO error = response.getErrors().get(0);
 			regProcLogger.error("Error occured while updating draft for id : " + registrationId, error.toString());
