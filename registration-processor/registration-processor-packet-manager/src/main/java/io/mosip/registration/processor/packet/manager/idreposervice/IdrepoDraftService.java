@@ -103,7 +103,9 @@ public class IdrepoDraftService {
             requestDto.setAnonymousProfile(responseDTO.getAnonymousProfile());
             requestDto.setBiometricReferenceId(responseDTO.getBiometricReferenceId());
             JSONObject existingIdentity = mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class);
+            System.out.println("Existing Identity JSON: " + existingIdentity.toJSONString());
             JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
+            System.out.println("New Identity JSON before update: " + newIdentity.toJSONString());
             newIdentity.put(UIN, existingIdentity.get(UIN));
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
@@ -112,9 +114,11 @@ public class IdrepoDraftService {
             requestDto.setUin(responseDTO.getUin());
             idRequestDto.setRequest(requestDto);
         }
+        System.out.println("Final Identity JSON to be sent for update: " + idRequestDto.getRequest().getIdentity());
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
-            if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+        System.out.println("respone"+ response);    
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
                 regProcLogger.info("Error while updating the drant " + id);
                 regProcLogger.info(id+" Discarding the draft because of "+response.getErrors().get(0).getMessage());
                 idrepoDiscardDraft(id);
