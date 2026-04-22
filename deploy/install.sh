@@ -8,7 +8,7 @@ fi
 
 NS=regproc
 CHART_VERSION=12.1.3
-SALTGEN_CHART_VERSION=12.1.0-develop
+SALTGEN_CHART_VERSION=12.0.2
 
 echo Create $NS namespace
 kubectl create ns $NS
