@@ -7,7 +7,7 @@ if [ $# -ge 1 ] ; then
 fi
 
 NS=regproc
-CHART_VERSION=12.1.3
+CHART_VERSION=12.1.3-develop
 SALTGEN_CHART_VERSION=12.0.2
 
 echo Create $NS namespace
