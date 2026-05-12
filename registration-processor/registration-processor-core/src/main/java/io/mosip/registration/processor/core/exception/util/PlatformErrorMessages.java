@@ -189,6 +189,18 @@ public enum PlatformErrorMessages {
 
 	RPR_RGS_PACKETID_NOT_FOUND(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "037", "PacketId Not Found"),
 
+	RPR_RGS_SUPERVISOR_ID_REQUIRED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "039",
+			"Supervisor ID is required for processing."),
+
+	RPR_RGS_SUPERVISOR_ID_MISMATCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "040",
+			"Supervisor ID mismatch detected. Validation failed."),
+
+	RPR_RGS_INVALID_SYNCV3_REQUEST(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "041",
+			"Invalid sync request. Please verify input."),
+
+	RPR_RGS_SUPERVISOR_DETAILS_SAVE_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "042",
+			"Error saving supervisor details. Please retry."),
+
 	RPR_RGS_INVALID_SEARCH(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "032", "plz narrow down your search"),
 
 	RPR_RGS_SORTING_VALIDATION_FAILED(PlatformConstants.RPR_REGISTRATION_STATUS_MODULE + "033",

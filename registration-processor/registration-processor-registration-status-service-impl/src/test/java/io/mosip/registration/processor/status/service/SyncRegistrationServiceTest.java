@@ -9,15 +9,18 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import io.mosip.kernel.core.util.CryptoUtil;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -36,14 +39,15 @@ import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
+import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.workflow.dto.SortInfo;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -61,6 +65,7 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureV2Dto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
+import io.mosip.registration.processor.status.dto.SyncResponseSuccessV2Dto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
@@ -483,6 +488,201 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				(syncResponseDto.get(0)).getRegistrationId());
+	}
+
+	@Test
+	public void testGetSyncRegistrationStatusV3SuccessPersistsSupervisor()
+			throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto syncRegistrationDto16 = new SyncRegistrationDto();
+
+		syncRegistrationDto16.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		syncRegistrationDto16.setLangCode("eng");
+		syncRegistrationDto16.setIsActive(true);
+		syncRegistrationDto16.setIsDeleted(false);
+		syncRegistrationDto16.setSyncType(SyncTypeDto.NEW.getValue());
+		syncRegistrationDto16.setPacketHashValue("ab123");
+		syncRegistrationDto16.setSupervisorStatus("APPROVED");
+		syncRegistrationDto16.setPacketId("packet-1");
+		syncRegistrationDto16.setSupervisorId("supervisor-1");
+		syncRegistrationDto16.setSource("SUPERVISOR_UPLOAD");
+
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto16);
+
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(request, "10011_10011", "");
+
+		ArgumentCaptor<SyncRegistrationEntity> syncRegistrationEntityArgumentCaptor =
+				ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+		Mockito.verify(syncRegistrationDao).save(syncRegistrationEntityArgumentCaptor.capture());
+		assertEquals("supervisor-1", syncRegistrationEntityArgumentCaptor.getValue().getSupervisorId());
+		assertEquals("SUPERVISOR_UPLOAD", syncRegistrationEntityArgumentCaptor.getValue().getSource());
+		assertEquals("packet-1", ((SyncResponseSuccessV2Dto) syncResponse.get(0)).getPacketId());
+	}
+
+	@Test
+	public void testGetSyncRegistrationStatusV3MissingSupervisorFailure()
+			throws EncryptionFailureException, ApisResourceAccessException {
+		SyncRegistrationDto syncRegistrationDto16 = new SyncRegistrationDto();
+
+		syncRegistrationDto16.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		syncRegistrationDto16.setLangCode("eng");
+		syncRegistrationDto16.setIsActive(true);
+		syncRegistrationDto16.setIsDeleted(false);
+		syncRegistrationDto16.setSyncType(SyncTypeDto.NEW.getValue());
+		syncRegistrationDto16.setPacketHashValue("ab123");
+		syncRegistrationDto16.setSupervisorStatus("APPROVED");
+		syncRegistrationDto16.setPacketId("packet-1");
+		syncRegistrationDto16.setSource("SUPERVISOR_UPLOAD");
+
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(syncRegistrationDto16);
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(request, "10011_10011", "");
+
+		assertEquals(PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getMessage(),
+				((SyncResponseFailureV2Dto) syncResponse.get(0)).getMessage());
+		Mockito.verify(syncRegistrationDao, Mockito.never()).save(any());
+	}
+
+	@Test
+	public void testSyncV3V2BackwardCompatibleNoSourceNoSupervisor() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto dto = new SyncRegistrationDto();
+		dto.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		dto.setLangCode("eng");
+		dto.setIsActive(true);
+		dto.setIsDeleted(false);
+		dto.setSyncType(SyncTypeDto.NEW.getValue());
+		dto.setPacketHashValue("ab123");
+		dto.setSupervisorStatus("APPROVED");
+		dto.setPacketId("packet-v2-compat");
+		List<SyncRegistrationDto> request = new ArrayList<>();
+		request.add(dto);
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(null);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(request, "10011_10011", "");
+
+		assertEquals(ResponseStatusCode.SUCCESS.toString(), syncResponse.get(0).getStatus());
+		ArgumentCaptor<SyncRegistrationEntity> captor = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+		Mockito.verify(syncRegistrationDao).save(captor.capture());
+		assertEquals(null, captor.getValue().getSupervisorId());
+		assertEquals(null, captor.getValue().getSource());
+	}
+
+	@Test
+	public void testSyncV3AdminUploadPersistsAdminSupervisorId() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto dto = new SyncRegistrationDto();
+		dto.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		dto.setLangCode("eng");
+		dto.setIsActive(true);
+		dto.setIsDeleted(false);
+		dto.setSyncType(SyncTypeDto.NEW.getValue());
+		dto.setPacketHashValue("ab123");
+		dto.setSupervisorStatus("APPROVED");
+		dto.setPacketId("packet-admin");
+		dto.setSource("ADMIN_UPLOAD");
+		dto.setSupervisorId("admin-login-1");
+		List<SyncRegistrationDto> request = Collections.singletonList(dto);
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(null);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(request, "10011_10011", "");
+
+		assertEquals(ResponseStatusCode.SUCCESS.toString(), syncResponse.get(0).getStatus());
+		ArgumentCaptor<SyncRegistrationEntity> captor = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+		Mockito.verify(syncRegistrationDao).save(captor.capture());
+		assertEquals("admin-login-1", captor.getValue().getSupervisorId());
+		assertEquals("ADMIN_UPLOAD", captor.getValue().getSource());
+	}
+
+	@Test
+	public void testSyncV3AdminUploadMissingSupervisorAndNoPrincipalFails() throws EncryptionFailureException, ApisResourceAccessException {
+		SyncRegistrationDto dto = new SyncRegistrationDto();
+		dto.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		dto.setLangCode("eng");
+		dto.setIsActive(true);
+		dto.setIsDeleted(false);
+		dto.setSyncType(SyncTypeDto.NEW.getValue());
+		dto.setPacketHashValue("ab123");
+		dto.setSupervisorStatus("APPROVED");
+		dto.setPacketId("packet-admin-fail");
+		dto.setSource("ADMIN_UPLOAD");
+		List<SyncRegistrationDto> request = Collections.singletonList(dto);
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(request, "10011_10011", "");
+
+		assertEquals(PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getMessage(),
+				((SyncResponseFailureV2Dto) syncResponse.get(0)).getMessage());
+		Mockito.verify(syncRegistrationDao, Mockito.never()).save(any());
+	}
+
+	@Test
+	public void testSyncV3SupervisorMetadataMismatchFails() throws EncryptionFailureException, ApisResourceAccessException {
+		SyncRegistrationDto dto = new SyncRegistrationDto();
+		dto.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		dto.setLangCode("eng");
+		dto.setIsActive(true);
+		dto.setIsDeleted(false);
+		dto.setSyncType(SyncTypeDto.NEW.getValue());
+		dto.setPacketHashValue("ab123");
+		dto.setSupervisorStatus("APPROVED");
+		dto.setPacketId("packet-meta-mismatch");
+		dto.setSource("SUPERVISOR_UPLOAD");
+		dto.setSupervisorId("sync-supervisor");
+		JSONArray operations = new JSONArray();
+		JSONObject metaRow = new JSONObject();
+		metaRow.put("label", "supervisorId");
+		metaRow.put("value", "packet-supervisor");
+		operations.add(metaRow);
+		dto.setOptionalValues(operations);
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(Collections.singletonList(dto), "10011_10011", "");
+
+		assertEquals(PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_MISMATCH.getMessage(),
+				((SyncResponseFailureV2Dto) syncResponse.get(0)).getMessage());
+		Mockito.verify(syncRegistrationDao, Mockito.never()).save(any());
+	}
+
+	@Test
+	public void testSyncV3SupervisorMetadataMatchSucceeds() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		SyncRegistrationDto dto = new SyncRegistrationDto();
+		dto.setRegistrationId(syncRegistrationDto.getRegistrationId());
+		dto.setLangCode("eng");
+		dto.setIsActive(true);
+		dto.setIsDeleted(false);
+		dto.setSyncType(SyncTypeDto.NEW.getValue());
+		dto.setPacketHashValue("ab123");
+		dto.setSupervisorStatus("APPROVED");
+		dto.setPacketId("packet-meta-match");
+		dto.setSource("SUPERVISOR_UPLOAD");
+		dto.setSupervisorId("shared-supervisor");
+		JSONArray operations = new JSONArray();
+		JSONObject metaRow = new JSONObject();
+		metaRow.put("label", "supervisorId");
+		metaRow.put("value", "shared-supervisor");
+		operations.add(metaRow);
+		dto.setOptionalValues(operations);
+		Mockito.when(encryptor.encrypt(anyString(), anyString(), anyString())).thenReturn(encryptedInfo);
+		Mockito.when(syncRegistrationDao.findByPacketId(any())).thenReturn(null);
+		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(any(), any(), any());
+
+		List<SyncResponseDto> syncResponse = syncRegistrationService.syncV3(Collections.singletonList(dto), "10011_10011", "");
+
+		assertEquals(ResponseStatusCode.SUCCESS.toString(), syncResponse.get(0).getStatus());
+		ArgumentCaptor<SyncRegistrationEntity> captor = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+		Mockito.verify(syncRegistrationDao).save(captor.capture());
+		assertEquals("shared-supervisor", captor.getValue().getSupervisorId());
 	}
 
 	@Test

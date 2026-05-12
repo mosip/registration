@@ -13,12 +13,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.mosip.kernel.core.util.*;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -94,6 +96,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	/** The Constant CREATED_BY. */
 	private static final String CREATED_BY = "MOSIP";
+
+	private static final String ADMIN_UPLOAD = "ADMIN_UPLOAD";
+
+	private static final String SUPERVISOR_UPLOAD = "SUPERVISOR_UPLOAD";
 
 	/** The event id. */
 	private String eventId = "";
@@ -243,6 +249,41 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 
 	}
 
+	public List<SyncResponseDto> syncV3(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
+										String timeStamp) {
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::syncV3()::entry");
+		LogDescription description = new LogDescription();
+		boolean isTransactionSuccessful = false;
+		try {
+			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
+				List<SyncResponseDto> syncResponseForPacket = new ArrayList<>();
+				if (registrationDto.getPacketId() != null && !registrationDto.getPacketId().isBlank()) {
+					syncResponseForPacket = validateSyncV3(registrationDto, syncResponseForPacket, referenceId, timeStamp);
+				} else {
+					addSyncFailure(registrationDto, syncResponseForPacket,
+							PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getCode(),
+							String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), "packetId"));
+				}
+				syncResponseList.addAll(toV2ResponseList(syncResponseForPacket, registrationDto.getPacketId()));
+			}
+			isTransactionSuccessful = true;
+			description.setMessage("Registartion Id's are successfully synched in Sync Registration table");
+
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", "");
+		} catch (DataAccessLayerException e) {
+			handleSupervisorDetailsPersistenceException(description, e);
+		} finally {
+			createAudit(description, isTransactionSuccessful);
+
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"SyncRegistrationServiceImpl::syncV3()::exit");
+		return syncResponseList;
+	}
+
 	private void handleTableNotAccessibleException(LogDescription description, DataAccessLayerException e) {
 		description.setMessage(PlatformErrorMessages.RPR_RGS_DATA_ACCESS_EXCEPTION.getMessage());
 		description.setCode(PlatformErrorMessages.RPR_RGS_DATA_ACCESS_EXCEPTION.getCode());
@@ -252,6 +293,16 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 		throw new TablenotAccessibleException(
 				PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+	}
+
+	private void handleSupervisorDetailsPersistenceException(LogDescription description, DataAccessLayerException e) {
+		description.setMessage(PlatformErrorMessages.RPR_RGS_SUPERVISOR_DETAILS_SAVE_FAILED.getMessage());
+		description.setCode(PlatformErrorMessages.RPR_RGS_SUPERVISOR_DETAILS_SAVE_FAILED.getCode());
+
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+		throw new TablenotAccessibleException(
+				PlatformErrorMessages.RPR_RGS_SUPERVISOR_DETAILS_SAVE_FAILED.getMessage(), e);
 	}
 
 	private void createAudit(LogDescription description, boolean isTransactionSuccessful) {
@@ -356,8 +407,228 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				syncResponseV2List.add(v2Dto);
 			}
 		}
-		
+
 		return syncResponseV2List;
+	}
+
+	private List<SyncResponseDto> validateSyncV3(SyncRegistrationDto registrationDto,
+											   List<SyncResponseDto> syncResponseList, String referenceId,
+											   String timeStamp) {
+		if (validateUploadSource(registrationDto, syncResponseList)
+				&& validateSupervisorIdAgainstPacketMetadata(registrationDto, syncResponseList)
+				&& validateLanguageCode(registrationDto, syncResponseList)
+				&& validateRegistrationType(registrationDto, syncResponseList)
+				&& validateHashValue(registrationDto, syncResponseList)
+				&& validateSupervisorStatus(registrationDto, syncResponseList)) {
+			if (validateRegistrationID(registrationDto, syncResponseList)) {
+				syncResponseList = syncRegistrationRecord(registrationDto, syncResponseList, referenceId, timeStamp);
+			}
+		}
+		return syncResponseList;
+	}
+
+	/**
+	 * Sync V3 upload source rules: legacy when both source and supervisorId are absent;
+	 * ADMIN_UPLOAD uses client supervisorId or authenticated principal as admin id;
+	 * SUPERVISOR_UPLOAD requires supervisorId and optional packet-metadata cross-check.
+	 */
+	private boolean validateUploadSource(SyncRegistrationDto registrationDto, List<SyncResponseDto> syncResponseList) {
+		String source = trimToNull(registrationDto.getSource());
+
+		if (source == null && isBlank(registrationDto.getSupervisorId())) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=V2_COMPAT — no source and no supervisorId; proceeding as legacy sync");
+			return true;
+		}
+
+		if (source == null) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=OPTIONAL_TRACEABILITY — supervisorId present without explicit source; persisting without SUPERVISOR_UPLOAD source");
+			return true;
+		}
+
+		source = source.toUpperCase(Locale.ROOT);
+		registrationDto.setSource(source);
+
+		if (!ADMIN_UPLOAD.equals(source) && !SUPERVISOR_UPLOAD.equals(source)) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=REJECT_INVALID_SOURCE — source=" + registrationDto.getSource());
+			addSyncFailure(registrationDto, syncResponseList,
+					PlatformErrorMessages.RPR_RGS_INVALID_SYNCV3_REQUEST.getCode(),
+					PlatformErrorMessages.RPR_RGS_INVALID_SYNCV3_REQUEST.getMessage());
+			return false;
+		}
+
+		if (ADMIN_UPLOAD.equals(source)) {
+			if (isBlank(registrationDto.getSupervisorId())) {
+				String principalName = resolveAuthenticatedPrincipalName();
+				if (!isBlank(principalName)) {
+					registrationDto.setSupervisorId(principalName.trim());
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationDto.getRegistrationId(),
+							"SyncV3 audit: path=ADMIN_UPLOAD — supervisorId set from authenticated principal");
+				}
+			} else {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationDto.getRegistrationId(),
+						"SyncV3 audit: path=ADMIN_UPLOAD — supervisorId taken from sync payload (admin id)");
+			}
+			if (isBlank(registrationDto.getSupervisorId())) {
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationDto.getRegistrationId(),
+						"SyncV3 audit: path=REJECT_ADMIN_NO_ID — ADMIN_UPLOAD without supervisorId and no authenticated principal");
+				addSyncFailure(registrationDto, syncResponseList,
+						PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getCode(),
+						PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getMessage());
+				return false;
+			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=ADMIN_UPLOAD_OK — supervisor biometric validation skipped at downstream supervisor stage");
+			return true;
+		}
+
+		if (isBlank(registrationDto.getSupervisorId())) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=REJECT_SUPERVISOR_NO_ID — SUPERVISOR_UPLOAD without supervisorId");
+			addSyncFailure(registrationDto, syncResponseList,
+					PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getCode(),
+					PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_REQUIRED.getMessage());
+			return false;
+		}
+
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationDto.getRegistrationId(),
+				"SyncV3 audit: path=SUPERVISOR_UPLOAD_OK — supervisorId present; downstream stage will validate biometrics unless legacy packet");
+		return true;
+	}
+
+	/**
+	 * When optionalValues carries operationsData-style entries, ensure sync supervisorId matches packet metadata snapshot.
+	 */
+	private boolean validateSupervisorIdAgainstPacketMetadata(SyncRegistrationDto registrationDto,
+			List<SyncResponseDto> syncResponseList) {
+		if (!SUPERVISOR_UPLOAD.equalsIgnoreCase(trimToNull(registrationDto.getSource()))) {
+			return true;
+		}
+		JSONArray optional = registrationDto.getOptionalValues();
+		if (optional == null || optional.isEmpty()) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: metadata_crosscheck=SKIPPED — no optionalValues for SUPERVISOR_UPLOAD");
+			return true;
+		}
+		String metadataSupervisorId = extractSupervisorIdFromOperationsData(optional);
+		if (isBlank(metadataSupervisorId)) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: metadata_crosscheck=SKIPPED — no supervisorId label in optionalValues");
+			return true;
+		}
+		if (!metadataSupervisorId.trim().equals(registrationDto.getSupervisorId().trim())) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationDto.getRegistrationId(),
+					"SyncV3 audit: path=REJECT_METADATA_MISMATCH — syncSupervisorId=" + registrationDto.getSupervisorId()
+							+ " metadataSupervisorId=" + metadataSupervisorId);
+			addSyncFailure(registrationDto, syncResponseList,
+					PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_MISMATCH.getCode(),
+					PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_MISMATCH.getMessage());
+			return false;
+		}
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationDto.getRegistrationId(),
+				"SyncV3 audit: metadata_crosscheck=MATCH — supervisorId aligns with optionalValues packet metadata");
+		return true;
+	}
+
+	private String extractSupervisorIdFromOperationsData(JSONArray optionalValues) {
+		for (Object element : optionalValues) {
+			if (!(element instanceof org.json.simple.JSONObject)) {
+				continue;
+			}
+			org.json.simple.JSONObject row = (org.json.simple.JSONObject) element;
+			Object label = row.get("label");
+			Object value = row.get("value");
+			if (label != null && "supervisorId".equalsIgnoreCase(label.toString()) && value != null) {
+				return value.toString();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Resolves MOSIP-authenticated user id when Spring Security is on the classpath (registration status service runtime).
+	 */
+	private String resolveAuthenticatedPrincipalName() {
+		try {
+			Class<?> holderClass = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
+			Object context = holderClass.getMethod("getContext").invoke(null);
+			if (context == null) {
+				return null;
+			}
+			Object authentication = context.getClass().getMethod("getAuthentication").invoke(context);
+			if (authentication == null) {
+				return null;
+			}
+			Boolean authenticated = (Boolean) authentication.getClass().getMethod("isAuthenticated").invoke(authentication);
+			if (!Boolean.TRUE.equals(authenticated)) {
+				return null;
+			}
+			String name = (String) authentication.getClass().getMethod("getName").invoke(authentication);
+			if (name == null || "anonymousUser".equalsIgnoreCase(name)) {
+				return null;
+			}
+			return name;
+		} catch (ReflectiveOperationException | ClassCastException | LinkageError e) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"SyncV3: SecurityContextHolder not available or not authenticated: " + e.getMessage());
+			return null;
+		}
+	}
+
+	private List<SyncResponseDto> toV2ResponseList(List<SyncResponseDto> syncResponseList, String packetId) {
+		List<SyncResponseDto> syncResponseV2List = new ArrayList<>();
+		for (SyncResponseDto dto : syncResponseList) {
+			if (dto instanceof SyncResponseFailureDto) {
+				SyncResponseFailureV2Dto v2Dto = new SyncResponseFailureV2Dto(dto.getRegistrationId(), dto.getStatus(),
+						((SyncResponseFailureDto) dto).getErrorCode(), ((SyncResponseFailureDto) dto).getMessage(),
+						packetId);
+				syncResponseV2List.add(v2Dto);
+			} else if (dto instanceof SyncResponseFailDto) {
+				SyncResponseFailureV2Dto v2Dto = new SyncResponseFailureV2Dto(dto.getRegistrationId(), dto.getStatus(),
+						((SyncResponseFailDto) dto).getErrorCode(), ((SyncResponseFailDto) dto).getMessage(),
+						packetId);
+				syncResponseV2List.add(v2Dto);
+			} else {
+				SyncResponseSuccessV2Dto v2Dto = new SyncResponseSuccessV2Dto(dto.getRegistrationId(), dto.getStatus(),
+						packetId);
+				syncResponseV2List.add(v2Dto);
+			}
+		}
+
+		return syncResponseV2List;
+	}
+
+	private void addSyncFailure(SyncRegistrationDto registrationDto, List<SyncResponseDto> syncResponseList,
+			String errorCode, String message) {
+		SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
+		syncResponseFailureDto.setRegistrationId(registrationDto.getRegistrationId());
+		syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
+		syncResponseFailureDto.setMessage(message);
+		syncResponseFailureDto.setErrorCode(errorCode);
+		syncResponseList.add(syncResponseFailureDto);
+	}
+
+	private String trimToNull(String value) {
+		return value != null && !value.trim().isEmpty() ? value.trim() : null;
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
 	}
 
 	/**
@@ -641,6 +912,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setPacketSize(dto.getPacketSize());
 		syncRegistrationEntity.setSupervisorStatus(dto.getSupervisorStatus());
 		syncRegistrationEntity.setSupervisorComment(dto.getSupervisorComment());
+		syncRegistrationEntity.setSupervisorId(dto.getSupervisorId());
+		syncRegistrationEntity.setSource(dto.getSource());
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		syncRegistrationEntity.setAdditionalInfoReqId(dto.getAdditionalInfoReqId());
 		syncRegistrationEntity.setPacketId(dto.getPacketId() != null ? dto.getPacketId() : dto.getRegistrationId());

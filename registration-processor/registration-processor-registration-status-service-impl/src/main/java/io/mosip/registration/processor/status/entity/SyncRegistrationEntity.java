@@ -37,6 +37,9 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 	@Column(name = "source")
 	private String source;
 
+	@Column(name = "supervisor_id")
+	private String supervisorId;
+
 	/** The lang code. */
 	@Column(name = "packet_checksum")
 	private String packetHashValue;
@@ -183,6 +186,14 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public String getSupervisorId() {
+		return supervisorId;
+	}
+
+	public void setSupervisorId(String supervisorId) {
+		this.supervisorId = supervisorId;
 	}
 
 	/**

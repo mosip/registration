@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.supervisorvalidator;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import io.mosip.registration.processor.core.exception.*;
@@ -39,8 +40,12 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
 @Transactional
@@ -54,8 +59,17 @@ public class SupervisorValidationProcessor {
 
 	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
 
+	private static final String ADMIN_UPLOAD = "ADMIN_UPLOAD";
+
+	private static final String ADMIN_PACKET_VALIDATION_SKIPPED = "Admin packet validation skipped.";
+
+	private static final String LEGACY_PACKET_WITHOUT_SUPERVISOR = "Processing packet with legacy data.";
+
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -95,35 +109,37 @@ public class SupervisorValidationProcessor {
 			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,
 					registrationStatusDto.getRegistrationType(), ProviderStageName.SUPERVISOR_VALIDATOR);
 			RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(metaInfo);
-			
-			String supervisorId = regOsi.getSupervisorId();
-			if (supervisorId == null || supervisorId.isEmpty()) {
-				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_NOT_PRESENT_IN_PACKET));
-				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				regProcLogger.debug("process called for registrationId {}. Supervisor ID is not present in Packet",
-						registrationId);
-				throw new ValidationFailedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
-						StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
+			SyncRegistrationEntity syncRegistrationEntity =
+					getSyncRegistrationEntity(registrationId, object.getWorkflowInstanceId());
+
+			if (isAdminUpload(syncRegistrationEntity)) {
+				regProcLogger.warn("Admin packet validation skipped for registrationId {}", registrationId);
+				markValidationSuccess(registrationStatusDto, object, description, registrationId,
+						ADMIN_PACKET_VALIDATION_SKIPPED);
+				isTransactionSuccessful = true;
+			} else if (isLegacyPacketWithoutSupervisor(syncRegistrationEntity, regOsi.getSupervisorId())) {
+				regProcLogger.info("Processing packet with legacy supervisor data for registrationId {}", registrationId);
+				markValidationSuccess(registrationStatusDto, object, description, registrationId,
+						LEGACY_PACKET_WITHOUT_SUPERVISOR);
+				isTransactionSuccessful = true;
+			} else {
+				String supervisorId = regOsi.getSupervisorId();
+				if (supervisorId == null || supervisorId.isEmpty()) {
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.SUPERVISORID_NOT_PRESENT_IN_PACKET));
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+					regProcLogger.debug("process called for registrationId {}. Supervisor ID is not present in Packet",
+							registrationId);
+					throw new ValidationFailedException(StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getMessage(),
+							StatusUtil.SUPERVISOR_NOT_FOUND_PACKET.getCode());
+				}
+
+				validateSupervisorIdMatches(syncRegistrationEntity, supervisorId);
+				supervisorValidator.validate(registrationId, registrationStatusDto, regOsi);
+				markValidationSuccess(registrationStatusDto, object, description, registrationId,
+						StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getMessage());
+				isTransactionSuccessful = true;
 			}
-
-			supervisorValidator.validate(registrationId, registrationStatusDto, regOsi);
-			
-			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-			registrationStatusDto.setStatusComment(StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getCode());
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-
-			description.setMessage(
-					PlatformSuccessMessages.RPR_PKR_SUPERVISOR_VALIDATE.getMessage() + " -- " + registrationId);
-			description.setCode(PlatformSuccessMessages.RPR_PKR_SUPERVISOR_VALIDATE.getCode());
-
-			regProcLogger.info("process call ended for registrationId {} {} {}", registrationId,
-					description.getCode() + description.getMessage());
-
-			object.setIsValid(Boolean.TRUE);
-			object.setInternalError(Boolean.FALSE);
-			isTransactionSuccessful = true;
 		}catch (PacketManagerNonRecoverableException e){
 			updateDTOsAndLogError(registrationStatusDto, RegistrationStatusCode.FAILED,
 					StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION, RegistrationExceptionTypeCode.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION,
@@ -190,6 +206,62 @@ public class SupervisorValidationProcessor {
 		}
 
 		return object;
+	}
+
+	private SyncRegistrationEntity getSyncRegistrationEntity(String registrationId, String workflowInstanceId) {
+		SyncRegistrationEntity syncRegistrationEntity = null;
+		if (workflowInstanceId != null) {
+			syncRegistrationEntity = syncRegistrationService.findByWorkflowInstanceId(workflowInstanceId);
+		}
+		if (syncRegistrationEntity == null) {
+			List<SyncRegistrationEntity> syncRegistrationEntities = syncRegistrationService.findByRegistrationId(registrationId);
+			syncRegistrationEntity = syncRegistrationEntities != null && !syncRegistrationEntities.isEmpty()
+					? syncRegistrationEntities.get(0) : null;
+		}
+		return syncRegistrationEntity;
+	}
+
+	private boolean isAdminUpload(SyncRegistrationEntity syncRegistrationEntity) {
+		return syncRegistrationEntity != null
+				&& ADMIN_UPLOAD.equalsIgnoreCase(syncRegistrationEntity.getSource());
+	}
+
+	private boolean isLegacyPacketWithoutSupervisor(SyncRegistrationEntity syncRegistrationEntity, String packetSupervisorId) {
+		return syncRegistrationEntity != null
+				&& isBlank(syncRegistrationEntity.getSource())
+				&& isBlank(syncRegistrationEntity.getSupervisorId())
+				&& isBlank(packetSupervisorId);
+	}
+
+	private void validateSupervisorIdMatches(SyncRegistrationEntity syncRegistrationEntity, String packetSupervisorId)
+			throws ValidationFailedException {
+		if (syncRegistrationEntity != null && !isBlank(syncRegistrationEntity.getSupervisorId())
+				&& !syncRegistrationEntity.getSupervisorId().equals(packetSupervisorId)) {
+			throw new ValidationFailedException(PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_MISMATCH.getCode(),
+					PlatformErrorMessages.RPR_RGS_SUPERVISOR_ID_MISMATCH.getMessage());
+		}
+	}
+
+	private void markValidationSuccess(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
+			LogDescription description, String registrationId, String statusComment) {
+		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+		registrationStatusDto.setStatusComment(statusComment);
+		registrationStatusDto.setSubStatusCode(StatusUtil.SUPERVISOR_VALIDATION_SUCCESS.getCode());
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+
+		description.setMessage(
+				PlatformSuccessMessages.RPR_PKR_SUPERVISOR_VALIDATE.getMessage() + " -- " + registrationId);
+		description.setCode(PlatformSuccessMessages.RPR_PKR_SUPERVISOR_VALIDATE.getCode());
+
+		regProcLogger.info("process call ended for registrationId {} {} {}", registrationId,
+				description.getCode() + description.getMessage());
+
+		object.setIsValid(Boolean.TRUE);
+		object.setInternalError(Boolean.FALSE);
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
 	}
 
 	private void updateDTOsAndLogError(InternalRegistrationStatusDto registrationStatusDto,
