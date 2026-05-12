@@ -7,6 +7,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 import io.mosip.registration.processor.core.exception.*;
@@ -50,8 +52,12 @@ import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorVali
 import io.mosip.registration.processor.stages.supervisorvalidator.SupervisorValidator;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 /**
  * The Class SupervisorValidatorProcessorTest.
@@ -70,6 +76,9 @@ public class SupervisorValidatorProcessorTest {
 	/** The registration status service. */
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+	@Mock
+	SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	/** The audit log request builder. */
 	@Mock
@@ -141,6 +150,7 @@ public class SupervisorValidatorProcessorTest {
 		registrationStatusDto.setRegistrationId("123456789");
 		registrationStatusDto.setRegistrationId("reg1234");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(Collections.emptyList());
 	}
 
 	/**
@@ -167,6 +177,51 @@ public class SupervisorValidatorProcessorTest {
 		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
 		assertFalse(object.getIsValid());
 		assertFalse(object.getInternalError());
+	}
+
+	@Test
+	public void adminUploadSkipsSupervisorValidationTest() throws Exception {
+
+		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		syncRegistrationEntity.setSource("ADMIN_UPLOAD");
+		syncRegistrationEntity.setSupervisorId("admin-1");
+		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
+				.thenReturn(Arrays.asList(syncRegistrationEntity));
+
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
+		Mockito.verify(supervisorValidator, Mockito.never()).validate(anyString(), any(), any());
+	}
+
+	@Test
+	public void supervisorIdMismatchTest() throws Exception {
+
+		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		syncRegistrationEntity.setSource("SUPERVISOR_UPLOAD");
+		syncRegistrationEntity.setSupervisorId("another-supervisor");
+		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
+				.thenReturn(Arrays.asList(syncRegistrationEntity));
+
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertFalse(object.getIsValid());
+		assertFalse(object.getInternalError());
+		Mockito.verify(supervisorValidator, Mockito.never()).validate(anyString(), any(), any());
+	}
+
+	@Test
+	public void legacyPacketWithoutSupervisorIdTest() throws Exception {
+
+		regOsi.setSupervisorId(null);
+		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(any())).thenReturn(regOsi);
+		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		Mockito.when(syncRegistrationService.findByRegistrationId(anyString()))
+				.thenReturn(Arrays.asList(syncRegistrationEntity));
+
+		MessageDTO object = supervisorValidationProcessor.process(dto, stageName);
+		assertTrue(object.getIsValid());
+		assertFalse(object.getInternalError());
+		Mockito.verify(supervisorValidator, Mockito.never()).validate(anyString(), any(), any());
 	}
 
 	/**

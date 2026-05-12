@@ -111,6 +111,8 @@ public interface SyncRegistrationService<T, U> {
 
 	public List<SyncResponseDto> syncV2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
 
+	public List<SyncResponseDto> syncV3(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
+
 	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);
 
 	public List<LostRidDto> searchLostRid(SearchInfo searchInfo);

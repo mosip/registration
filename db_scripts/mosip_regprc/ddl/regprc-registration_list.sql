@@ -26,11 +26,13 @@ CREATE TABLE regprc.registration_list(
 	packet_id character varying,
 	ref_id character varying(512),
 	source	character varying,
+	supervisor_id character varying,
 	CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id)
 );
 
 create index idx_rgstrnlst_pcktid on regprc.registration_list (packet_id);
 create index idx_rgstrnlst_aireqid on regprc.registration_list (additional_info_req_id);
+CREATE INDEX IF NOT EXISTS idx_rgstrnlst_supervisor_status ON regprc.registration_list (supervisor_id, source, client_status_code) WHERE (supervisor_id IS NOT NULL);
 
 CREATE INDEX IF NOT EXISTS idx_reglist_reg_id ON regprc.registration_list USING btree (reg_id);
 COMMENT ON TABLE regprc.registration_list IS 'Registration Lists: List of Registration packets details received (to be received) from registration client applications. These details are used to validate the actuall packets received for processing.';
@@ -49,6 +51,7 @@ COMMENT ON COLUMN regprc.registration_list.upd_by IS 'Updated By : ID or name of
 COMMENT ON COLUMN regprc.registration_list.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN regprc.registration_list.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN regprc.registration_list.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+COMMENT ON COLUMN regprc.registration_list.supervisor_id IS 'Supervisor ID: ID of the supervisor or admin who approved/rejected the registration packet';
 
 
 --PERFORMANCE INDEXES--

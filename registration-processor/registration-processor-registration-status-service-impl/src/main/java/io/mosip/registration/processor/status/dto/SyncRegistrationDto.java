@@ -54,6 +54,12 @@ public class SyncRegistrationDto implements Serializable {
 	/** The status comment. */
 	private String supervisorComment;
 
+	/** The supervisor id. */
+	private String supervisorId;
+
+	/** The upload source. */
+	private String source;
+
 	/** The optional values. */
 	private JSONArray optionalValues;
 
@@ -271,6 +277,22 @@ public class SyncRegistrationDto implements Serializable {
 	 */
 	public void setSupervisorComment(String supervisorComment) {
 		this.supervisorComment = supervisorComment;
+	}
+
+	public String getSupervisorId() {
+		return supervisorId;
+	}
+
+	public void setSupervisorId(String supervisorId) {
+		this.supervisorId = supervisorId;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	/**

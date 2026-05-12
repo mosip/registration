@@ -364,6 +364,40 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
+	@WithMockUser(value = "resident", roles = "RESIDENT")
+	public void testSyncV3Controller() throws Exception {
+
+		RegistrationSyncRequestDTO registrationSyncRequestDTO = new RegistrationSyncRequestDTO();
+		List<SyncRegistrationDto> request = new ArrayList<SyncRegistrationDto>();
+		SyncRegistrationDto syncRegistrationDto = new SyncRegistrationDto("45128164920495", "NEW", null, null, "eng");
+		syncRegistrationDto.setPacketId("45128164920495");
+		syncRegistrationDto.setSupervisorId("supervisor-1");
+		syncRegistrationDto.setSource("SUPERVISOR_UPLOAD");
+		request.add(syncRegistrationDto);
+		String requestJson = objMp.writeValueAsString(request);
+
+		List<SyncResponseDto> syncResponseList = new ArrayList<>();
+		SyncResponseDto syncResponseDto = new SyncResponseDto();
+		syncResponseDto.setStatus("true");
+		syncResponseDto.setRegistrationId("45128164920495");
+		syncResponseList.add(syncResponseDto);
+
+		Mockito.when(syncRegistrationService.decryptAndGetSyncRequest(ArgumentMatchers.any(), ArgumentMatchers.any(),
+				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(registrationSyncRequestDTO);
+		Mockito.when(
+				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		Mockito.when(
+				syncRegistrationService.syncV3(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(syncResponseList);
+		this.mockMvc.perform(
+				post("/syncV3").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
+						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
+						.content(requestJson.getBytes()).cookie(new Cookie("Authorization", requestJson)))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	public void testBuildRegistrationSyncResponse() throws JsonProcessingException {
 		List<SyncResponseDto> syncResponseDtoList = new ArrayList<>();
 		syncResponseFailureDto.setStatus("SUCCESS");
