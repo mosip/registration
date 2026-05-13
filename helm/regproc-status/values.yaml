@@ -116,8 +116,8 @@ resources:
     cpu: 800m
     memory: 3000Mi
   requests:
-    cpu: 350m
-    memory: 1000Mi
+    cpu: 400m
+    memory: 1500Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
