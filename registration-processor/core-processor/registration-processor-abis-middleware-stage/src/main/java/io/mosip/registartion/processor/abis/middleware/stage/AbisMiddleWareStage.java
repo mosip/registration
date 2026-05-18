@@ -344,14 +344,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				validateNullCheck(abisQueue, ABIS_QUEUE_NOT_FOUND);
 				byte[] reqBytearray = abisIdentifyRequest.getReqText();
 
-				// Mark SENT in DB before sending to queue to prevent race condition where
-				// ABIS responds before the status update, causing the response to be dropped.
-				updateAbisRequest(true, abisIdentifyRequest, internalRegDto);
 				boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 						abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-				if (!isAddedToQueue) {
-					updateAbisRequest(false, abisIdentifyRequest, internalRegDto);
-				}
+				updateAbisRequest(isAddedToQueue, abisIdentifyRequest, internalRegDto);
+
 			}
 
 		}
@@ -364,13 +360,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 			byte[] reqBytearray = abisInprogressRequest.getReqText();
 
-			// Mark SENT in DB before sending to queue to prevent race condition.
-			updateAbisRequest(true, abisInprogressRequest, internalRegDto);
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-			if (!isAddedToQueue) {
-				updateAbisRequest(false, abisInprogressRequest, internalRegDto);
-			}
+			updateAbisRequest(isAddedToQueue, abisInprogressRequest, internalRegDto);
+
 		}
 		// send all identify requests for already processed insert requests
 		for (AbisRequestDto abisAlreadyProcessedInsertRequest : abisAlreadyprocessedInsertRequestList) {
@@ -382,13 +375,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					.filter(dto -> dto.getAbisAppCode().equals(abisAlreadyProcessedInsertRequest.getAbisAppCode()))
 					.collect(Collectors.toList());
 			byte[] reqBytearray = identifyRequest.get(0).getReqText();
-			// Mark SENT in DB before sending to queue to prevent race condition.
-			updateAbisRequest(true, identifyRequest.get(0), internalRegDto);
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
-			if (!isAddedToQueue) {
-				updateAbisRequest(false, identifyRequest.get(0), internalRegDto);
-			}
+			updateAbisRequest(isAddedToQueue, identifyRequest.get(0), internalRegDto);
+
 		}
 	}
 
@@ -462,14 +452,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 							.collect(Collectors.toList());
 					validateNullCheck(abisIdentifyRequest, "IDENTIFY_REQUESTS_NOT_FOUND");
 					AbisRequestDto abisIdentifyRequestDto = abisIdentifyRequest.get(0);
-					// Mark SENT in DB before sending to queue to prevent race condition where
-					// ABIS responds before the status update, causing the identify response to be dropped.
-					updateAbisRequest(true, abisIdentifyRequestDto, internalRegStatusDto);
 					boolean isAddedToQueue = sendToQueue(queue, new String(abisIdentifyRequestDto.getReqText()),
 							abisInBoundAddress, inboundMessageTTL);
-					if (!isAddedToQueue) {
-						updateAbisRequest(false, abisIdentifyRequestDto, internalRegStatusDto);
-					}
+					updateAbisRequest(isAddedToQueue, abisIdentifyRequestDto, internalRegStatusDto);
+
 				} else {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
