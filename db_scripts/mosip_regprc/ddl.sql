@@ -1,4 +1,4 @@
-\c mosip_regprc
+\c :mosipdbname
 
 \ir ddl/regprc-individual_demographic_dedup.sql
 \ir ddl/regprc-registration.sql

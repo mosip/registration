@@ -1,1 +1,1 @@
-drop role if exists regprcuser; 
+drop role if exists :dbuname;

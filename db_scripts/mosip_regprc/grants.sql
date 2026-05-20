@@ -1,17 +1,16 @@
-\c mosip_regprc 
+\c :mosipdbname
 
 GRANT CONNECT
-   ON DATABASE mosip_regprc
-   TO regprcuser;
+   ON DATABASE :mosipdbname
+   TO :dbuname;
 
 GRANT USAGE
    ON SCHEMA regprc
-   TO regprcuser;
+   TO :dbuname;
 
 GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES
-   ON ALL TABLES IN SCHEMA regprc
-   TO regprcuser;
+      ON ALL TABLES IN SCHEMA regprc
+          TO :dbuname;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA regprc 
-	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO regprcuser;
-
+ALTER DEFAULT PRIVILEGES IN SCHEMA regprc
+	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO :dbuname;
