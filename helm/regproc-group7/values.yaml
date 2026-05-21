@@ -119,10 +119,10 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 800m
+    cpu: 600m
     memory: 3000Mi
   requests:
-    cpu: 400m
+    cpu: 300m
     memory: 1500Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
