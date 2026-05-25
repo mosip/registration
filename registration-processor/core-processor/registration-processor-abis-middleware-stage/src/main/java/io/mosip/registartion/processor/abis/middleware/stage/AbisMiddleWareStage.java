@@ -144,6 +144,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${activemq.message.format}")
 	private String messageFormat;
 
+	/** Scheduled delivery delay for ABIS inbound queue messages (milliseconds). 0 = immediate. */
+	@Value("${mosip.regproc.abis.middleware.activemq.inbound.delay.ms:0}")
+	private long inboundMessageDelayMs;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -621,18 +625,23 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisMiddlewareStage::sendToQueue()::Entry");
 		boolean isAddedToQueue;
+		long producerSubmitEpochMs = System.currentTimeMillis();
 		try {
 			synchronized (sendLock) {
 				if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString,
-						abisQueueAddress, messageTTL);
+						abisQueueAddress, messageTTL, inboundMessageDelayMs);
 				else
 					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(),
-						abisQueueAddress, messageTTL);
+						abisQueueAddress, messageTTL, inboundMessageDelayMs);
 			}
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"AbisMiddlewareStage:: sent to abis queue ::" + abisReqTextString);
+			if (isAddedToQueue) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"AbisMiddlewareStage::sendToQueue::submitted queue=" + abisQueueAddress
+								+ " producerSubmitEpochMs=" + producerSubmitEpochMs + " configuredDelayMs="
+								+ inboundMessageDelayMs + " sent to abis queue ::" + abisReqTextString);
+			}
 
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

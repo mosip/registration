@@ -14,6 +14,7 @@ import io.mosip.registration.processor.core.queue.impl.exception.QueueConnection
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ScheduledMessage;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -21,6 +22,7 @@ import jakarta.jms.BytesMessage;
 import jakarta.jms.Connection;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSException;
+import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.Session;
@@ -117,8 +119,13 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
      * lang.Object, java.lang.Object, java.lang.String, long)
      */
     @Override
-	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, byte[] message, String address, int messageTTL) {
+        return send(mosipQueue, message, address, messageTTL, 0L);
+    }
+
+    @Override
+	@SuppressWarnings({ "java:S2095" })
+    public Boolean send(MosipQueue mosipQueue, byte[] message, String address, int messageTTL, long scheduledDelayMs) {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
                 "", "MosipActiveMqImpl::send()::entry");
 
@@ -129,8 +136,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             MessageProducer messageProducer = sessionForSend.createProducer(sendDestination);
             BytesMessage byteMessage = sessionForSend.createBytesMessage();
             byteMessage.writeObject(message);
-            if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * (long)1000);
+            applyScheduledDelay(byteMessage, scheduledDelayMs, address);
+            if (messageTTL > 0)
+                messageProducer.setTimeToLive(messageTTL * (long) 1000);
             messageProducer.send(byteMessage);
             flag = true;
         } catch (JMSException e) {
@@ -154,8 +162,13 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
     }
 
     @Override
-	@SuppressWarnings({ "java:S2095" })
     public Boolean send(MosipQueue mosipQueue, String message, String address, int messageTTL) {
+        return send(mosipQueue, message, address, messageTTL, 0L);
+    }
+
+    @Override
+	@SuppressWarnings({ "java:S2095" })
+    public Boolean send(MosipQueue mosipQueue, String message, String address, int messageTTL, long scheduledDelayMs) {
         boolean flag = false;
         initialSetup(mosipQueue);
         try {
@@ -168,8 +181,9 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
             MessageProducer messageProducer = sessionForSend.createProducer(sendDestination);
             TextMessage textMessage = sessionForSend.createTextMessage();
             textMessage.setText(message);
-            if(messageTTL > 0)
-                messageProducer.setTimeToLive(messageTTL * (long)1000);
+            applyScheduledDelay(textMessage, scheduledDelayMs, address);
+            if (messageTTL > 0)
+                messageProducer.setTimeToLive(messageTTL * (long) 1000);
             messageProducer.send(textMessage);
             flag = true;
         } catch (JMSException e) {
@@ -185,6 +199,14 @@ public class MosipActiveMqImpl implements MosipQueueManager<MosipQueue, byte[]> 
                 "", "MosipActiveMqImpl::send()::exit");
 
         return flag;
+    }
+
+    private void applyScheduledDelay(Message message, long scheduledDelayMs, String address) throws JMSException {
+        if (scheduledDelayMs > 0) {
+            message.setLongProperty(ScheduledMessage.AMQ_SCHEDULED_DELAY, scheduledDelayMs);
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+                    "MosipActiveMqImpl::send()::scheduled queue=" + address + " scheduledDelayMs=" + scheduledDelayMs);
+        }
     }
 
     /*
