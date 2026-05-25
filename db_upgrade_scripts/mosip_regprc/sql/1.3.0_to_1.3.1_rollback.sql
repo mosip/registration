@@ -1,1 +1,3 @@
-\echo 'Rollback Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
+\c mosip_regprc
+
+DROP INDEX IF EXISTS regprc.idx_registration_reprocessor;
