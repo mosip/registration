@@ -347,11 +347,9 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 						.collect(Collectors.toList());
 				validateNullCheck(abisQueue, ABIS_QUEUE_NOT_FOUND);
 				byte[] reqBytearray = abisIdentifyRequest.getReqText();
-
 				boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 						abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 				updateAbisRequest(isAddedToQueue, abisIdentifyRequest, internalRegDto);
-
 			}
 
 		}
@@ -363,11 +361,9 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			validateNullCheck(abisQueue, ABIS_QUEUE_NOT_FOUND);
 
 			byte[] reqBytearray = abisInprogressRequest.getReqText();
-
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 			updateAbisRequest(isAddedToQueue, abisInprogressRequest, internalRegDto);
-
 		}
 		// send all identify requests for already processed insert requests
 		for (AbisRequestDto abisAlreadyProcessedInsertRequest : abisAlreadyprocessedInsertRequestList) {
@@ -382,7 +378,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
 					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 			updateAbisRequest(isAddedToQueue, identifyRequest.get(0), internalRegDto);
-
 		}
 	}
 
@@ -464,7 +459,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					boolean isAddedToQueue = sendToQueue(queue, new String(abisIdentifyRequestDto.getReqText()),
 							abisInBoundAddress, inboundMessageTTL);
 					updateAbisRequest(isAddedToQueue, abisIdentifyRequestDto, internalRegStatusDto);
-
 				} else {
 					internalRegStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
