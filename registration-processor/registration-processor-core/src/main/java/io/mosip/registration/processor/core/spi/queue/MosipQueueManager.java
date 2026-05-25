@@ -32,6 +32,18 @@ public interface MosipQueueManager<T, V>{
 	public Boolean send(T mosipQueue, V message, String address, int messageTTL);
 
 	/**
+	 * This method sends a message on a given Address with TTL and optional scheduled delay.
+	 *
+	 * @param mosipQueue       The mosipQueue instance
+	 * @param message          The message
+	 * @param address          The address
+	 * @param messageTTL       The timeToLive in seconds for message
+	 * @param scheduledDelayMs ActiveMQ scheduled delivery delay in milliseconds (0 = immediate)
+	 * @return True if message is sent, false otherwise
+	 */
+	public Boolean send(T mosipQueue, V message, String address, int messageTTL, long scheduledDelayMs);
+
+	/**
 	 * This method sends a json string message on a given Address
 	 *
 	 * @param mosipQueue The mosipQueue instance
@@ -51,6 +63,18 @@ public interface MosipQueueManager<T, V>{
 	 * @return True if message is sent, false otherwise
 	 */
 	public Boolean send(T mosipQueue, String message, String address, int messageTTL);
+
+	/**
+	 * This method sends a json string message on a given Address with TTL and optional scheduled delay.
+	 *
+	 * @param mosipQueue       The mosipQueue instance
+	 * @param message          The message
+	 * @param address          The address
+	 * @param messageTTL       The timeToLive in seconds for message
+	 * @param scheduledDelayMs ActiveMQ scheduled delivery delay in milliseconds (0 = immediate)
+	 * @return True if message is sent, false otherwise
+	 */
+	public Boolean send(T mosipQueue, String message, String address, int messageTTL, long scheduledDelayMs);
 
 	/**
 	 * This method consumes a message from a given address
