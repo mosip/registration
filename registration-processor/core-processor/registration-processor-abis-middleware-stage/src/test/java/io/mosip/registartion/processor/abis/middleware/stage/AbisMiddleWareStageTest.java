@@ -3,6 +3,10 @@ package io.mosip.registartion.processor.abis.middleware.stage;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -184,6 +188,7 @@ public class AbisMiddleWareStageTest {
 		ReflectionTestUtils.setField(stage, "messageFormat", "byte");
 		ReflectionTestUtils.setField(stage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
+		ReflectionTestUtils.setField(stage, "inboundMessageDelayMs", 500L);
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();
 		internalRegStatusDto.setRegistrationId("");
@@ -328,6 +333,11 @@ public class AbisMiddleWareStageTest {
 		messageTTL = 30 * 60;
 
 		Mockito.when(propertiesUtil.getProperty(any(), any(Class.class), anyBoolean())).thenReturn(true);
+
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.any(byte[].class), Mockito.anyString(), anyInt(),
+				anyLong())).thenReturn(true);
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), anyInt(), anyLong()))
+				.thenReturn(true);
 	}
 
 	@Test
@@ -336,7 +346,6 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.any())).thenReturn(true);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		dto.setWorkflowInstanceId("workflowInstanceId");
@@ -345,6 +354,8 @@ public class AbisMiddleWareStageTest {
 		stage.deployVerticle();
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
+		verify(mosipQueueManager, Mockito.atLeastOnce()).send(Mockito.any(), Mockito.any(byte[].class),
+				Mockito.anyString(), anyInt(), eq(500L));
 
 		// test for insert request list is empty
 		List<AbisRequestDto> abisInsertIdentifyList = new ArrayList<>();
@@ -368,7 +379,7 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt()))
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), anyInt(), anyLong()))
 				.thenThrow(ConnectionUnavailableException.class);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
@@ -388,7 +399,7 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt()))
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.anyString(), anyInt(), anyLong()))
 		.thenReturn(true);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
@@ -405,7 +416,6 @@ public class AbisMiddleWareStageTest {
 		// Mockito.when(utility.getMosipQueuesForAbis()).thenReturn(mosipQueueList);
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.any())).thenReturn(true);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("10003100030001520190422074511");
 		Mockito.when(packetInfoManager.getReferenceIdByWorkflowInstanceId(Mockito.anyString())).thenReturn(null);
@@ -435,7 +445,8 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 		Mockito.when(packetInfoManager.getReferenceIdByWorkflowInstanceId(Mockito.anyString())).thenReturn(abisRefList);
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.any())).thenReturn(false);
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.any(byte[].class), Mockito.anyString(), anyInt(),
+				anyLong())).thenReturn(false);
 		stage.process(dto);
 
 		// test for exception while sending to queue
@@ -443,8 +454,8 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getInsertOrIdentifyRequest(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(abisInsertIdentifyList);
 		Mockito.when(packetInfoManager.getReferenceIdByWorkflowInstanceId(Mockito.anyString())).thenReturn(abisRefList);
-		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.anyString(), Mockito.any()))
-				.thenThrow(new NullPointerException());
+		Mockito.when(mosipQueueManager.send(Mockito.any(), Mockito.any(byte[].class), Mockito.anyString(), anyInt(),
+				anyLong())).thenThrow(new NullPointerException());
 		stage.process(dto);
 		assertTrue(dto.getIsValid());
 
