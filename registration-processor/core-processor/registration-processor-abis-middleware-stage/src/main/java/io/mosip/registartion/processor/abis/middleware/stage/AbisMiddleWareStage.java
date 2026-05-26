@@ -144,6 +144,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${activemq.message.format}")
 	private String messageFormat;
 
+	/** Scheduled delivery delay for ABIS inbound queue messages (milliseconds). 0 = immediate. */
+	@Value("${mosip.regproc.abis.middleware.activemq.inbound.delay.ms:0}")
+	private long inboundMessageDelayMs;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -424,6 +428,11 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					"AbisMiddlewareStage::consumerListener()::response from abis for requestId ::" + requestId);
 
 			AbisRequestDto abisCommonRequestDto = packetInfoManager.getAbisRequestByRequestId(requestId);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"AbisMiddlewareStage::consumerListener()::Fetched ABIS request metadata for requestId="
+							+ requestId + ", requestType=" + abisCommonRequestDto.getRequestType() + ", statusCode="
+							+ abisCommonRequestDto.getStatusCode() + ", batchId=" + batchId + ", registrationId="
+							+ registrationId);
 			// check for insert response,if success send corresponding identify request to
 			// queue
 			if (abisCommonRequestDto.getRequestType().equals(AbisStatusCode.INSERT.toString())) {
@@ -469,10 +478,12 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				}
 
 				} else {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-							"",
-							"AbisMiddlewareStage::consumerListener()::Duplicate Insert Response received from abis for same request id ::"
-									+ requestId + " response " + inserOrIdentifyResponse);
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							registrationId,
+							"AbisMiddlewareStage::consumerListener()::Skipping INSERT response because request status is not SENT. requestId="
+									+ requestId + ", currentStatus=" + abisCommonRequestDto.getStatusCode()
+									+ ", expectedStatus=" + AbisStatusCode.SENT.toString() + ", response="
+									+ inserOrIdentifyResponse);
 					isTransactionSuccessful = false;
 					description.setMessage(PlatformErrorMessages.DUPLICATE_INSERT_RESPONSE.getMessage() + requestId);
 					description.setCode(PlatformErrorMessages.DUPLICATE_INSERT_RESPONSE.getCode());
@@ -520,15 +531,25 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 					}
 				} else {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-							"",
-							"AbisMiddlewareStage::consumerListener()::Duplicate Identify Response received from abis for same request id ::"
-									+ requestId + " response " + inserOrIdentifyResponse);
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							registrationId,
+							"AbisMiddlewareStage::consumerListener()::Skipping IDENTIFY response because request status is not SENT. requestId="
+									+ requestId + ", currentStatus=" + abisCommonRequestDto.getStatusCode()
+									+ ", expectedStatus=" + AbisStatusCode.SENT.toString() + ", response="
+									+ inserOrIdentifyResponse);
 					isTransactionSuccessful = false;
 					description.setMessage(PlatformErrorMessages.DUPLICATE_IDENTITY_RESPONSE.getMessage() + requestId);
 					description.setCode(PlatformErrorMessages.DUPLICATE_IDENTITY_RESPONSE.getCode());
 
 				}
+			}
+			if (!abisCommonRequestDto.getRequestType().equals(AbisStatusCode.INSERT.toString())
+					&& !abisCommonRequestDto.getRequestType().equals(AbisStatusCode.IDENTIFY.toString())) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"AbisMiddlewareStage::consumerListener()::Skipping ABIS response because request type is unsupported. requestId="
+								+ requestId + ", requestType=" + abisCommonRequestDto.getRequestType()
+								+ ", statusCode=" + abisCommonRequestDto.getStatusCode() + ", response="
+								+ inserOrIdentifyResponse);
 			}
 
 		} catch (IOException e) {
@@ -610,18 +631,23 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisMiddlewareStage::sendToQueue()::Entry");
 		boolean isAddedToQueue;
+		long producerSubmitEpochMs = System.currentTimeMillis();
 		try {
 			synchronized (sendLock) {
 				if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
 					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString,
-						abisQueueAddress, messageTTL);
+						abisQueueAddress, messageTTL, inboundMessageDelayMs);
 				else
 					isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(),
-						abisQueueAddress, messageTTL);
+						abisQueueAddress, messageTTL, inboundMessageDelayMs);
 			}
 
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"AbisMiddlewareStage:: sent to abis queue ::" + abisReqTextString);
+			if (isAddedToQueue) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+						"AbisMiddlewareStage::sendToQueue::submitted queue=" + abisQueueAddress
+								+ " producerSubmitEpochMs=" + producerSubmitEpochMs + " configuredDelayMs="
+								+ inboundMessageDelayMs + " sent to abis queue ::" + abisReqTextString);
+			}
 
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
