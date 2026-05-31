@@ -46,8 +46,8 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipqa/registration-processor-dmz-packet-server
-  tag: 1.3.x
+  repository: mosipid/registration-processor-dmz-packet-server
+  tag: 1.3.1-rc.1
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -125,12 +125,7 @@ additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
-    -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive
-    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=350m -Xms550m -Xmx750m
-    -XX:+UseContainerSupport -XX:MaxMetaspaceSize=100m
-    -XX:MetaspaceSize=25m
-    -XX:ReservedCodeCacheSize=37m -XX:InitialCodeCacheSize=10m
-    -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=350m -Xms550m -Xmx750m -XX:+UseContainerSupport -XX:MaxMetaspaceSize=100m -XX:MetaspaceSize=25m -XX:ReservedCodeCacheSize=37m -XX:InitialCodeCacheSize=10m -XX:+UseCodeCacheFlushing -XX:+HeapDumpOnOutOfMemoryError
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
 containerSecurityContext:
