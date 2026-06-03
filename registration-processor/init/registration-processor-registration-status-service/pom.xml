@@ -211,35 +211,6 @@
 							<skip>false</skip>
 						</configuration>
 					</plugin>
-					<plugin>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<version>${maven.deploy.plugin.version}</version>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-						<executions>
-							<execution>
-								<id>default-deploy</id>
-								<phase>none</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-								<configuration>
-									<skip>true</skip>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.sonatype.central</groupId>
-						<artifactId>central-publishing-maven-plugin</artifactId>
-						<version>${central.publishing.maven.plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<publishingServerId>ossrh</publishingServerId>
-							<autoPublish>false</autoPublish>
-						</configuration>
-					</plugin>
 				</plugins>
 			</build>
 		</profile>

@@ -321,7 +321,6 @@ volumePermissions:
     ##   cpu: 100m
     ##   memory: 128Mi
     ##
-
 ## Specifies whether RBAC resources should be created
 ##
 rbac:

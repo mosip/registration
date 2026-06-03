@@ -178,7 +178,6 @@ public class MessageNotificationServiceImplTest {
 
 	private VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
 
-
 	/**
 	 * Setup.
 	 *

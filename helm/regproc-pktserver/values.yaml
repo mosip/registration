@@ -46,7 +46,7 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipid/registration-processor-dmz-packet-server
+  repository: mosipqa/registration-processor-dmz-packet-server
   tag: develop
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'

@@ -205,11 +205,9 @@ terminationGracePeriodSeconds: 60
 ## Custom Liveness probes for
 ##
 customLivenessProbe: {}
-
 ## Custom Rediness probes
 ##
 customReadinessProbe: {}
-
 ## Update strategy - only really applicable for deployments with RWO PVs attached
 ## If replicas = 1, an update can get "stuck", as the previous pod remains attached to the
 ## PV, and the "incoming" pod can never start. Changing the strategy to "Recreate" will
@@ -217,7 +215,6 @@ customReadinessProbe: {}
 ##
 updateStrategy:
   type: RollingUpdate
-
 ## Additional environment variables to set
 ## Example:
 ## extraEnvVars:
@@ -225,7 +222,6 @@ updateStrategy:
 ##     value: "bar"
 ##
 extraEnvVars: []
-
 ## ConfigMap with extra environment variables that used
 ##
 extraEnvVarsCM:
