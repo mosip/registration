@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +32,6 @@ import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils2;
-import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -845,7 +841,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	private void getAdditionalInfo(String referenceId, byte[] optionalValues, Map<String, String> additionalInfo)  {
 		String name=null;
 		try {
-			String decryptedData=decryptor.decrypt(CryptoUtil.encodeBase64String(optionalValues),referenceId, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			String decryptedData=decryptor.decrypt(CryptoUtil.encodeBase64String(optionalValues),referenceId, DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 			JSONObject jsonObject=new JSONObject(decryptedData);
 			name=jsonObject.getString("name");
 			additionalInfo.put("name",name);

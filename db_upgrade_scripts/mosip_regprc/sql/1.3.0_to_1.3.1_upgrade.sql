@@ -1,0 +1,3 @@
+\c mosip_regprc
+
+CREATE INDEX IF NOT EXISTS idx_registration_reprocessor ON regprc.registration (latest_trn_status_code, latest_trn_dtimes, reg_process_retry_count, status_code);

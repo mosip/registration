@@ -29,6 +29,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -194,9 +195,10 @@ public class AbisHandlerStageTest {
 
 	@Before
 	public void setUp() throws Exception {
+		ReflectionTestUtils.setField(abisHandlerStage, "environment", new StandardEnvironment());
 		ReflectionTestUtils.setField(abisHandlerStage, "maxResults", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", "30");
-		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(abisHandlerStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(abisHandlerStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(abisHandlerStage, "httpProtocol", "http");

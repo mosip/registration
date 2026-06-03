@@ -50,3 +50,7 @@ COMMENT ON COLUMN regprc.abis_response.is_deleted IS 'IS_Deleted : Flag to mark 
 COMMENT ON COLUMN regprc.abis_response.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
 
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_abis_resp_id ON regprc.abis_response USING btree (id);
+CREATE INDEX idx_abis_response_reqid ON regprc.abis_response USING btree (abis_req_id);
+--END PERFORMANCE INDEXES--

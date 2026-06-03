@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -115,7 +116,8 @@ public class PacketUploaderStageTest {
 	@Test
 	public void testDeployVerticle() {
 
-		ReflectionTestUtils.setField(packetValidatorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(packetValidatorStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(packetValidatorStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(packetValidatorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(packetValidatorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		packetValidatorStage.deployVerticle();

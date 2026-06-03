@@ -1,26 +1,22 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
@@ -59,10 +55,6 @@ public class MetaInfoTagGenerator implements TagGenerator {
 
     /** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MetaInfoTagGenerator.class);
-
-    /** Mapper utility used for unmarshalling JSON to Java objects  */
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private static String TAG_VALUE_DELIMITER = "-";
 
@@ -161,19 +153,23 @@ public class MetaInfoTagGenerator implements TagGenerator {
                 PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(), 
                 PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getMessage());
         JSONArray capturedRegisteredDevicesJsonArray = new JSONArray(capturedRegisteredDevicesString);
-        for(String deviceType : capturedRegisteredDeviceTypes) {
-            for(int i=0; i< capturedRegisteredDevicesJsonArray.length(); i++) {
-                JSONObject digitalId = capturedRegisteredDevicesJsonArray.getJSONObject(i)
+        // Build a map from deviceType -> digitalId in one pass O(n), then look up each type O(m) — avoids O(m*n)
+        Map<String, JSONObject> deviceTypeToDigitalId = new HashMap<>();
+        for (int i = 0; i < capturedRegisteredDevicesJsonArray.length(); i++) {
+            JSONObject digitalId = capturedRegisteredDevicesJsonArray.getJSONObject(i)
                     .getJSONObject(JsonConstant.DIGITALID);
-                if(digitalId.getString(JsonConstant.DIGITALIDTYPE).equals(deviceType))
-                    tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType,
+            deviceTypeToDigitalId.put(digitalId.getString(JsonConstant.DIGITALIDTYPE), digitalId);
+        }
+        for(String deviceType : capturedRegisteredDeviceTypes) {
+            JSONObject digitalId = deviceTypeToDigitalId.get(deviceType);
+            if (digitalId != null) {
+                tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType,
                         digitalId.getString(JsonConstant.DIGITALIDMAKE) + TAG_VALUE_DELIMITER +
                         digitalId.getString(JsonConstant.DIGITALIDMODEL) + TAG_VALUE_DELIMITER +
                         digitalId.getString(JsonConstant.DIGITALIDSERIALNO));
-            }
-            if(!tags.containsKey(capturedRegisteredDevicesTagNamePrefix + deviceType)) {
-                regProcLogger.warn("{} --> {}, for deviceType {}, setting tag value as {}", 
-                    PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(), 
+            } else {
+                regProcLogger.warn("{} --> {}, for deviceType {}, setting tag value as {}",
+                    PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getCode(),
                     PlatformErrorMessages.RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE.getMessage(),
                     deviceType, notAvailableTagValue);
                 tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType, notAvailableTagValue);
@@ -182,12 +178,12 @@ public class MetaInfoTagGenerator implements TagGenerator {
         return tags;
     }
 
-	private Map<String, String> getMapFromLabelValueArray(JSONArray jsonArray) throws IOException, JSONException {
+	private Map<String, String> getMapFromLabelValueArray(JSONArray jsonArray) throws JSONException {
         Map<String, String> map = new HashMap<String, String>();
-		for (int i =0; i < jsonArray.length(); i++) {
+		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-			FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
-			map.put(fieldValue.getLabel(), fieldValue.getValue());
+			// Direct field access avoids unnecessary toString() + readValue() round-trip
+			map.put(jsonObject.optString("label"), jsonObject.isNull("value") ? null : jsonObject.getString("value"));
         }
         return map;
 	}

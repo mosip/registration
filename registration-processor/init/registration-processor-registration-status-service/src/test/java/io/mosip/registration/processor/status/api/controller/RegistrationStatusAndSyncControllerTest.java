@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.servlet.http.Cookie;
 
 import org.junit.Before;
@@ -40,7 +41,6 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.digital.signature.dto.SignResponseDto;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
@@ -200,7 +200,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		registrationStatusRequestDTO.setId("mosip.registration.status");
 		registrationStatusRequestDTO.setVersion("1.0");
 		registrationStatusRequestDTO
-				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+				.setRequesttime(DateUtils2.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 		regStatusToJson = objMp.writeValueAsString(registrationStatusRequestDTO);
 		registrationDtoList = new ArrayList<>();
 		registrationDtoList1 = new ArrayList<>();
@@ -237,7 +237,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		registrationSyncRequestDTO.setId("mosip.registration.sync");
 		registrationSyncRequestDTO.setVersion("1.0");
 		registrationSyncRequestDTO
-				.setRequesttime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+				.setRequesttime(DateUtils2.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 		lostRidRequestDto = new LostRidRequestDto();
 		lostRidRequestDto.setId("mosip.registration.lostrid");
 		lostRidRequestDto.setVersion("1.0");

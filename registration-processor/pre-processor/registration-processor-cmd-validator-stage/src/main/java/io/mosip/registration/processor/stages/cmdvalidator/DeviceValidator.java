@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.packet.storage.exception.ObjectDoesnotExistsException;
 import io.mosip.registration.processor.packet.storage.utils.OSIUtils;
@@ -37,7 +38,6 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.signature.constant.SignatureConstant;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -116,13 +116,32 @@ public class DeviceValidator {
 	 */
 	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
 			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
+		validate(regOsi, process, registrationId, null);
+	}
+
+	/**
+	 * Checks if is device active. Uses passed metaInfo when available to reduce packet manager calls.
+	 *
+	 * @param regOsi                the regOsi dto
+	 * @param process
+	 * @param registrationId
+	 * @param metaInfo              optional pre-fetched meta info; when null, fetched on demand
+	 * @throws IOException
+	 * @throws JsonProcessingException
+	 * @throws BaseCheckedException,                               ApisResourceAccessException
+	 * @throws JSONException
+	 * @throws com.fasterxml.jackson.databind.JsonMappingException
+	 * @throws com.fasterxml.jackson.core.JsonParseException
+	 */
+	public void validate(RegOsiDto regOsi, String process, String registrationId, Map<String, String> metaInfo) throws JsonProcessingException,
+			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
 		for (String field : fields) {
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
 					|| field.equals(MappingJsonConstants.SUPERVISORBIOMETRICFILENAME)) {
-				String value = getOperationsDataFromMetaInfo(registrationId, process, field);
+				String value = getOperationsDataValue(registrationId, process, field, metaInfo);
 				if (value != null && !value.isEmpty()) {
 					BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, field, process,
 							ProviderStageName.CMD_VALIDATOR);
@@ -148,11 +167,13 @@ public class DeviceValidator {
 		}
 	}
 
-	private String getOperationsDataFromMetaInfo(String id, String process, String fileName)
+	private String getOperationsDataValue(String id, String process, String fileName, Map<String, String> metaInfo)
 			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException, JsonParseException,
 			JsonMappingException, JsonProcessingException, io.mosip.kernel.core.util.exception.JsonProcessingException {
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
-				ProviderStageName.PACKET_VALIDATOR);
+		Map<String, String> metaInfoMap = metaInfo;
+		if (metaInfoMap == null) {
+			metaInfoMap = packetManagerService.getMetaInfo(id, process, ProviderStageName.PACKET_VALIDATOR);
+		}
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
 		String value = null;
 		if (StringUtils.isNotEmpty(metadata)) {
@@ -360,7 +381,7 @@ public class DeviceValidator {
 		request.setVersion("1.0");
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+				.parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 		request.setRequesttime(localdatetime);
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);

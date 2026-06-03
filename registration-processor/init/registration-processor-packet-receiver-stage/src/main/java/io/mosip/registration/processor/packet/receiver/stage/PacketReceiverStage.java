@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,6 @@ import org.springframework.util.ClassUtils;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -61,10 +61,6 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
@@ -102,7 +98,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 * deploys this verticle.
 	 */
 	public void deployVerticle() {
-		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 	}
 
 	/** The env. */
@@ -201,7 +197,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 			listObj.add(env.getProperty(MODULE_ID));
 			File file=getFileFromCtx(ctx).entrySet().iterator().next().getValue();
 			MessageDTO messageDTO = packetReceiverService.validatePacket(file, getStageName());
-			listObj.add(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+			listObj.add(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			listObj.add(env.getProperty(APPLICATION_VERSION));
 			if (messageDTO.getIsValid()) {
 				PacketReceiverResponseDTO responseData=PacketReceiverResponseBuilder.buildPacketReceiverResponse(StatusUtil.PACKET_RECEIVED.getMessage(), listObj);

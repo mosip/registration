@@ -2,7 +2,7 @@ package io.mosip.registration.processor.status.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
@@ -180,7 +180,7 @@ public class RegistrationSyncController {
 		if (Objects.isNull(response.getId())) {
 			response.setId(env.getProperty(REG_SYNC_SERVICE_ID));
 		}
-		response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		response.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		response.setVersion(env.getProperty(REG_SYNC_APPLICATION_VERSION));
 		List<SyncErrorDTO> syncErrorDTOList = new ArrayList<>();
 		List<SyncResponseDto> syncResponseList = new ArrayList<>();

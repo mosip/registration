@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -37,7 +38,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.packet.dto.Document;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -48,7 +48,7 @@ import io.mosip.registration.processor.status.service.impl.AnonymousProfileServi
 import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({JsonUtils.class, DateUtils.class})
+@PrepareForTest({JsonUtils.class, DateUtils2.class})
 public class AnonymousProfileServiceImplTest {
 
 	@Mock
@@ -79,9 +79,9 @@ public class AnonymousProfileServiceImplTest {
 		ReflectionTestUtils.setField(anonymousProfileService, "dobFormat", "yyyy/MM/dd");
 		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", false);
 
-		PowerMockito.mockStatic(DateUtils.class);
-		PowerMockito.when(DateUtils.getUTCCurrentDateTimeString()).thenReturn("2021-09-12T06:50:19.517872400Z");
-		PowerMockito.when(DateUtils.parseDateToLocalDateTime(any())).thenReturn(LocalDateTime.of(1998, 01,01, 01, 01));
+		PowerMockito.mockStatic(DateUtils2.class);
+		PowerMockito.when(DateUtils2.getUTCCurrentDateTimeString()).thenReturn("2021-09-12T06:50:19.517872400Z");
+		PowerMockito.when(DateUtils2.parseDateToLocalDateTime(any())).thenReturn(LocalDateTime.of(1998, 01,01, 01, 01));
 
 		fieldTypeMap.put("postalCode", "string");
 		fieldTypeMap.put("zone", "simpleType");

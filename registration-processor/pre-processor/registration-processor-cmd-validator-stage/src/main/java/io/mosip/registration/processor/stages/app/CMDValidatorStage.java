@@ -34,10 +34,6 @@ public class CMDValidatorStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** worker pool size is the maximum number of worker threads that will be used by the Vert.x instance */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.cmd-validator.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -47,7 +43,7 @@ public class CMDValidatorStage extends MosipVerticleAPIManager {
 
 
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.CMD_VALIDATOR_BUS_IN, MessageBusAddress.CMD_VALIDATOR_BUS_OUT,
 			messageExpiryTimeLimit);
 	}

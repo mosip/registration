@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.abstractverticle.*;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
@@ -109,10 +109,6 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	@Autowired
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/** After this time intervel, message should be considered as expired (In seconds). */
 	@Value("${mosip.regproc.credentialrequestor.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
@@ -163,7 +159,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_IN, MessageBusAddress.CREDENTIAL_REQUESTOR_BUS_OUT,
 				messageExpiryTimeLimit);
 	}
@@ -234,7 +230,7 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 				for (CredentialPartner key : filteredPartners) {
 					CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId, registrationStatusDto.getRegistrationType(), key);
 					LocalDateTime localdatetime = LocalDateTime.parse(
-							DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+							DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 					requestWrapper.setRequesttime(localdatetime);
 					requestWrapper.setRequest(credentialRequestDto);
 					// issuers with appIdBasedCredentialIdSuffix is calling v1 api and for others stage is calling v2 api for credential

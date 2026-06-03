@@ -56,3 +56,17 @@ COMMENT ON COLUMN regprc.registration.upd_by IS 'Updated By : ID or name of the 
 COMMENT ON COLUMN regprc.registration.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN regprc.registration.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN regprc.registration.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_paused_actionable ON regprc.registration USING btree (status_code, resume_timestamp, upd_dtimes) WHERE (default_resume_action IS NOT NULL);
+CREATE INDEX idx_regid_active_not_deleted ON regprc.registration USING btree (reg_id) WHERE ((is_deleted = false) AND (is_active = true));
+CREATE INDEX idx_registration_reg_id ON regprc.registration USING btree (reg_id);
+CREATE INDEX idx_resumable_packets ON regprc.registration USING btree (status_code, upd_dtimes);
+CREATE INDEX IF NOT EXISTS idx_reg_status_active_deleted ON regprc.registration USING btree (reg_id, status_code, is_active, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_workflow_active_true ON regprc.registration USING btree (workflow_instance_id) WHERE ((is_active = true) AND (is_deleted = false));
+--END PERFORMANCE INDEXES--
+
+CREATE INDEX IF NOT EXISTS idx_registration_workflow_instance_id ON regprc.registration(workflow_instance_id desc);
+CREATE INDEX IF NOT EXISTS idx_registration_sts_resume ON regprc.registration(status_code, resume_timestamp, default_resume_action);
+
+CREATE INDEX IF NOT EXISTS idx_registration_reprocessor ON regprc.registration (latest_trn_status_code, latest_trn_dtimes, reg_process_retry_count, status_code);
