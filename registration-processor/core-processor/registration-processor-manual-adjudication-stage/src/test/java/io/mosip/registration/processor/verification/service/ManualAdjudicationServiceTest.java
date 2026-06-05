@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
 import io.mosip.registration.processor.adjudication.request.dto.Source;
@@ -58,7 +59,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.adjudication.dto.ManualVerificationStatus;
@@ -270,7 +270,7 @@ public class ManualAdjudicationServiceTest {
 		manualVerificationDecisionDto.setRegId("RegID");
 		manualVerificationDecisionDto.setStatusCode("APPROVED");
 		manualAdjudicationResponseDTO.setReturnValue(1);
-		manualAdjudicationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
+		manualAdjudicationResponseDTO.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		manualAdjudicationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
 		manualAdjudicationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
 		CandidateList candidateList=new CandidateList();
@@ -863,7 +863,7 @@ public class ManualAdjudicationServiceTest {
 
 		ManualAdjudicationResponseDTO adjudicationResponseDTO = new ManualAdjudicationResponseDTO();
 		adjudicationResponseDTO.setReturnValue(4);
-		adjudicationResponseDTO.setResponsetime(DateUtils.getCurrentDateTimeString());
+		adjudicationResponseDTO.setResponsetime(DateUtils2.getCurrentDateTimeString());
 		adjudicationResponseDTO.setId("mosip.manual.adjudication.adjudicate");
 		adjudicationResponseDTO.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
 		CandidateList candidateList = new CandidateList();
@@ -906,3 +906,4 @@ public class ManualAdjudicationServiceTest {
 		assertFalse(response.getIsValid());
 	}
 }
+

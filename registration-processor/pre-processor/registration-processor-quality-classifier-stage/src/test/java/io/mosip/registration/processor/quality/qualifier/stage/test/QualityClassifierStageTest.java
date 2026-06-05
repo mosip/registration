@@ -17,8 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
-
+import java.util.concurrent.Executors;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -32,6 +31,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
@@ -181,17 +181,11 @@ public class QualityClassifierStageTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ReflectionTestUtils.setField(qualityClassifierStage, "workerPoolSize", 10);
-		ReflectionTestUtils.setField(qualityClassifierStage, "maxPoolSize", 10);
+		ReflectionTestUtils.setField(qualityClassifierStage, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(qualityClassifierStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(qualityClassifierStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(qualityClassifierStage, "messageExpiryTimeLimit", Long.valueOf(0));
-//		ReflectionTestUtils.setField(qualityClassifierStage, "irisThreshold", 70);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "leftFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "rightFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "thumbFingerThreshold", 80);
-//		ReflectionTestUtils.setField(qualityClassifierStage, "faceThreshold", 25);
 		ReflectionTestUtils.setField(qualityClassifierStage, "qualityTagPrefix", qualityPrefixTag);
-		ReflectionTestUtils.setField(qualityClassifierStage, "forkJoinPool", new ForkJoinPool(10));
 
 		Map<String, String> qualityClassificationRangeMap = new HashMap<String, String>();
 		qualityClassificationRangeMap.put(level_1, "0-10");
@@ -223,6 +217,7 @@ public class QualityClassifierStageTest {
 
 
 		ReflectionTestUtils.setField(qualityClassifierStage, "parsedQualityRangeMap", parsedMap);
+		ReflectionTestUtils.setField(qualityClassifierStage, "virtualThreadExecutor", Executors.newFixedThreadPool(5));
 		ReflectionTestUtils.setField(qualityClassifierStage, "modalities", Arrays.asList("Iris", "Finger", "Face"));
 
 		registrationStatusDto = new InternalRegistrationStatusDto();

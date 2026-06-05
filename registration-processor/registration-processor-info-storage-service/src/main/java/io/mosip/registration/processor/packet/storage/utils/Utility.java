@@ -7,6 +7,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.*;
 
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
@@ -37,8 +41,8 @@ import io.mosip.registration.processor.packet.storage.exception.ParsingException
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import lombok.Data;
-import static io.mosip.kernel.core.util.DateUtils.*;
-import static io.mosip.kernel.core.util.DateUtils.parseUTCToLocalDateTime;
+import static io.mosip.kernel.core.util.DateUtils2.*;
+import static io.mosip.kernel.core.util.DateUtils2.parseUTCToLocalDateTime;
 
 /**
  * The Class Utility.
@@ -112,7 +116,6 @@ public class Utility {
 	private Integer expectedPacketProcessingDurationHours;
 
 
-	private static final String VALUE = "value";
 	public static final String EXCEPTION = "EXCEPTION";
 	public static final String TRUE = "TRUE";
 
@@ -136,10 +139,15 @@ public class Utility {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
 				"Utility::getApplicantAge()::entry");
 
-		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process,
-				stageName);
-		String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process,
-				stageName);
+		// Batch DOB and AGE into a single getFields() call instead of two sequential HTTP calls
+		String dobField = getMappedFieldName(MappingJsonConstants.DOB);
+		String ageField = getMappedFieldName(MappingJsonConstants.AGE);
+		List<String> fieldsToFetch = new ArrayList<>();
+		if (dobField != null) fieldsToFetch.add(dobField);
+		if (ageField != null) fieldsToFetch.add(ageField);
+		Map<String, String> ageFieldValues = packetManagerService.getFields(id, fieldsToFetch, process, stageName);
+		String applicantDob = dobField != null ? ageFieldValues.get(dobField) : null;
+		String applicantAge = ageField != null ? ageFieldValues.get(ageField) : null;
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
@@ -149,12 +157,8 @@ public class Utility {
 		} else {
 			String uin = getUIn(id, process, stageName);
 			JSONObject identityJSONOject = utilities.retrieveIdrepoJson(uin);
-			JSONObject regProcessorIdentityJson = utilities
-					.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-			String ageKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-			String dobKey = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
+			String ageKey = getMappedFieldName(MappingJsonConstants.AGE);
+			String dobKey = getMappedFieldName(MappingJsonConstants.DOB);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), id,
@@ -664,10 +668,7 @@ public class Utility {
 		List<Documents> documents = utilities.retrieveIdrepoDocument(uin);
 
 		// Step 2: Load mapping JSON and extract the label for individual biometrics
-		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-		String individualBiometricsLabel = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-				MappingJsonConstants.VALUE);
+		String individualBiometricsLabel = getMappedFieldName(MappingJsonConstants.INDIVIDUAL_BIOMETRICS);
 
 		// Step 3: Find the biometric document
 		String biometricDoc = null;

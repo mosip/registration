@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.Page;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.code.EventId;
@@ -157,7 +157,7 @@ public class WorkflowSearchApi extends MosipRouter {
 		WorkflowSearchResponseDTO workflowSearchResponseDTO = new WorkflowSearchResponseDTO();
 		workflowSearchResponseDTO.setId(id);
 		workflowSearchResponseDTO.setVersion(version);
-		workflowSearchResponseDTO.setResponsetime(DateUtils.getUTCCurrentDateTimeString(dateTimePattern));
+		workflowSearchResponseDTO.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(dateTimePattern));
 		if (wfs == null) {
 			workflowSearchResponseDTO.setErrors(errors);
 		} else {

@@ -112,15 +112,15 @@ public class DecryptorTest {
 		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
 		response.setResponse(null);
 		response.setErrors(errors);
-		
-		
+
+
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 			Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(response);
-		
+
 		String decryptedString = decryptor.decrypt(data, "10011", "2019-05-07T05:13:55.704Z");
 
 	}

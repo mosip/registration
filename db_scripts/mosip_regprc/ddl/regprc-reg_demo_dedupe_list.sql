@@ -36,3 +36,7 @@ COMMENT ON COLUMN regprc.reg_demo_dedupe_list.is_deleted IS 'IS_Deleted : Flag t
 -- ddl-end --
 COMMENT ON COLUMN regprc.reg_demo_dedupe_list.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+-- autovacuum tuning section starts --
+ALTER TABLE regprc.reg_demo_dedupe_list SET (autovacuum_vacuum_scale_factor = 0.1, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.05, autovacuum_analyze_threshold = 200);
+-- autovacuum tuning section ends --

@@ -3,13 +3,13 @@ package io.mosip.registration.processor.workflowmanager.validator;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.WorkFlowSearchException;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -222,7 +222,7 @@ public class WorkflowSearchRequestValidator {
 
 		} else {
 			try {
-				DateUtils.parseToLocalDateTime(requesttime);
+				DateUtils2.parseToLocalDateTime(requesttime);
 
 			} catch (Exception e) {
 				regProcLogger.error("Exception while parsing date {}", ExceptionUtils.getStackTrace(e));

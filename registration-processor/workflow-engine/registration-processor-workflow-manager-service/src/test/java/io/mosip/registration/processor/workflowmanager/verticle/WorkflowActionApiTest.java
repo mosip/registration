@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -425,7 +426,7 @@ public class WorkflowActionApiTest {
 
 	@Before
 	public void setup() throws WorkflowActionRequestValidationException {
-		ReflectionTestUtils.setField(workflowActionApi, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(workflowActionApi, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowActionApi, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(workflowActionApi, "dateTimePattern", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ctx = setContext();
@@ -447,7 +448,8 @@ public class WorkflowActionApiTest {
 	@Test
 	public void testDeployVerticle() {
 
-		ReflectionTestUtils.setField(workflowActionApi, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(workflowActionApi, "environment", new StandardEnvironment());
+		ReflectionTestUtils.setField(workflowActionApi, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowActionApi, "clusterManagerUrl", "/dummyPath");
 		workflowActionApi.deployVerticle();
 	}

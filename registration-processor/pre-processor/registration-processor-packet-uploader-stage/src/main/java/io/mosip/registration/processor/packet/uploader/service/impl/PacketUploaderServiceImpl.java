@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,10 +96,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
     @Value("${mosip.regproc.landing.zone.account.name}")
     private String landingZoneAccount;
-	
-	@Value("${mosip.regproc.landing.zone.type:ObjectStore}")
+
+    @Value("${mosip.regproc.landing.zone.type:ObjectStore}")
     private String landingZoneType;
-    
+
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
 
@@ -197,7 +201,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         SyncRegistrationEntity regEntity = null;
 
         try {
-        	regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
+            regEntity = syncRegistrationService.findByWorkflowInstanceId(messageDTO.getWorkflowInstanceId());
             dto = registrationStatusService.getRegistrationStatus(
                     registrationId, messageDTO.getReg_type(), messageDTO.getIteration(), regEntity.getWorkflowInstanceId());
 
@@ -215,14 +219,16 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                             utility.getRefId(registrationId, regEntity.getReferenceId()),
                             new ByteArrayInputStream(encryptedByteArray));
                     final byte[] decryptedPacketBytes = IOUtils.toByteArray(decryptedPacket);
+                    // Unzip once; ByteArrayInputStream values are resettable for reuse in uploadPacket
+                    Map<String, InputStream> unzippedFiles = ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes));
                     if (scanFile(encryptedByteArray, registrationId,
-                            regEntity.getReferenceId(), ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(
-                                    decryptedPacketBytes)), dto, description, messageDTO)) {
+                            regEntity.getReferenceId(), unzippedFiles, dto, description, messageDTO)) {
                         int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
                         dto.setRetryCount(retrycount);
                         if (retrycount < getMaxRetryCount()) {
-
-                            messageDTO = uploadPacket(regEntity, dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), messageDTO, description);
+                            // Reset all ByteArrayInputStreams so uploadPacket can re-read them
+                            unzippedFiles.values().forEach(is -> ((ByteArrayInputStream) is).reset());
+                            messageDTO = uploadPacket(regEntity, dto, unzippedFiles, messageDTO, description);
                             if (messageDTO.getIsValid()) {
                                 dto.setLatestTransactionStatusCode(
                                         RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -235,7 +241,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                             }
                         } else {
 
-                        	messageDTO.setInternalError(Boolean.TRUE);
+                            messageDTO.setInternalError(Boolean.TRUE);
                             description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_RETRY_CNT_FAILURE.getMessage());
                             description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_RETRY_CNT_FAILURE.getCode());
                             dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
@@ -251,21 +257,21 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     }
                 }
             } else {
-            	 messageDTO.setInternalError(Boolean.TRUE);
+                messageDTO.setInternalError(Boolean.TRUE);
 
-                 dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-                         .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
-					dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-                 dto.setStatusComment(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getMessage());
-                 dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getCode());
-                 dto.setUpdatedBy(USER);
-                 description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
-                 description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
+                dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                        .getStatusCode(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION));
+                dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                dto.setStatusComment(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getMessage());
+                dto.setSubStatusCode(StatusUtil.PACKET_NOT_FOUND_LANDING_ZONE.getCode());
+                dto.setUpdatedBy(USER);
+                description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
+                description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
 
             }
 
         } catch (TablenotAccessibleException e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                     .getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION));
             dto.setStatusComment(
@@ -306,7 +312,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             }
 
         } catch (ApisResourceAccessException e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.NGINX_ACCESS_EXCEPTION));
             dto.setStatusComment(trimExpMessage
@@ -319,7 +325,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
             description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
         } catch (IOException | NoSuchAlgorithmException e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
             dto.setStatusComment(
@@ -332,7 +338,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
 
         } catch (PacketDecryptionFailureException e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
             dto.setStatusComment(StatusUtil.PACKET_DECRYPTION_FAILED.getMessage());
             dto.setSubStatusCode(StatusUtil.PACKET_DECRYPTION_FAILED.getCode());
@@ -344,7 +350,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     registrationId, ExceptionUtils.getStackTrace(e));
 
         } catch (ObjectStoreNotAccessibleException e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
             dto.setStatusComment(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage());
             dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
@@ -356,7 +362,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     registrationId, PlatformErrorMessages.OBJECT_STORE_NOT_ACCESSIBLE.name()
                             + ExceptionUtils.getStackTrace(e));
         } catch (Exception e) {
-        	messageDTO.setInternalError(Boolean.TRUE);
+            messageDTO.setInternalError(Boolean.TRUE);
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
             dto.setStatusComment(trimExpMessage
@@ -369,9 +375,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             description.setCode(PlatformErrorMessages.RPR_PKR_UNKNOWN_EXCEPTION.getCode());
 
         } finally {
-			if (messageDTO.getInternalError()) {
-				updateErrorFlags(dto, messageDTO);
-			}
+            if (messageDTO.getInternalError()) {
+                updateErrorFlags(dto, messageDTO);
+            }
             /** Module-Id can be Both Success/Error code */
             String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_PUM_PACKET_UPLOADER.getCode()
                     : description.getCode();
@@ -430,7 +436,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             if (!isInputFileClean) {
                 description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
                 description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getCode());
-				dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
                 dto.setStatusComment(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getMessage());
                 dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getCode());
                 dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
@@ -439,21 +445,21 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                         LoggerFileConstant.REGISTRATIONID.toString(), id,
                         PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
             }
-		} catch (VirusScannerException e) {
-			messageDTO.setInternalError(Boolean.TRUE);
-			description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
-			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
-					StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getMessage() + " " + e.getMessage()));
-			dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getCode());
-			dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					id, PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
+        } catch (VirusScannerException e) {
+            messageDTO.setInternalError(Boolean.TRUE);
+            description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
+            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            dto.setStatusComment(trimExpMessage.trimExceptionMessage(
+                    StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getMessage() + " " + e.getMessage()));
+            dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE.getCode());
+            dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    id, PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
+                            + ExceptionUtils.getStackTrace(e));
 
-		}
+        }
         return isInputFileClean;
     }
 
@@ -477,7 +483,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             description.setCode(PlatformErrorMessages.RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH.getCode());
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_HASH_VALIDATION_FAILED));
-			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+            dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
             dto.setStatusComment(StatusUtil.PACKET_HASHCODE_VALIDATION_FAILED.getMessage());
             dto.setSubStatusCode(StatusUtil.PACKET_HASHCODE_VALIDATION_FAILED.getCode());
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -506,39 +512,70 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
         object.setIsValid(false);
         String registrationId = dto.getRegistrationId();
-        // upload packets
+        // Fetch additionalInfoRequest once (instead of once per sub-packet in getFinalKey)
+        AdditionalInfoRequestDto additionalInfoRequestDto = isIterationAdditionEnabled ?
+                additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcessAndIteration(
+                        object.getRid(), object.getReg_type(), object.getIteration()) : null;
+        // Upload sub-packets and metadata in parallel using virtual threads
+        ExecutorService uploadExecutor = Executors.newVirtualThreadPerTaskExecutor();
         try {
+            // Phase 1: upload all ZIP sub-packets in parallel
+            List<CompletableFuture<Void>> zipFutures = new ArrayList<>();
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
-                    String objStoreKey = isIterationAdditionEnabled ?
-                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object)
-                            :
-                            entry.getKey().replace(ZIP, "");
-                    boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
-                            null, null, objStoreKey, entry.getValue());
-                    if (!result)
-                        throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
+                    final String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(ZIP, ""), object, additionalInfoRequestDto)
+                            : entry.getKey().replace(ZIP, "");
+                    final InputStream entryStream = entry.getValue();
+                    final String entryKey = entry.getKey();
+                    zipFutures.add(CompletableFuture.runAsync(() -> {
+                        boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
+                                null, null, objStoreKey, entryStream);
+                        if (!result)
+                            throw new CompletionException(new ObjectStoreNotAccessibleException("Failed to store packet : " + entryKey));
+                    }, uploadExecutor));
                 }
             }
+            try {
+                CompletableFuture.allOf(zipFutures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                if (cause instanceof ObjectStoreNotAccessibleException) throw (ObjectStoreNotAccessibleException) cause;
+                throw new ObjectStoreNotAccessibleException(cause.getMessage(), cause);
+            }
 
-            // upload metadata
+            // Phase 2: upload all JSON metadata in parallel (after ZIPs are stored)
+            List<CompletableFuture<Void>> jsonFutures = new ArrayList<>();
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(JSON)) {
                     byte[] bytearray = IOUtils.toByteArray(entry.getValue());
-                    String jsonString = new String(bytearray);
-                    LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
-                    String objStoreKey = isIterationAdditionEnabled ?
-                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object)
-                            :
-                            entry.getKey().replace(JSON, "");
-                    objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
-                            null, null, objStoreKey, currentIdMap);
+                    LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(new String(bytearray), LinkedHashMap.class);
+                    final String objStoreKey = isIterationAdditionEnabled ?
+                            getFinalKey(regEntity, entry.getKey().replace(JSON, ""), object, additionalInfoRequestDto)
+                            : entry.getKey().replace(JSON, "");
+                    jsonFutures.add(CompletableFuture.runAsync(() ->
+                            objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
+                                    null, null, objStoreKey, currentIdMap), uploadExecutor));
                 }
             }
+            try {
+                CompletableFuture.allOf(jsonFutures.toArray(new CompletableFuture[0])).join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                throw new ObjectStoreNotAccessibleException(cause.getMessage(), cause);
+            }
+        } catch (ObjectStoreNotAccessibleException e) {
+            object.setIsValid(false);
+            object.setInternalError(true);
+            throw e;
         } catch (Exception e) {
             object.setIsValid(false);
             object.setInternalError(true);
             throw new ObjectStoreNotAccessibleException(e.getMessage(), e);
+        } finally {
+            uploadExecutor.close();
         }
 
 
@@ -576,15 +613,21 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         byte[] packet = null;
 
         try {
-        	if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
-            packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
-        	}
-        	else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
-        	packet=IOUtils.toByteArray(objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null, packetId));
-        	if(packet==null) {
-        		throw new ObjectStoreNotAccessibleException("Failed to get packet : " +packetId);
-        	}
-        	}
+            if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.DMZ_SERVER)) {
+                packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
+            }
+            else if(landingZoneType.equalsIgnoreCase(LandingZoneTypeConstant.OBJECT_STORE)) {
+                try (InputStream objectStream = objectStoreAdapter.getObject(landingZoneAccount, registrationId, null, null,
+                        packetId)) {
+                    if (objectStream == null) {
+                        throw new ObjectStoreNotAccessibleException("Failed to get packet : " + packetId);
+                    }
+                    packet = IOUtils.toByteArray(objectStream);
+                }
+                if (packet == null) {
+                    throw new ObjectStoreNotAccessibleException("Failed to get packet : " + packetId);
+                }
+            }
         } catch (ApisResourceAccessException e) {
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException ex = (HttpClientErrorException) e.getCause();
@@ -593,7 +636,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             } else
                 throw e;
         } catch(ObjectStoreAdapterException e) {
-        	throw e;
+            throw e;
         }
         return packet;
     }
@@ -604,19 +647,16 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @param packetKey
      * @return
      */
-    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, MessageDTO messageDTO) {
+    private String getFinalKey(SyncRegistrationEntity regEntity, String packetKey, MessageDTO messageDTO,
+                               AdditionalInfoRequestDto additionalInfoRequestDto) {
         String[] tempKeys = packetKey.split(FORWARD_SLASH);
         // if known format of source/process/objectName only then modify the process
         if (tempKeys != null && tempKeys.length == 3) {
             String source = tempKeys[0];
             String process = tempKeys[1];
             String objectName = tempKeys[2];
-            AdditionalInfoRequestDto additionalInfoRequestDto = additionalInfoRequestService
-                .getAdditionalInfoRequestByRegIdAndProcessAndIteration(messageDTO.getRid(),
-                        messageDTO.getReg_type(), messageDTO.getIteration());
-
             if (additionalInfoRequestDto != null &&
-                        additionalInfoRequestDto.getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
+                    additionalInfoRequestDto.getAdditionalInfoReqId().equals(regEntity.getAdditionalInfoReqId())) {
                 return source + FORWARD_SLASH + process + "-" + messageDTO.getIteration() + FORWARD_SLASH + objectName;
             } else
                 return packetKey;
@@ -629,14 +669,14 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
     }
 
     private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
-		object.setInternalError(true);
-		if (registrationStatusDto.getLatestTransactionStatusCode()
-				.equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
-			object.setIsValid(true);
-		} else {
-			object.setIsValid(false);
-		}
-	}
+        object.setInternalError(true);
+        if (registrationStatusDto.getLatestTransactionStatusCode()
+                .equalsIgnoreCase(RegistrationTransactionStatusCode.REPROCESS.toString())) {
+            object.setIsValid(true);
+        } else {
+            object.setIsValid(false);
+        }
+    }
 
 
     public boolean isPacketAlreadyPresentInObjectStore(String id, String process) {
@@ -652,6 +692,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         return true;
     }
 
-	
+
 
 }

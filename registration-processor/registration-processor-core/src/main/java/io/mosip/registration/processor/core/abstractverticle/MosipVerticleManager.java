@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.UrlXmlConfig;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -198,7 +198,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				
 					MessageDTO result = process(messageDTO);
 					addTagsToMessageDTO(result);
-					result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					result.setLastHopTimestamp(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 					future.complete(result);
 				} catch (Exception e) {
 					logger.error("{} -- {} {} {}",
@@ -208,7 +208,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 					messageDTO.setIsValid(false);
 					messageDTO.setInternalError(true);
 					addTagsToMessageDTO(messageDTO);
-					messageDTO.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+					messageDTO.setLastHopTimestamp(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 					future.complete(messageDTO);
 				}
 
@@ -231,7 +231,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		if(busOutHaltAddresses.contains(toAddress.getAddress()))
 			return;
 		addTagsToMessageDTO(message);
-		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		message.setLastHopTimestamp(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 		mosipEventBus.send(toAddress, message);
 	}
 
@@ -338,7 +338,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		RequestWrapper<TagRequestDto> request = new RequestWrapper<>();
 		request.setId(ID);
 		request.setVersion(VERSION);
-		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 		request.setRequest(tagRequestDto);
 		ResponseWrapper<TagResponseDto> response = (ResponseWrapper<TagResponseDto>) restApi
 				.postApi(ApiName.PACKETMANAGER_GET_TAGS, "", "",
@@ -361,7 +361,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		if(messageExpiryTimeLimit <= 0)
 			return false;
 		try {
-			LocalDateTime lastHopDateTime = DateUtils.parseUTCToLocalDateTime(messageDTO.getLastHopTimestamp());
+			LocalDateTime lastHopDateTime = DateUtils2.parseUTCToLocalDateTime(messageDTO.getLastHopTimestamp());
 			LocalDateTime nowDateTime = LocalDateTime.now();
 			if(ChronoUnit.SECONDS.between(lastHopDateTime, nowDateTime) <= messageExpiryTimeLimit)
 				return false;

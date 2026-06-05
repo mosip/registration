@@ -45,3 +45,11 @@ COMMENT ON COLUMN regprc.reg_bio_ref.is_deleted IS 'IS_Deleted : Flag to mark wh
 COMMENT ON COLUMN regprc.reg_bio_ref.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
 
+--PERFORMANCE INDEXES--
+CREATE INDEX idx_regbio_bio_created ON regprc.reg_bio_ref USING btree (bio_ref_id, cr_dtimes DESC);
+CREATE INDEX idx_regbio_regid ON regprc.reg_bio_ref USING btree (reg_id);
+CREATE INDEX idx_regbio_wf_created ON regprc.reg_bio_ref USING btree (workflow_instance_id, cr_dtimes DESC);
+--END PERFORMANCE INDEXES--
+
+CREATE INDEX IF NOT EXISTS idx_rbioref_wfid on  regprc.reg_bio_ref(workflow_instance_id);
+CREATE INDEX IF NOT EXISTS idx_regbio_bio_wf ON regprc.reg_bio_ref USING btree (bio_ref_id, workflow_instance_id);

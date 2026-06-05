@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Level;
@@ -67,6 +68,7 @@ public class WorkflowActionJobSchedularTest {
 	public void setup() {
 		fooLogger = (Logger) LoggerFactory.getLogger(WorkflowActionJob.class);
 		listAppender = new ListAppender<>();
+		ReflectionTestUtils.setField(workflowActionJob, "environment", new StandardEnvironment());
 		ReflectionTestUtils.setField(workflowActionJob, "clusterManagerUrl", "/dummyPath");
 	}
 

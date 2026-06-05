@@ -9,8 +9,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +44,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -130,10 +134,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${registration.processor.abis.targetFPIR}")
 	private String targetFPIR;
 
-	/** worker pool size. */
-	@Value("${worker.pool.size}")
-	private Integer workerPoolSize;
-
 	/**
 	 * After this time intervel, message should be considered as expired (In
 	 * seconds).
@@ -213,7 +213,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
-		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		mosipEventBus = this.getEventBus(this, clusterManagerUrl, getWorkerPoolSize());
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.ABIS_HANDLER_BUS_IN,
 				MessageBusAddress.ABIS_HANDLER_BUS_OUT, messageExpiryTimeLimit);
 	}
@@ -402,7 +402,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisIdentifyRequestDto.setRequestId(id);
 		abisIdentifyRequestDto.setReferenceId(bioRefId);
 		abisIdentifyRequestDto.setReferenceUrl("");
-		abisIdentifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		abisIdentifyRequestDto.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		flag.setMaxResults(maxResults);
 		flag.setTargetFPIR(targetFPIR);
 		abisIdentifyRequestDto.setFlags(flag);
@@ -550,7 +550,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisInsertRequestDto.setReferenceId(bioRefId);
 		abisInsertRequestDto.setReferenceURL(status.equalsIgnoreCase(AbisStatusCode.IN_PROGRESS.toString())?getDataShareUrl(regId, process):null);
 		abisInsertRequestDto.setRequestId(id);
-		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		abisInsertRequestDto.setRequesttime(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
 		try {
 			String jsonString = JsonUtils.javaObjectToJsonString(abisInsertRequestDto);
@@ -591,10 +591,43 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
-		BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
-				policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
+		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+		BiometricRecord biometricRecord;
+		Map<String, String> tags;
+		Map<String, String> metaInfoMap;
+		try {
+			CompletableFuture<BiometricRecord> biometricsFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getBiometrics(id, individualBiometricsLabel,
+							policyTypeAndSubTypeList, process, ProviderStageName.BIO_DEDUPE);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
 
-		Map<String, String> tags = packetManagerService.getAllTags(id);
+			CompletableFuture<Map<String, String>> tagsFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return packetManagerService.getAllTags(id);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE);
+				} catch (Exception e) { throw new CompletionException(e); }
+			}, executor);
+
+			try {
+				biometricRecord = biometricsFuture.join();
+				tags = tagsFuture.join();
+				metaInfoMap = metaInfoFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause() != null ? e.getCause() : e;
+				if (cause instanceof Exception) throw (Exception) cause;
+				throw e;
+			}
+		} finally {
+			executor.close();
+		}
+
 		String ageGroup = tags.get("AGE_GROUP");
 		Map<String, List<String>> ageGroupModalitySegmentMap;
 		if(biometricModalitySegmentsMapforAgeGroup.containsKey(ageGroup)){
@@ -604,10 +637,9 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			ageGroupModalitySegmentMap = biometricModalitySegmentsMapforAgeGroup.get("DEFAULT");
 		}
 		validateBiometricRecord(biometricRecord, modalities, ageGroupModalitySegmentMap,
-				priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE),
-				policyTypeAndSubTypeMap);
+				metaInfoMap, policyTypeAndSubTypeMap);
 
-		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord,id,process).getSegments());
+		byte[] content = cbeffutil.createXML(filterExceptionBiometrics(biometricRecord, id, process, metaInfoMap).getSegments());
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);
@@ -718,12 +750,13 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		}
 	}
 
-	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process)
+	private BiometricRecord filterExceptionBiometrics(BiometricRecord biometricRecord, String id, String process,
+			Map<String, String> metaInfoMap)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException,
 			JSONException
 	{
 
-		String version = getRegClientVersionFromMetaInfo(id, process, priorityBasedPacketManagerService.getMetaInfo(id, process, ProviderStageName.BIO_DEDUPE));
+		String version = getRegClientVersionFromMetaInfo(id, process, metaInfoMap);
 		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			return biometricRecord;
 		}

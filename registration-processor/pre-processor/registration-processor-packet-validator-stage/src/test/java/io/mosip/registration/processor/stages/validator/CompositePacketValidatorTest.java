@@ -39,8 +39,8 @@ public class CompositePacketValidatorTest {
 	public void validateSuccessTest() throws ApisResourceAccessException, RegistrationProcessorCheckedException,
 			JsonProcessingException, PacketManagerException, IOException {
 
-		Mockito.when(packetValidatorImpl.validate(anyString(), anyString(), any())).thenReturn(true);
-		Mockito.when(referenceValidatorImpl.validate(anyString(), anyString(), any())).thenReturn(true);
+		Mockito.when(packetValidatorImpl.validate(anyString(), anyString(), any(), any())).thenReturn(true);
+		Mockito.when(referenceValidatorImpl.validate(anyString(), anyString(), any(), any())).thenReturn(true);
 		boolean result = compositePacketValidator.validate("10011100120000620210727102631", "NEW", packetValidationDto);
 		assertEquals(result, true);
 	}
@@ -49,7 +49,7 @@ public class CompositePacketValidatorTest {
 	public void validateFailureTest() throws ApisResourceAccessException, RegistrationProcessorCheckedException,
 			JsonProcessingException, PacketManagerException, IOException {
 
-		Mockito.when(packetValidatorImpl.validate(anyString(), anyString(), any())).thenReturn(false);
+		Mockito.when(packetValidatorImpl.validate(anyString(), anyString(), any(), any())).thenReturn(false);
 		boolean result = compositePacketValidator.validate("10011100120000620210727102631", "NEW", packetValidationDto);
 		assertEquals(result, false);
 	}
