@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MosipRouter {
-	/** Vertx router for routes */
-	private Router router;
+	/** Vertx router for routes — ThreadLocal gives each stage its own instance */
+	private ThreadLocal<Router> router = new ThreadLocal<>();
 
-	/** Vertx route for api */
-	private Route route;
+	/** Vertx route for api — ThreadLocal gives each stage its own instance */
+	private ThreadLocal<Route> route = new ThreadLocal<>();
 
 	/** Token validator class */
 	@Autowired
@@ -31,31 +31,32 @@ public class MosipRouter {
 
 	/**
 	 * This method sets router for API
-	 * 
+	 *
 	 * @param router
 	 */
 	public void setRoute(Router router) {
-		this.router = router;
+		this.router.set(router);
 	}
 
 	/**
 	 * This method returns router for API
-	 * 
+	 *
 	 * @return
 	 */
 	public Router getRouter() {
-		return this.router;
+		return this.router.get();
 	}
 
 	/**
 	 * This method is used for post API call
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
 	public Route post(String url) {
-		this.route = this.router.post(url);
-		return this.route;
+		Route r = this.router.get().post(url);
+		this.route.set(r);
+		return r;
 	}
 
 	/**
@@ -66,18 +67,18 @@ public class MosipRouter {
 	 * @param failureHandler
 	 */
 	public void handler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(this::validateToken).blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
+		this.route.get().blockingHandler(this::validateToken).blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
 				.failureHandler(new VertxWrapperHandler(failureHandler){});
 	}
 
 	public void nonSecureHandler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(new VertxWrapperHandler(requestHandler) {}, false)
+		this.route.get().blockingHandler(new VertxWrapperHandler(requestHandler) {}, false)
 				.failureHandler(new VertxWrapperHandler(failureHandler){});
 	}
 
 	public void handler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> requestHandler2,
 			Handler<RoutingContext> failureHandler) {
-		this.route.blockingHandler(this::validateToken)
+		this.route.get().blockingHandler(this::validateToken)
 				.blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
 				.blockingHandler(new VertxWrapperHandler(requestHandler2){}, false)
 				.failureHandler(new VertxWrapperHandler(failureHandler){});
@@ -85,27 +86,28 @@ public class MosipRouter {
 
 	/**
 	 * this method is used to handle request only
-	 * 
+	 *
 	 * @param requestHandler
 	 */
 	public void handler(Handler<RoutingContext> requestHandler) {
-		this.route.blockingHandler(requestHandler, false);
+		this.route.get().blockingHandler(requestHandler, false);
 	}
 
 	/**
 	 * This method is used for get API call
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
 	public Route get(String url) {
-		this.route = this.router.get(url);
-		return this.route;
+		Route r = this.router.get().get(url);
+		this.route.set(r);
+		return r;
 	}
 
 	/**
 	 * This method is used for validating token
-	 * 
+	 *
 	 * @param routingContext
 	 */
 	private void validateToken(RoutingContext routingContext) {
