@@ -129,7 +129,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
 				MessageBusAddress.SECUREZONE_NOTIFICATION_OUT);
 		router.setRoute(vertxRouter);
-		this.routes(router, vertxRouter);
+		this.routes(router);
 		this.createServer(vertxRouter, getPort());
 	}
 
@@ -137,10 +137,9 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 	 * contains all the routes in this stage
 	 *
 	 * @param router
-	 * @param vertxRouter
 	 */
-	private void routes(MosipRouter router, io.vertx.ext.web.Router vertxRouter) {
-		router.post(vertxRouter, getServletPath() + "/notification");
+	private void routes(MosipRouter router) {
+		router.post(getServletPath() + "/notification");
 		router.handler(this::processURL, this::failure);
 	}
 

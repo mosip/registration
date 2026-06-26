@@ -112,7 +112,7 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	public void start() {
 		io.vertx.ext.web.Router vertxRouter = this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT);
 		router.setRoute(vertxRouter);
-		this.routes(router, vertxRouter);
+		this.routes(router);
 		this.createServer(vertxRouter, getPort());
 	}
 
@@ -121,11 +121,9 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 *
 	 * @param router
 	 *            the router
-	 * @param vertxRouter
-	 *            the vertx router
 	 */
-	private void routes(MosipRouter router, io.vertx.ext.web.Router vertxRouter) {
-		router.post(vertxRouter, getServletPath() + "/registrationpackets");
+	private void routes(MosipRouter router) {
+		router.post(getServletPath() + "/registrationpackets");
 		router.handler(this::processURL, this::processPacket, this::failure);
 	}
 

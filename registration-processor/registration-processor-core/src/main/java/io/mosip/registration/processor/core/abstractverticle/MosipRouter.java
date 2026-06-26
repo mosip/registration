@@ -58,11 +58,6 @@ public class MosipRouter {
 		return this.route;
 	}
 
-	public Route post(Router specificRouter, String url) {
-		this.route = specificRouter.post(url);
-		return this.route;
-	}
-
 	/**
 	 * this method is used to handle request and failure handler including
 	 * validation of token
