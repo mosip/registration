@@ -112,9 +112,10 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT));
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT);
+		router.setRoute(vertxRouter);
 		this.routes(router);
-		this.createServer(router.getRouter(), getPort());
+		this.createServer(vertxRouter, getPort());
 	}
 
 	/**

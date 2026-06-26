@@ -138,9 +138,10 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN,
-				MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_IN,
+				MessageBusAddress.BIOMETRIC_EXTRACTION_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 
 	}
 	/*

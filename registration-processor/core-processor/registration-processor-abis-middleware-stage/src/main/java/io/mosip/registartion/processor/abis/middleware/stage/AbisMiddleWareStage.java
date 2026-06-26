@@ -220,9 +220,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN,
-				MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN,
+				MessageBusAddress.ABIS_MIDDLEWARE_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 
 	}
 
