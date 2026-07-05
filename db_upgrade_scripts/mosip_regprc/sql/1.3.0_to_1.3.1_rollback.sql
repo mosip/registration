@@ -1,3 +1,3 @@
-\c mosip_regprc
+\c :mosipdbname
 
 DROP INDEX IF EXISTS regprc.idx_registration_reprocessor;
