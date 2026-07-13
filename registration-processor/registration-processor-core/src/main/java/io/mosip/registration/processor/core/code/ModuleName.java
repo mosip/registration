@@ -46,8 +46,10 @@ public enum ModuleName {
 	EXTERNAL,
 
 	UIN_GENERATOR,
-	
+
 	BIOMETRIC_EXTRACTION,
+
+	CREATE_DRAFT,
 
 	PRINT_STAGE,
 

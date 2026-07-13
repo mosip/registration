@@ -52,6 +52,7 @@ import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
@@ -109,6 +110,9 @@ public class WorkflowInternalActionVerticleTest {
 	
 	@Mock
 	private Utilities utility;
+
+	@Mock
+	private IdrepoDraftService idrepoDraftService;
 
 	@Mock
 	private Environment env;
@@ -656,6 +660,117 @@ public class WorkflowInternalActionVerticleTest {
 		assertEquals(RegistrationStatusCode.REJECTED.toString(), argument1.getAllValues().get(0).getResultCode());
 	}
 	
+	// -----------------------------------------------------------------------
+	// Draft discard on failure / rejection
+	// -----------------------------------------------------------------------
+
+	@Test
+	public void testDiscardDraftOnCompleteAsFailed_DraftExists() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as failed");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		Mockito.when(idrepoDraftService.idrepoDiscardDraft(anyString())).thenReturn(true);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoHasDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft(anyString());
+	}
+
+	@Test
+	public void testDiscardDraftOnCompleteAsRejected_DraftExists() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as rejected");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		Mockito.when(idrepoDraftService.idrepoDiscardDraft(anyString())).thenReturn(true);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoHasDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft(anyString());
+	}
+
+	@Test
+	public void testDiscardDraftOnCompleteAsRejectedWithoutParentFlow_DraftExists() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_REJECTED_WITHOUT_PARENT_FLOW.toString());
+		workflowInternalActionDTO.setActionMessage("Packet processing completed with reject status without Parent flow");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		Mockito.when(idrepoDraftService.idrepoDiscardDraft(anyString())).thenReturn(true);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoHasDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft(anyString());
+	}
+
+	@Test
+	public void testNoDraftDiscardWhenNoDraftExists_CompleteAsFailed() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as failed");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(false);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoHasDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoDiscardDraft(anyString());
+	}
+
+	@Test
+	public void testDiscardDraftException_FlowContinues_CompleteAsFailed() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_FAILED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as failed");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		Mockito.when(idrepoDraftService.idrepoDiscardDraft(anyString()))
+				.thenThrow(new RuntimeException("ID Repo unavailable"));
+
+		// Should complete normally despite the discard exception
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(registrationStatusService, atLeastOnce())
+				.updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft(anyString());
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcessSuccessForAnonymousProfile() throws IOException, JSONException, BaseCheckedException {
@@ -666,55 +781,18 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
 		workflowInternalActionDTO.setActionMessage("anonymous profile event");
 
-		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
-				.thenReturn("1.0");
-		Mockito.when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList(""));
-
-		Map<String, String> fieldTypeMap = new HashedMap();
-		fieldTypeMap.put("postalCode", "string");
-		fieldTypeMap.put("zone", "simpleType");
-		Mockito.when(idSchemaUtil.getIdSchemaFieldTypes(anyDouble())).thenReturn(fieldTypeMap);
-
-		Map<String, String> fieldMap = new HashedMap();
-		fieldMap.put("postalCode", "14022");
-		fieldMap.put("dateOfBirth", "1998/01/01");
-		fieldMap.put("phone", "6666666666");
-		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldMap);
-
-		Map<String, String> metaInfoMap = new HashedMap();
-		metaInfoMap.put("documents", "[{\"documentType\" : \"CIN\"},{\"documentType\" : \"RNC\"})]");
-		metaInfoMap.put("operationsData",
-				"[{\"label\" : \"officerId\",\"value\" : \"110024\"},{\"label\" : \"officerBiometricFileName\",\"value\" : \"null\"})]");
-		metaInfoMap.put("creationDate", "2021-09-01T03:48:49.193Z");
-		Mockito.when(priorityBasedPacketManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metaInfoMap);
-
-		BiometricRecord biometricRecord = new BiometricRecord();
-		BIR bir = new BIR();
-		HashMap<String, String> entry = new HashMap<>();
-		bir.setSb("eyJ4NWMiOlsiTUlJRGtEQ0NBbmlnQXdJQkFnSUVwNzo".getBytes());
-		bir.setBdb("SUlSADAyMAAAACc6AAEAAQAAJyoH5AoJECYh//8Bc18wBgAAAQIDCgABlwExCA".getBytes());
-		entry.put("PAYLOAD", "{\"deviceServiceVersion\":\"0.9.5\",\"bioValue\":\"<bioValue>\",\"qualityScore\":\"80\",\"bioType\":\"Iris\"}");
-		bir.setOthers(entry);
-		biometricRecord.setSegments(Arrays.asList(bir));
-		Mockito.when(priorityBasedPacketManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
-				.thenReturn(biometricRecord);
-		
-		org.json.simple.JSONObject identity = new org.json.simple.JSONObject();
-		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
-		IDSchemaVersion.put("value", "1.0");
-		identity.put("IDSchemaVersion", IDSchemaVersion);
-		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(registrationStatusDto);
-		Mockito.when(utility.getRegistrationProcessorMappingJson(any()))
-		.thenReturn(identity);
+
+		Map<String, String> anonymousTags = new HashMap<>();
+		anonymousTags.put("anonymous", "{\"processName\":\"NEW\"}");
+		Mockito.when(packetManagerService.getTags(anyString(), any())).thenReturn(anonymousTags);
+
+		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		Mockito.when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
-				anyString())).thenReturn("jsonProfile");
-		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		assertEquals(true, object.getIsValid());
 	}

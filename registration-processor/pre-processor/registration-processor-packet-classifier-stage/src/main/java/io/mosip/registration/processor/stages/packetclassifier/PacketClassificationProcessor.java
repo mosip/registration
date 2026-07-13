@@ -26,6 +26,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -61,6 +62,7 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -134,13 +136,16 @@ public class PacketClassificationProcessor {
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
-	/** 
-	 * This List will contain all the tag generators that is applicable as per the configuration 
+	/**
+	 * This List will contain all the tag generators that is applicable as per the configuration
 	 */
 	@Autowired
 	private List<TagGenerator> tagGenerators;
 
-	/** 
+	@Autowired
+	private AnonymousProfileService anonymousProfileService;
+
+	/**
 	 * Id object fields required by all the configured tag generators will be maintained here
 	 */
 	private List<String> requiredIdObjectFieldNames;
@@ -220,7 +225,7 @@ public class PacketClassificationProcessor {
 						RegistrationTransactionTypeCode.PACKET_CLASSIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
-			generateAndAddTags(registrationStatusDto.getWorkflowInstanceId(), registrationId, 
+			generateAndAddTags(registrationStatusDto.getWorkflowInstanceId(), registrationId,
 				registrationStatusDto.getRegistrationType(), object.getIteration());
 			object.setTags(null);
 
@@ -330,7 +335,7 @@ public class PacketClassificationProcessor {
 
 	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, int iteration)
 			throws IOException, BaseCheckedException, NumberFormatException, JSONException {
-		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
+		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId,
 			requiredIdObjectFieldNames);
 
 		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -344,10 +349,24 @@ public class PacketClassificationProcessor {
 				}
 			}, executor);
 
+			// Fire biometrics fetch in parallel — needed for anonymous profile
+			CompletableFuture<BiometricRecord> biometricFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return priorityBasedPacketManagerService.getBiometrics(registrationId,
+							MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.CLASSIFICATION);
+				} catch (Exception e) {
+					throw new CompletionException(e);
+				}
+			}, executor);
+
 			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
 				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
-			Map<String, String> fieldTypeMap = getFieldTypeMap(identityFieldValueMap.get(idSchemaVersionLabel));
+			String schemaVersionStr = identityFieldValueMap.get(idSchemaVersionLabel);
+			Map<String, String> fieldTypeMap = getFieldTypeMap(schemaVersionStr);
 			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
+
+			List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.parseDouble(schemaVersionStr));
+			Map<String, String> allFieldMap = priorityBasedPacketManagerService.getFields(registrationId, defaultFields, process, ProviderStageName.CLASSIFICATION);
 
 			Map<String, String> metaInfoMap;
 			try {
@@ -397,6 +416,28 @@ public class PacketClassificationProcessor {
 			}
 
 			handleNullValueTags(allTags);
+
+			// Build and attach the anonymous profile — failures must not block the packet pipeline
+			try {
+				BiometricRecord biometricRecord = biometricFuture.join();
+				String anonymousProfileJson = anonymousProfileService.buildJsonStringFromPacketInfo(
+						biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,
+						RegistrationStatusCode.PROCESSING.toString(), ModuleName.PACKET_CLASSIFIER.toString());
+				if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
+					allTags.put("anonymous", anonymousProfileJson);
+					try {
+						anonymousProfileService.saveAnonymousProfile(
+								registrationId, ModuleName.PACKET_CLASSIFIER.toString(), anonymousProfileJson);
+					} catch (Exception dbEx) {
+						regProcLogger.warn("Anonymous profile DB save failed for {} ({}); tag still stored",
+								registrationId, dbEx.getMessage());
+					}
+				}
+			} catch (Exception anonymousEx) {
+				regProcLogger.warn("Anonymous profile build failed for {}: {}; packet classification continues",
+						registrationId, anonymousEx.getMessage());
+			}
+
 			regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
 			if (!allTags.isEmpty())
 				packetManagerService.addOrUpdateTags(registrationId, allTags);
