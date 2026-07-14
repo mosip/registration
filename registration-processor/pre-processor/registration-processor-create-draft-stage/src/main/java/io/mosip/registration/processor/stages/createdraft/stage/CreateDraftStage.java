@@ -800,6 +800,21 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
             idRequestDTO.setVersion(idRepoApiVersion);
 
+            // Discard existing draft if this is a reprocess
+            if (idrepoDraftService.idrepoHasDraft(lostPacketRegId)) {
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), lostPacketRegId,
+                        "LOST packet draft already exists. Discarding before re-creation.");
+                idrepoDraftService.idrepoDiscardDraft(lostPacketRegId);
+            }
+            // Create draft for the LOST packet linked to the matched UIN
+            boolean created = idrepoDraftService.idrepoCreateDraft(lostPacketRegId, uin);
+            if (!created) {
+                throw new IdrepoDraftException(
+                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+            }
+
             idResponse = idrepoDraftService.idrepoUpdateDraft(lostPacketRegId, uin, idRequestDTO);
 
             if (isIdResponseNotNull(idResponse)) {

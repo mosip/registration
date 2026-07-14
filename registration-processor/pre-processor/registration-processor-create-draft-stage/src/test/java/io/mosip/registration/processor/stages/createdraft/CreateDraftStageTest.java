@@ -411,6 +411,8 @@ public class CreateDraftStageTest {
 
         when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn("matchedRegId123");
         when(idRepoService.getUinByRid(anyString(), any())).thenReturn(EXISTING_UIN);
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraft(REG_ID, EXISTING_UIN)).thenReturn(true);
 
         // Update returns a valid (non-null) response → CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS
         ResponseDTO lostStatus = new ResponseDTO();
@@ -447,6 +449,8 @@ public class CreateDraftStageTest {
 
         when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn("matchedRegId123");
         when(idRepoService.getUinByRid(anyString(), any())).thenReturn(EXISTING_UIN);
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraft(REG_ID, EXISTING_UIN)).thenReturn(true);
 
         // setUp default: idrepoUpdateDraft returns new IdResponseDTO() with null response
         // → isIdResponseNotNull = false → CDS_LINK_RID_FOR_LOST_PACKET_FAILED
