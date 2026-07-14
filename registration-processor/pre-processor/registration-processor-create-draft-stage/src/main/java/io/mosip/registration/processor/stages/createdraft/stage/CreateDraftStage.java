@@ -264,6 +264,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 IdResponseDTO idResponseDTO = new IdResponseDTO();
                 isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, uinField, object,
                         demographicIdentity, description);
+                applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)) {
                 String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
@@ -280,6 +281,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 loadDemographicIdentity(fieldMap, demographicIdentity);
                 deactivateUin(registrationId, uinField, object, demographicIdentity, description);
                 isTransactionSuccessful = object.getIsValid();
+                applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.LOST.toString().equalsIgnoreCase(regType)) {
                 String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(
@@ -292,6 +294,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                             object, description);
                 }
                 isTransactionSuccessful = object.getIsValid();
+                applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.NEW.toString().equalsIgnoreCase(regType)
                     || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)) {
@@ -438,6 +441,22 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         }
 
         return object;
+    }
+
+    private void applyDescriptionToStatus(LogDescription description,
+            InternalRegistrationStatusDto registrationStatusDto) {
+        if (description.getStatusCode() != null) {
+            registrationStatusDto.setStatusCode(description.getStatusCode());
+        }
+        if (description.getStatusComment() != null) {
+            registrationStatusDto.setStatusComment(description.getStatusComment());
+        }
+        if (description.getTransactionStatusCode() != null) {
+            registrationStatusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
+        }
+        // sub_status_code has a NOT NULL constraint; use fallback if the helper didn't set it
+        registrationStatusDto.setSubStatusCode(description.getSubStatusCode() != null
+                ? description.getSubStatusCode() : StatusUtil.CREATE_DRAFT_FAILED.getCode());
     }
 
     private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
