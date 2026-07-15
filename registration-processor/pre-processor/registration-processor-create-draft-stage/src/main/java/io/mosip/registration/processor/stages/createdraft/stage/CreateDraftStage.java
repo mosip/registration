@@ -297,7 +297,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.NEW.toString().equalsIgnoreCase(regType)
-                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)) {
+                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)) {
 
                 // If a draft already exists (e.g. reprocessed packet), discard it first
                 if (idrepoDraftService.idrepoHasDraft(registrationId)) {
@@ -307,17 +308,18 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     idrepoDraftService.idrepoDiscardDraft(registrationId);
                 }
 
-                // For UPDATE packets, fetch the existing UIN so ID Repo can clone the
-                // existing identity into the draft. For NEW packets, pass null — ID Repo
+                // For UPDATE/RES_UPDATE packets, fetch the existing UIN so ID Repo can clone
+                // the existing identity into the draft. For NEW packets, pass null — ID Repo
                 // will allocate and assign the UIN internally during draft creation.
                 String uin = null;
-                if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)) {
+                if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+                        || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)) {
                     uin = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
                             ProviderStageName.CREATE_DRAFT);
                     if (StringUtils.isEmpty(uin) || "null".equalsIgnoreCase(uin)) {
                         regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                                 LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                "UIN not found for UPDATE packet.");
+                                "UIN not found for UPDATE/RES_UPDATE packet.");
                         throw new ApisResourceAccessException(
                                 PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getMessage());
                     }
