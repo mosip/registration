@@ -107,6 +107,7 @@ public class IdrepoDraftService {
             newIdentity.put(UIN, existingIdentity.get(UIN));
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
+            requestDto.setDocuments(idRequestDto.getRequest().getDocuments());
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());
             requestDto.setUin(responseDTO.getUin());
