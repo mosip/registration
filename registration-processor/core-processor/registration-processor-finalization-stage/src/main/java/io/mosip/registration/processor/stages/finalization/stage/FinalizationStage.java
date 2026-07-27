@@ -163,6 +163,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 			else {
 				IdResponseDTO idResponseDTO=idrepoDraftService.idrepoPublishDraft(registrationStatusDto.getRegistrationId());
 				if(idResponseDTO != null && idResponseDTO.getResponse() != null) {
+						idrepoDraftService.idrepoDiscardDraft(registrationStatusDto.getRegistrationId());
 						registrationStatusDto.setStatusComment(StatusUtil.FINALIZATION_SUCCESS.getMessage());
 						registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_SUCCESS.getCode());
 						isTransactionSuccessful = true;
