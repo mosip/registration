@@ -58,6 +58,9 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
@@ -89,6 +92,9 @@ public class BioDedupeProcessor {
 
 	@Autowired
 	private IdRepoService idRepoService;
+
+	@Autowired
+	private IdrepoDraftService idrepoDraftService;
 
 	@Value("#{'${registration.processor.sub-processes}'.split(',')}")
 	private List<String> subProcesses;
@@ -222,7 +228,9 @@ public class BioDedupeProcessor {
 					ProcessedMatchedResult processedMatchedResult = abisHandlerUtil
 							.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
 									registrationType, object.getIteration(), object.getWorkflowInstanceId(), ProviderStageName.BIO_DEDUPE);
-					Set<String> matchedRegIds = processedMatchedResult.getMatchedResults();
+					Set<String> matchedRegIds = new HashSet<>(
+							Optional.ofNullable(processedMatchedResult.getMatchedResults()).orElse(Collections.emptySet())
+					);
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
@@ -626,9 +634,17 @@ public class BioDedupeProcessor {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
 					BioDedupeConstants.NO_MATCH_FOUND_FOR_LOST + registrationId);
+			// Discard the draft since this LOST packet has no biometric match.
+			try {
+				idrepoDraftService.idrepoDiscardDraft(registrationId);
+			} catch (IdrepoDraftException | IdrepoDraftReprocessableException e) {
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "Failed to discard draft on LOST no-match (non-fatal): " + e.getMessage());
+			}
 
 		} else if (matchedRegIds.size() == 1) {
 
+			String matchedRegId = matchedRegIds.iterator().next();
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			object.setIsValid(Boolean.TRUE);
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
@@ -636,7 +652,17 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getCode());
 			moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
 			packetInfoManager.saveRegLostUinDet(registrationId,
-					object.getWorkflowInstanceId(), matchedRegIds.iterator().next(), moduleId, moduleName);
+					object.getWorkflowInstanceId(), matchedRegId, moduleId, moduleName);
+			// Stamp the resolved UIN on the LOST draft so publish can link files to uinHash.
+			String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
+			if (resolvedUin != null) {
+				try {
+					idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
+				} catch (IdrepoDraftException e) {
+					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							registrationId, "Failed to stamp UIN on LOST draft (non-fatal): " + e.getMessage());
+				}
+			}
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
 					BioDedupeConstants.FOUND_UIN_IN_BIO_CHECK + registrationId);
@@ -661,6 +687,7 @@ public class BioDedupeProcessor {
 
 			if (matchCount == 1) {
 
+				String matchedRegId = demoMatchedIds.get(0);
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 				object.setIsValid(Boolean.TRUE);
@@ -669,7 +696,17 @@ public class BioDedupeProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_UNIQUE_MATCH_FOUND.getCode());
 				moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
 				packetInfoManager.saveRegLostUinDet(registrationId,
-						object.getWorkflowInstanceId(), demoMatchedIds.get(0), moduleId, moduleName);
+						object.getWorkflowInstanceId(), matchedRegId, moduleId, moduleName);
+				// Stamp the resolved UIN on the LOST draft.
+				String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
+				if (resolvedUin != null) {
+					try {
+						idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
+					} catch (IdrepoDraftException e) {
+						regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+								registrationId, "Failed to stamp UIN on LOST draft (non-fatal): " + e.getMessage());
+					}
+				}
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						BioDedupeConstants.FOUND_UIN_IN_DEMO_CHECK + registrationId);

@@ -203,16 +203,19 @@ public class CreateDraftStageTest {
     // -----------------------------------------------------------------------
 
     @Test
-    public void testProcess_LostPacket_NoMatchFound() throws Exception {
+    public void testProcess_LostPacket_DraftAlreadyExists_DiscardAndRecreate() throws Exception {
         messageDTO.setReg_type("LOST");
         registrationStatusDto.setRegistrationType("LOST");
 
-        when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn(null);
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(true);
+        when(idrepoDraftService.idrepoDiscardDraft(REG_ID)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
+        verify(idrepoDraftService, times(1)).idrepoDiscardDraft(REG_ID);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID);
         verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), anyString());
     }
 
@@ -405,60 +408,49 @@ public class CreateDraftStageTest {
     // -----------------------------------------------------------------------
 
     @Test
-    public void testProcess_LostPacket_MatchFound_Success() throws Exception {
+    public void testProcess_LostPacket_Success() throws Exception {
         messageDTO.setReg_type("LOST");
         registrationStatusDto.setRegistrationType("LOST");
 
-        when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn("matchedRegId123");
-        when(idRepoService.getUinByRid(anyString(), any())).thenReturn(EXISTING_UIN);
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, EXISTING_UIN)).thenReturn(true);
-
-        // Update returns a valid (non-null) response → CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS
-        ResponseDTO lostStatus = new ResponseDTO();
-        lostStatus.setStatus("ACTIVATED");
-        IdResponseDTO lostIdResponse = new IdResponseDTO();
-        lostIdResponse.setResponse(lostStatus);
-        when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any())).thenReturn(lostIdResponse);
+        // idrepoCreateDraftV2 returns default (mock boolean false — return value not checked by LOST branch)
+        // idrepoUpdateDraft returns new IdResponseDTO() from setUp default — return value not checked in populateDraftWithIdentity
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID);
     }
 
     @Test
-    public void testProcess_LostPacket_MatchFound_UinNull() throws Exception {
+    public void testProcess_LostPacket_CreateDraftV2Throws_InternalError() throws Exception {
         messageDTO.setReg_type("LOST");
         registrationStatusDto.setRegistrationType("LOST");
 
-        when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn("matchedRegId123");
-        when(idRepoService.getUinByRid(anyString(), any())).thenReturn(null);
-
-        MessageDTO result = createDraftStage.process(messageDTO);
-
-        assertFalse(result.getIsValid());
-        assertFalse(result.getInternalError());
-        verify(idrepoDraftService, never()).idrepoUpdateDraft(anyString(), any(), any());
-    }
-
-    @Test
-    public void testProcess_LostPacket_MatchFound_UpdateFails() throws Exception {
-        messageDTO.setReg_type("LOST");
-        registrationStatusDto.setRegistrationType("LOST");
-
-        when(regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(anyString())).thenReturn("matchedRegId123");
-        when(idRepoService.getUinByRid(anyString(), any())).thenReturn(EXISTING_UIN);
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, EXISTING_UIN)).thenReturn(true);
-
-        // setUp default: idrepoUpdateDraft returns new IdResponseDTO() with null response
-        // → isIdResponseNotNull = false → CDS_LINK_RID_FOR_LOST_PACKET_FAILED
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID))
+                .thenThrow(new ApisResourceAccessException("ID Repo unavailable"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
-        assertFalse(result.getInternalError());
+        assertTrue(result.getInternalError());
+    }
+
+    @Test
+    public void testProcess_LostPacket_PopulateDraftThrows_InternalError() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any()))
+                .thenThrow(new IdrepoDraftException("DRAFT_ERROR", "update draft failed"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertFalse(result.getIsValid());
+        assertTrue(result.getInternalError());
     }
 
     // -----------------------------------------------------------------------

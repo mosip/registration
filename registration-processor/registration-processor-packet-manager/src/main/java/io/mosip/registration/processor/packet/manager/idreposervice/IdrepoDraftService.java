@@ -61,18 +61,52 @@ public class IdrepoDraftService {
     }
 
     public ResponseDTO idrepoGetDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
-        regProcLogger.debug("idrepoGetDraft entry " + id);
-        IdResponseDTO idResponseDTO = (IdResponseDTO) registrationProcessorRestClientService.getApi(
-                ApiName.IDREPOGETDRAFT, Lists.newArrayList(id), Lists.emptyList(), null, IdResponseDTO.class);
+        return idrepoGetDraft(id, null);
+    }
+
+    public ResponseDTO idrepoGetDraft(String id, String type) throws ApisResourceAccessException, IdrepoDraftException {
+        regProcLogger.debug("idrepoGetDraft entry " + id + " type=" + type);
+        IdResponseDTO idResponseDTO;
+        if (type != null) {
+            idResponseDTO = (IdResponseDTO) registrationProcessorRestClientService.getApi(
+                    ApiName.IDREPOGETDRAFT, Lists.newArrayList(id), "type", type, IdResponseDTO.class);
+        } else {
+            idResponseDTO = (IdResponseDTO) registrationProcessorRestClientService.getApi(
+                    ApiName.IDREPOGETDRAFT, Lists.newArrayList(id), Lists.emptyList(), null, IdResponseDTO.class);
+        }
         if (idResponseDTO.getErrors() != null && !idResponseDTO.getErrors().isEmpty()) {
             ErrorDTO error = idResponseDTO.getErrors().get(0);
             regProcLogger.error("Error occured while getting draft for id : " + id, error.toString());
             throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
         }
-            regProcLogger.debug("idrepoGetDraft exit " + id);
-            return idResponseDTO.getResponse();
-        }
+        regProcLogger.debug("idrepoGetDraft exit " + id);
+        return idResponseDTO.getResponse();
+    }
 
+
+    public boolean idrepoCreateDraftV2(String id) throws ApisResourceAccessException, IdrepoDraftException {
+        regProcLogger.debug("idrepoCreateDraftV2 entry " + id);
+        ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
+                ApiName.IDREPOCREATEV2DRAFT, Lists.newArrayList(id), null, null, null, ResponseWrapper.class);
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            List<ErrorDTO> error = response.getErrors();
+            regProcLogger.error("Error while creating draft v2 for id " + id);
+            throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
+        }
+        return true;
+    }
+
+    public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
+        regProcLogger.debug("idrepoUpdateDraftUin entry " + id);
+        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
+                ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), UIN, uin, null, IdResponseDTO.class);
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            ErrorDTO error = response.getErrors().get(0);
+            regProcLogger.error("Error while stamping UIN on draft for id " + id);
+            throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+        }
+        return true;
+    }
 
     public boolean idrepoCreateDraft(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoCreateDraft entry " + id);
@@ -102,9 +136,15 @@ public class IdrepoDraftService {
             RequestDto requestDto = new RequestDto();
             requestDto.setAnonymousProfile(responseDTO.getAnonymousProfile());
             requestDto.setBiometricReferenceId(responseDTO.getBiometricReferenceId());
-            JSONObject existingIdentity = mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class);
+            // For LOST drafts, identity may be null before UIN is stamped — handle gracefully.
+            JSONObject existingIdentity = responseDTO.getIdentity() != null
+                    ? mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class)
+                    : new JSONObject();
             JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
-            newIdentity.put(UIN, existingIdentity.get(UIN));
+            Object existingUin = existingIdentity.get(UIN);
+            if (existingUin != null) {
+                newIdentity.put(UIN, existingUin);
+            }
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
             requestDto.setDocuments(idRequestDto.getRequest().getDocuments());

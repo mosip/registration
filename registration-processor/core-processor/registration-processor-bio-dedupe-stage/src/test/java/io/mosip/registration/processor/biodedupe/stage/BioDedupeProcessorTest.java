@@ -72,6 +72,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
@@ -184,6 +185,9 @@ public class BioDedupeProcessorTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
+	@Mock
+	private IdrepoDraftService idrepoDraftService;
 
 	/**
 	 * Sets the up.

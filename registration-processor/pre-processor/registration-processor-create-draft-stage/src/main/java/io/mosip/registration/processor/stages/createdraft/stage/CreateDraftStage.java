@@ -62,10 +62,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
-import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
-import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
-import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -177,18 +174,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
 
-    /** Repository for reading ABIS match result for LOST packets. */
-    @Autowired
-    private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetEntity;
-
-    /** ID Repo service – used to look up UIN by matched RID for LOST packets. */
-    @Autowired
-    private IdRepoService idRepoService;
-
-    /** Demographic fields allowed to be copied from a LOST packet to the draft. */
-    @Value("${uingenerator.lost.packet.allowed.update.fields:null}")
-    private String updateInfo;
-
     private TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
     /** Mosip event bus. */
@@ -284,17 +269,25 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.LOST.toString().equalsIgnoreCase(regType)) {
-                String matchedRegId = regLostUinDetEntity.getLostUinMatchedRegIdByWorkflowId(
-                        object.getWorkflowInstanceId());
-                if (matchedRegId != null) {
+                // For LOST packets, create a draft WITHOUT UIN (UIN unknown until ABIS match).
+                // BioDedupeProcessor will call idrepoUpdateDraftUin after the ABIS match.
+                if (idrepoDraftService.idrepoHasDraft(registrationId)) {
                     regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                            "LOST packet matched regId: " + matchedRegId);
-                    lostAndUpdateUin(registrationId, matchedRegId, registrationStatusDto.getRegistrationType(),
-                            object, description);
+                            "LOST packet draft already exists. Discarding before re-creation.");
+                    idrepoDraftService.idrepoDiscardDraft(registrationId);
                 }
-                isTransactionSuccessful = object.getIsValid();
-                applyDescriptionToStatus(description, registrationStatusDto);
+                idrepoDraftService.idrepoCreateDraftV2(registrationId);
+                populateDraftWithIdentity(registrationId, registrationStatusDto.getRegistrationType(), null);
+                isTransactionSuccessful = Boolean.TRUE;
+                object.setIsValid(Boolean.TRUE);
+                registrationStatusDto.setLatestTransactionStatusCode(
+                        RegistrationTransactionStatusCode.SUCCESS.toString());
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
+                registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
+                description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
+                description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
 
             } else if (RegistrationType.NEW.toString().equalsIgnoreCase(regType)
                     || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
@@ -755,134 +748,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 LoggerFileConstant.REGISTRATIONID.toString() + id,
                 "Updated Response from IdRepo API", "is : " + statusComment);
         return idResponseDto;
-    }
-
-    // -------------------------------------------------------------------------
-    // LOST packet helper (ported from UinGeneratorStage)
-    // -------------------------------------------------------------------------
-
-    @SuppressWarnings("unchecked")
-    private IdResponseDTO lostAndUpdateUin(String lostPacketRegId, String matchedRegId, String process,
-            MessageDTO object, LogDescription description)
-            throws ApisResourceAccessException, IOException,
-            io.mosip.kernel.core.util.exception.JsonProcessingException,
-            PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException, JSONException {
-
-        IdResponseDTO idResponse = null;
-        String uin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
-        RequestDto requestDto = new RequestDto();
-        String statusComment = "";
-
-        if (uin != null) {
-            JSONObject regProcessorIdentityJson = utilities
-                    .getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
-            String idschemaversion = JsonUtil.getJSONValue(
-                    JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
-                    MappingJsonConstants.VALUE);
-
-            JSONObject identityObject = new JSONObject();
-            identityObject.put("UIN", uin);
-            String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId,
-                    MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.CREATE_DRAFT);
-            identityObject.put(idschemaversion,
-                    convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-
-            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), lostPacketRegId,
-                    "Fields to be updated: " + updateInfo);
-
-            Map<String, String> fieldMap = new HashMap<String, String>();
-            if (StringUtils.isNotEmpty(updateInfo)) {
-                String[] updateFields = updateInfo.split(",");
-                List<String> actualFieldNames = new ArrayList<>();
-                for (String fieldName : updateFields) {
-                    String actualFieldName = JsonUtil.getJSONValue(
-                            JsonUtil.getJSONObject(regProcessorIdentityJson, fieldName), MappingJsonConstants.VALUE);
-                    if (StringUtils.isNotEmpty(actualFieldName)) {
-                        actualFieldNames.add(actualFieldName);
-                    }
-                }
-                if (!actualFieldNames.isEmpty()) {
-                    Map<String, String> fetchedFields = packetManagerService.getFields(lostPacketRegId,
-                            actualFieldNames, process, ProviderStageName.CREATE_DRAFT);
-                    if (fetchedFields != null) {
-                        fetchedFields.forEach((k, v) -> { if (v != null) fieldMap.put(k, v); });
-                    }
-                }
-            }
-            loadDemographicIdentity(fieldMap, identityObject);
-            requestDto.setRegistrationId(lostPacketRegId);
-            requestDto.setIdentity(identityObject);
-
-            IdRequestDto idRequestDTO = new IdRequestDto();
-            idRequestDTO.setId(idRepoUpdate);
-            idRequestDTO.setRequest(requestDto);
-            idRequestDTO.setMetadata(null);
-            idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
-            idRequestDTO.setVersion(idRepoApiVersion);
-
-            // Discard existing draft if this is a reprocess
-            if (idrepoDraftService.idrepoHasDraft(lostPacketRegId)) {
-                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString(), lostPacketRegId,
-                        "LOST packet draft already exists. Discarding before re-creation.");
-                idrepoDraftService.idrepoDiscardDraft(lostPacketRegId);
-            }
-            // Create draft for the LOST packet linked to the matched UIN
-            boolean created = idrepoDraftService.idrepoCreateDraft(lostPacketRegId, uin);
-            if (!created) {
-                throw new IdrepoDraftException(
-                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
-            }
-
-            idResponse = idrepoDraftService.idrepoUpdateDraft(lostPacketRegId, uin, idRequestDTO);
-
-            if (isIdResponseNotNull(idResponse)) {
-                description.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-                description.setStatusComment(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS.getMessage());
-                description.setSubStatusCode(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS.getCode());
-                description.setMessage(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS.getMessage()
-                        + " for lostPacketRegId: " + lostPacketRegId);
-                description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
-                object.setIsValid(Boolean.TRUE);
-                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-                        " UIN LINKED WITH " + matchedRegId, "is : " + description);
-            } else {
-                statusComment = idResponse != null && idResponse.getErrors() != null
-                        && idResponse.getErrors().get(0) != null
-                                ? idResponse.getErrors().get(0).getMessage()
-                                : "Null response from Id Repo for lostPacketRegId " + lostPacketRegId;
-                description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                description.setStatusComment(
-                        StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getMessage() + statusComment);
-                description.setSubStatusCode(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getCode());
-                description.setTransactionStatusCode(registrationStatusMapperUtil
-                        .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_ID_REPO_ERROR));
-                description.setMessage(idResponse != null && idResponse.getErrors() != null
-                        ? idResponse.getErrors().get(0).getMessage()
-                        : PlatformErrorMessages.RPR_CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getMessage());
-                object.setIsValid(Boolean.FALSE);
-                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-                        " UIN NOT LINKED WITH " + matchedRegId, "is : " + statusComment);
-            }
-        } else {
-            statusComment = "UIN not available for matchedRegId " + matchedRegId;
-            description.setStatusComment(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getMessage());
-            description.setSubStatusCode(StatusUtil.CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getCode());
-            description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-            description.setTransactionStatusCode(registrationStatusMapperUtil
-                    .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
-            description.setMessage(PlatformErrorMessages.RPR_CDS_LINK_RID_FOR_LOST_PACKET_FAILED.getMessage()
-                    + " - " + statusComment);
-            object.setIsValid(Boolean.FALSE);
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString() + lostPacketRegId,
-                    " UIN NOT LINKED WITH " + matchedRegId, "is : " + statusComment);
-        }
-        return idResponse;
     }
 
     // -------------------------------------------------------------------------
