@@ -12,7 +12,6 @@ import io.mosip.kernel.core.util.DateUtils2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -42,7 +41,6 @@ import io.vertx.ext.web.RoutingContext;
  * The Class PacketReceiverStage.
  */
 
-@RefreshScope
 @Service
 @Configuration
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
@@ -112,9 +110,10 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT));
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(vertx, null, MessageBusAddress.PACKET_RECEIVER_OUT);
+		router.setRoute(vertxRouter);
 		this.routes(router);
-		this.createServer(router.getRouter(), getPort());
+		this.createServer(vertxRouter, getPort());
 	}
 
 	/**
@@ -124,10 +123,9 @@ public class PacketReceiverStage extends MosipVerticleAPIManager {
 	 *            the router
 	 */
 	private void routes(MosipRouter router) {
-
 		router.post(getServletPath() + "/registrationpackets");
 		router.handler(this::processURL, this::processPacket, this::failure);
-	};
+	}
 
 	/**
 	 * This is for failure handler.

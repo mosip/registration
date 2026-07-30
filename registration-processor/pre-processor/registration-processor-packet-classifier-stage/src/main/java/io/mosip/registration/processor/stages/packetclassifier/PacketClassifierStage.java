@@ -2,7 +2,6 @@ package io.mosip.registration.processor.stages.packetclassifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,6 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
  *
  * @author Vishwanath V
  */
-@RefreshScope
 @Service
 @Configuration
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
@@ -69,9 +67,10 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start(){
-		router.setRoute(this.postUrl(getVertx(),
-			MessageBusAddress.PACKET_CLASSIFIER_BUS_IN, MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(),
+			MessageBusAddress.PACKET_CLASSIFIER_BUS_IN, MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	/*

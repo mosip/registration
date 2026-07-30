@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -84,8 +83,6 @@ import io.mosip.registration.processor.status.service.TransactionService;
  * @author M1048358 Alok
  * @since 1.0.0
  */
-@RefreshScope
-
 @Service
 @Configuration
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
@@ -187,8 +184,9 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, MessageBusAddress.MESSAGE_SENDER_BUS, null));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(vertx, MessageBusAddress.MESSAGE_SENDER_BUS, null);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	/*

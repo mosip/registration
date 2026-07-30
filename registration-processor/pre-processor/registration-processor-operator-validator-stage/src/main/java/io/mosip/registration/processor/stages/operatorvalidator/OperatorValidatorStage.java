@@ -55,9 +55,10 @@ public class OperatorValidatorStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.OPERATOR_VALIDATOR_BUS_IN,
-				MessageBusAddress.OPERATOR_VALIDATOR_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.OPERATOR_VALIDATOR_BUS_IN,
+				MessageBusAddress.OPERATOR_VALIDATOR_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	@Override

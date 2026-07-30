@@ -9,7 +9,6 @@ import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -48,7 +47,6 @@ import io.mosip.registration.processor.verification.util.ManualVerificationReque
  * @author Pranav Kumar
  * @since 0.0.1
  */
-@RefreshScope
 @Service
 @Configuration
 @ComponentScan(basePackages = { "${mosip.auth.adapter.impl.basepackage}",
@@ -176,8 +174,9 @@ public class VerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	@Override

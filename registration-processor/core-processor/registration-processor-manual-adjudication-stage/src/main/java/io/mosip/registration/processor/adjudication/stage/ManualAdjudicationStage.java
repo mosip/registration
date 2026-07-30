@@ -175,8 +175,9 @@ public class ManualAdjudicationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.MANUAL_ADJUDICATION_BUS_IN, MessageBusAddress.MANUAL_ADJUDICATION_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	@Override

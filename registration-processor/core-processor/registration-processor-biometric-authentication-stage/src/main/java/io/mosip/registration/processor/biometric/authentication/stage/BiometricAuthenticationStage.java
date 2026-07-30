@@ -120,9 +120,10 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
-				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
+				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	@Override

@@ -208,9 +208,10 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(getVertx(), MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
-				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT));
-		this.createServer(router.getRouter(), getPort());
+		io.vertx.ext.web.Router vertxRouter = this.postUrl(getVertx(), MessageBusAddress.QUALITY_CLASSIFIER_BUS_IN,
+				MessageBusAddress.QUALITY_CLASSIFIER_BUS_OUT);
+		router.setRoute(vertxRouter);
+		this.createServer(vertxRouter, getPort());
 	}
 
 	/*

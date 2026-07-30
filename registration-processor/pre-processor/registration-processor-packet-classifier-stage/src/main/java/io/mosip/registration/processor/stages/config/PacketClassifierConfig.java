@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.stages.config;
 
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,7 +13,6 @@ import io.mosip.registration.processor.stages.packetclassifier.utility.PacketCla
  * The beans belonging to other libraries has their own config class to declare the required beans
  */
 @Configuration
-@RefreshScope
 public class PacketClassifierConfig {
 
 	@Bean
