@@ -377,64 +377,67 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             }
 
         } catch (ApisResourceAccessException e) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage()
-                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
             registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-                    StatusUtil.CREATE_DRAFT_FAILED.getMessage() + e.getMessage()));
-            registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                    StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
             registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                     .getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-            description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-            description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    RegistrationStatusCode.PROCESSING.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             object.setInternalError(Boolean.TRUE);
+            description.setMessage(trimExceptionMessage.trimExceptionMessage(
+                    StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+            description.setCode(PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getCode());
 
         } catch (IdrepoDraftReprocessableException e) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage()
+                    RegistrationStatusCode.PROCESSING.toString() + e.getMessage()
                             + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
             registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-                    StatusUtil.CREATE_DRAFT_FAILED.getMessage() + e.getMessage()));
-            registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                    StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode());
             registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                     .getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
-            description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-            description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+            description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
             object.setInternalError(Boolean.TRUE);
+            object.setRid(registrationStatusDto.getRegistrationId());
 
         } catch (IdrepoDraftException e) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage()
+                    RegistrationStatusCode.PROCESSING.toString() + e.getMessage()
                             + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
             registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-                    StatusUtil.CREATE_DRAFT_FAILED.getMessage() + e.getMessage()));
-            registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                    StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
             registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
                     .getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION));
-            description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-            description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+            description.setMessage(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode());
             object.setInternalError(Boolean.TRUE);
+            object.setRid(registrationStatusDto.getRegistrationId());
 
         } catch (Exception e) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage()
-                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
             registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
-                    StatusUtil.CREATE_DRAFT_FAILED.getMessage() + e.getMessage()));
-            registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                    StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
             registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-                    .getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
-            description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-            description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+                    .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    RegistrationStatusCode.PROCESSING.toString() + e.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
             object.setInternalError(Boolean.TRUE);
+            description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
 
         } finally {
             if (object.getInternalError()) {
