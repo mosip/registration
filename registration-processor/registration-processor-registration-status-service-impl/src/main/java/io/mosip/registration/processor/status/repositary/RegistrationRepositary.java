@@ -64,5 +64,8 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.registrationType = :registrationType AND registration.iteration = :iteration")
 	public List<RegistrationStatusEntity> getByIdAndProcessAndIteration(@Param("regId") String regId, @Param("registrationType") String process, @Param("iteration") int iteration);
+
+	@Query(value = "SELECT pkt_cr_dtimes FROM registration WHERE reg_id = :regId AND status_code = :statusCode ORDER BY pkt_cr_dtimes DESC", nativeQuery = true)
+	public List<LocalDateTime> findPktCrDtimesByRegId(@Param("regId") String regId, @Param("statusCode") String statusCode);
 }
 

@@ -350,6 +350,8 @@ public enum StatusUtil {
 	DEMO_DEDUPE_FAILED_IN_ABIS(StatusConstants.SYSTEM_EXCEPTION_CODE, "Demo Dedupe Failed  in ABIS"),
 	RE_PROCESS_FAILED(StatusConstants.RE_PROCESS_MODULE_FAILED + "001",
 			"Reprocess count has exceeded the configured attempts"),
+	PACKET_REPROCESS_OBSOLETED(StatusConstants.RE_PROCESS_MODULE_FAILED + "002",
+			"Stale reprocess: a newer packet for this identity has already been committed"),
 	RE_PROCESS_COMPLETED(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "001", "Reprocess Completed"),
 	RE_PROCESS_RESTART_FROM_STAGE(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "002",
 			"Reprocess restart from stage Completed"),

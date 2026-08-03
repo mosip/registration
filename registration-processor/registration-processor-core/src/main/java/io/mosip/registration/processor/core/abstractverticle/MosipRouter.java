@@ -31,7 +31,7 @@ public class MosipRouter {
 
 	/**
 	 * This method sets router for API
-	 * 
+	 *
 	 * @param router
 	 */
 	public void setRoute(Router router) {
@@ -40,7 +40,7 @@ public class MosipRouter {
 
 	/**
 	 * This method returns router for API
-	 * 
+	 *
 	 * @return
 	 */
 	public Router getRouter() {
@@ -49,7 +49,7 @@ public class MosipRouter {
 
 	/**
 	 * This method is used for post API call
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
@@ -76,7 +76,7 @@ public class MosipRouter {
 	}
 
 	public void handler(Handler<RoutingContext> requestHandler, Handler<RoutingContext> requestHandler2,
-			Handler<RoutingContext> failureHandler) {
+						Handler<RoutingContext> failureHandler) {
 		this.route.blockingHandler(this::validateToken)
 				.blockingHandler(new VertxWrapperHandler(requestHandler){}, false)
 				.blockingHandler(new VertxWrapperHandler(requestHandler2){}, false)
@@ -85,7 +85,7 @@ public class MosipRouter {
 
 	/**
 	 * this method is used to handle request only
-	 * 
+	 *
 	 * @param requestHandler
 	 */
 	public void handler(Handler<RoutingContext> requestHandler) {
@@ -94,7 +94,7 @@ public class MosipRouter {
 
 	/**
 	 * This method is used for get API call
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
@@ -105,7 +105,7 @@ public class MosipRouter {
 
 	/**
 	 * This method is used for validating token
-	 * 
+	 *
 	 * @param routingContext
 	 */
 	private void validateToken(RoutingContext routingContext) {

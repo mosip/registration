@@ -575,6 +575,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 							.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
 					registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 				}
+				// BIOMETRIC_CORRECTION: resume at QualityClassifierStage so the reprocessor
+				// routes the correction packet to quality-classifier-bus-in (not create-draft-bus-in),
+				// allowing QC to re-evaluate updated biometrics and clear stale quality tags.
+				if ("BIOMETRIC_CORRECTION".equals(workflowInternalActionDTO.getAdditionalInfoProcess())) {
+					registrationStatusDto.setRegistrationStageName("QualityClassifierStage");
+				}
 				registrationStatusDto.setUpdatedBy(USER);
 				registrationStatusDto
 						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());

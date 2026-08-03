@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.createdraft.stage;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -56,7 +57,11 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
+import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -174,6 +179,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
 
+    @Autowired
+    private RegistrationRepositary<RegistrationStatusEntity, String> registrationRepositary;
+
     private TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
     /** Mosip event bus. */
@@ -232,6 +240,17 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             registrationStatusDto.setLatestTransactionTypeCode(
                     RegistrationTransactionTypeCode.CREATE_DRAFT.toString());
             registrationStatusDto.setRegistrationStageName(getStageName());
+
+            String uinForStaleCheck = resolveUin(registrationId, regType, registrationStatusDto);
+            if (isStaleReprocess(uinForStaleCheck, registrationStatusDto.getPacketCreateDateTime(), registrationId)) {
+                regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                        "CreateDraftStage :: Stale reprocess detected. reg_type=" + regType
+                                + " pkt_cr_dtimes=" + registrationStatusDto.getPacketCreateDateTime());
+                markAsObsoleted(registrationStatusDto, object, description);
+                isTransactionSuccessful = false;
+                return object;
+            }
 
             if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)) {
                 String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
@@ -436,6 +455,70 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         }
 
         return object;
+    }
+
+    private String resolveUin(String registrationId, String regType,
+            InternalRegistrationStatusDto registrationStatusDto) {
+        try {
+            if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)) {
+                return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
+                        ProviderStageName.CREATE_DRAFT);
+            }
+        } catch (Exception e) {
+            regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    "CreateDraftStage :: Could not resolve UIN for stale check: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isStaleReprocess(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
+        if (StringUtils.isEmpty(uin) || currentPktCrDtimes == null) {
+            return false;
+        }
+        try {
+            List<String> pathSegments = new ArrayList<>();
+            pathSegments.add(uin);
+            ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>)
+                    registrationProcessorRestClientService.getApi(
+                            ApiName.IDREPOGETIDBYUIN, pathSegments, "type", "demo", ResponseWrapper.class);
+            if (response == null || response.getResponse() == null) {
+                return false;
+            }
+            ResponseDTO idRepoResponse = objectMapper.convertValue(response.getResponse(), ResponseDTO.class);
+            if (idRepoResponse == null || StringUtils.isEmpty(idRepoResponse.getEntity())) {
+                return false;
+            }
+            String lastCommittedRegId = idRepoResponse.getEntity();
+            if (lastCommittedRegId.equals(currentRegId)) {
+                return false;
+            }
+            List<LocalDateTime> times = registrationRepositary.findPktCrDtimesByRegId(
+                    lastCommittedRegId, io.mosip.registration.processor.status.code.RegistrationStatusCode.PROCESSED.toString());
+            if (times == null || times.isEmpty()) {
+                return false;
+            }
+            return times.get(0).isAfter(currentPktCrDtimes);
+        } catch (Exception e) {
+            regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    currentRegId, "CreateDraftStage :: isStaleReprocess check failed (fail-safe): " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
+        dto.setStatusCode(io.mosip.registration.processor.status.code.RegistrationStatusCode.FAILED.toString());
+        dto.setStatusComment(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
+        dto.setSubStatusCode(StatusUtil.PACKET_REPROCESS_OBSOLETED.getCode());
+        dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+        description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
+        description.setMessage(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
+        object.setIsValid(false);
+        object.setInternalError(false);
     }
 
     private void applyDescriptionToStatus(LogDescription description,
