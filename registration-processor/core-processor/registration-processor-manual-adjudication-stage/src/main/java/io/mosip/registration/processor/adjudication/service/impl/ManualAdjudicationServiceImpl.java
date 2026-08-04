@@ -69,6 +69,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -267,6 +268,13 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				// call success flow and process the response received from manual verification system
 				isTransactionSuccessful = successFlow(
 						entity, manualVerificationDTO, entities, registrationStatusDto, messageDTO, description);
+
+				if (isTransactionSuccessful
+						&& RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
+						&& entities.stream().anyMatch(e -> DedupeSourceName.BIO.name().equalsIgnoreCase(e.getTrnTypCode()))) {
+					messageDTO.setIsValid(Boolean.FALSE);
+					messageDTO.setInternalError(Boolean.TRUE);
+				}
 
 				registrationStatusDto.setUpdatedBy(USER);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

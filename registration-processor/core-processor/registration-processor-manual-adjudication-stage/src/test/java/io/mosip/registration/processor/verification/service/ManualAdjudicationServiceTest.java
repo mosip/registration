@@ -25,6 +25,7 @@ import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.registration.processor.adjudication.request.dto.Filter;
 import io.mosip.registration.processor.adjudication.request.dto.ShareableAttributes;
 import io.mosip.registration.processor.adjudication.request.dto.Source;
+import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import org.apache.commons.io.IOUtils;
@@ -886,6 +887,38 @@ public class ManualAdjudicationServiceTest {
 		MessageDTO capturedMessage = messageCaptor.getValue();
 		assertNotNull(capturedMessage);
 		assertEquals(Boolean.FALSE, capturedMessage.getInternalError());
+		assertEquals(Boolean.FALSE, capturedMessage.getIsValid());
+	}
+
+	@Test
+	public void testUpdatePacketStatus_NewBioDedup_Approved_RoutesToReregister() {
+		manualVerificationEntity.setTrnTypCode(DedupeSourceName.BIO.name());
+		registrationStatusDto.setRegistrationType("NEW");
+
+		ManualAdjudicationResponseDTO approvedResponse = new ManualAdjudicationResponseDTO();
+		approvedResponse.setReturnValue(1);
+		approvedResponse.setResponsetime(DateUtils2.getCurrentDateTimeString());
+		approvedResponse.setId("mosip.manual.adjudication.adjudicate");
+		approvedResponse.setRequestId("4d4f27d3-ec73-41c4-a384-bf87fce4969e");
+		CandidateList candidateList = new CandidateList();
+		candidateList.setCount(0);
+		approvedResponse.setCandidateList(candidateList);
+
+		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(), anyString())).thenReturn(entities);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
+		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class))).thenReturn(manualVerificationEntity);
+		Mockito.when(basePacketRepository.getRegistrationIdbyRequestId(anyString())).thenReturn(Lists.newArrayList(manualVerificationEntity));
+
+		ArgumentCaptor<MessageDTO> messageCaptor = ArgumentCaptor.forClass(MessageDTO.class);
+		Mockito.doNothing().when(manualAdjudicationStage).sendMessage(messageCaptor.capture());
+
+		boolean result = manualAdjudicationService.updatePacketStatus(approvedResponse, stageName, queue);
+
+		assertTrue(result);
+		MessageDTO capturedMessage = messageCaptor.getValue();
+		assertNotNull(capturedMessage);
+		assertEquals(Boolean.TRUE, capturedMessage.getInternalError());
 		assertEquals(Boolean.FALSE, capturedMessage.getIsValid());
 	}
 
