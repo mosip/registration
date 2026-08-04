@@ -111,14 +111,6 @@ public enum PlatformSuccessMessages {
 	RPR_FINALIZATION_SUCCESS(PlatformConstants.RPR_FINALIZATION_STAGE + "000",
 			"Finalization success"),
 
-	RPR_CREATE_DRAFT_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "000", "Create Draft Success"),
-	RPR_CDS_UIN_ACTIVATED_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "001",
-			"Create Draft - UIN Activated Successfully"),
-	RPR_CDS_UIN_DEACTIVATION_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "002",
-			"Create Draft - UIN Deactivated Successfully"),
-	RPR_CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "003",
-			"Create Draft - Lost Packet RID Linked Successfully"),
-
 	RPR_UIN_DATA_UPDATION_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "001", "UIN Generator  Success"),
 
 	RPR_UIN_ACTIVATED_SUCCESS(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "002", "UIN Generator  Success"),
@@ -190,7 +182,14 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with reject status without Parent flow"),
 
 	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
-			"Packet anonymous profile flow initiated");
+			"Packet anonymous profile flow initiated"),
+
+	RPR_CREATE_DRAFT_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "000",
+			"Create draft stage success"),
+	RPR_CDS_UIN_ACTIVATED_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "001",
+			"UIN activated successfully"),
+	RPR_CDS_UIN_DEACTIVATION_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "002",
+			"UIN deactivated successfully");
 
 	/** The success message. */
 	private final String successMessage;

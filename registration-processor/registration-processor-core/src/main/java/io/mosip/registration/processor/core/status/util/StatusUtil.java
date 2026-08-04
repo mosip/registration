@@ -282,24 +282,6 @@ public enum StatusUtil {
 	FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "004",
 			"Exception occured updating idrepo draft, which can be reprocessed"),
 
-	CREATE_DRAFT_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "001", "Draft Created Successfully"),
-	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002",
-			"Draft creation skipped - packet type does not require draft"),
-	CDS_UIN_ACTIVATED_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "003", "UIN is Activated"),
-	CDS_UIN_DEACTIVATION_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "004", "UIN is Deactivated"),
-	CDS_LINK_RID_FOR_LOST_PACKET_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "005",
-			"RID Linked for Lost Packet"),
-	CREATE_DRAFT_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "001", "Draft Creation Failed"),
-	UIN_ALLOCATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002",
-			"UIN Allocation Failed during draft creation"),
-	CDS_UIN_ALREADY_ACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "003", "UIN is already Activated"),
-	CDS_UIN_ALREADY_DEACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "004", "UIN already deactivated"),
-	CDS_UIN_ACTIVATED_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "005", "UIN Activation Failed"),
-	CDS_UIN_REACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "006", "UIN Reactivation failed - "),
-	CDS_UIN_DEACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "007", "UIN Deactivation failed - "),
-	CDS_LINK_RID_FOR_LOST_PACKET_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "008",
-			"RID Not Linked for Lost Packet"),
-
 	// Request handler service
 	// 1)Resident UIN update
 	RESIDENT_UPDATE_SUCCES(StatusConstants.REQUEST_HANDLER_MODULE_SUCCESS + "001",
@@ -400,7 +382,18 @@ public enum StatusUtil {
 	VERIFICATION_SUCCESS(StatusConstants.VERIFICATION_STAGE + "001", "Verification success"),
 	VERIFICATION_FAILED(StatusConstants.VERIFICATION_STAGE + "002", "Verification failed"),
 	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
-	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification");
+	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification"),
+
+	CREATE_DRAFT_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "001", "Create draft stage success"),
+	CREATE_DRAFT_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "001", "Create draft stage failed"),
+	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002", "Create draft stage skipped"),
+	CDS_UIN_ALREADY_ACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002", "UIN is already in activated state"),
+	CDS_UIN_ACTIVATED_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "003", "UIN activated successfully"),
+	CDS_UIN_ACTIVATED_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "003", "UIN activation failed"),
+	CDS_UIN_REACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "004", "UIN reactivation failed"),
+	CDS_UIN_ALREADY_DEACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "005", "UIN is already in deactivated state"),
+	CDS_UIN_DEACTIVATION_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "004", "UIN deactivated successfully"),
+	CDS_UIN_DEACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "006", "UIN deactivation failed");
 
 	private final String statusComment;
 	private final String statusCode;
