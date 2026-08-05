@@ -637,7 +637,7 @@ public class BioDedupeProcessor {
 			// Discard the draft since this LOST packet has no biometric match.
 			try {
 				idrepoDraftService.idrepoDiscardDraft(registrationId);
-			} catch (IdrepoDraftException | IdrepoDraftReprocessableException e) {
+			} catch (IdrepoDraftException | IdrepoDraftReprocessableException | ApisResourceAccessException e) {
 				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						registrationId, "Failed to discard draft on LOST no-match (non-fatal): " + e.getMessage());
 			}
@@ -658,7 +658,7 @@ public class BioDedupeProcessor {
 			if (resolvedUin != null) {
 				try {
 					idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
-				} catch (IdrepoDraftException e) {
+				} catch (IdrepoDraftException | ApisResourceAccessException e) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationId, "Failed to stamp UIN on LOST draft (non-fatal): " + e.getMessage());
 				}

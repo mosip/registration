@@ -10,9 +10,7 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,13 +100,10 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	private IdrepoDraftService idrepoDraftService;
 
 	@Autowired
-	private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
-
-	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private RegistrationRepositary<RegistrationStatusEntity, String> registrationRepositary;
+	private StaleReprocessChecker staleReprocessChecker;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -184,7 +179,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 			}
 			else {
 				String uinForCheck = resolveUinForFinalization(registrationStatusDto.getRegistrationId());
-				if (isStaleReprocess(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId())) {
+				if (staleReprocessChecker.isStaleReprocess(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId())) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 							"FinalizationStage :: Stale reprocess detected before publishDraft.");
@@ -301,55 +296,15 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		return object;
 	}
 
-	private String resolveUinForFinalization(String registrationId) {
-		try {
-			io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
-			if (draft != null && draft.getIdentity() != null) {
-				@SuppressWarnings("unchecked")
-				Map<String, Object> identityMap = objectMapper.convertValue(draft.getIdentity(), Map.class);
-				Object uinVal = identityMap.get("UIN");
-				return uinVal != null ? String.valueOf(uinVal) : null;
-			}
-		} catch (Exception e) {
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "FinalizationStage :: Could not resolve UIN for stale check: " + e.getMessage());
+	private String resolveUinForFinalization(String registrationId) throws ApisResourceAccessException, IdrepoDraftException {
+		io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
+		if (draft != null && draft.getIdentity() != null) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> identityMap = objectMapper.convertValue(draft.getIdentity(), Map.class);
+			Object uinVal = identityMap.get("UIN");
+			return uinVal != null ? String.valueOf(uinVal) : null;
 		}
 		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private boolean isStaleReprocess(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
-		if (StringUtils.isEmpty(uin) || currentPktCrDtimes == null) {
-			return false;
-		}
-		try {
-			List<String> pathSegments = new ArrayList<>();
-			pathSegments.add(uin);
-			ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>)
-					registrationProcessorRestClientService.getApi(
-							ApiName.IDREPOGETIDBYUIN, pathSegments, "type", "demo", ResponseWrapper.class);
-			if (response == null || response.getResponse() == null) {
-				return false;
-			}
-			ResponseDTO idRepoResponse = objectMapper.convertValue(response.getResponse(), ResponseDTO.class);
-			if (idRepoResponse == null || StringUtils.isEmpty(idRepoResponse.getEntity())) {
-				return false;
-			}
-			String lastCommittedRegId = idRepoResponse.getEntity();
-			if (lastCommittedRegId.equals(currentRegId)) {
-				return false;
-			}
-			List<LocalDateTime> times = registrationRepositary.findPktCrDtimesByRegId(
-					lastCommittedRegId, RegistrationStatusCode.PROCESSED.toString());
-			if (times == null || times.isEmpty()) {
-				return false;
-			}
-			return times.get(0).isAfter(currentPktCrDtimes);
-		} catch (Exception e) {
-			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					currentRegId, "FinalizationStage :: isStaleReprocess check failed (fail-safe): " + e.getMessage());
-			return false;
-		}
 	}
 
 	private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {

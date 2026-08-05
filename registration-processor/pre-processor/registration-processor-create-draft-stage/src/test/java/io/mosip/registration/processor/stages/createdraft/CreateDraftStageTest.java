@@ -48,6 +48,7 @@ import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -94,6 +95,9 @@ public class CreateDraftStageTest {
 
     @Mock
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
+
+    @Mock
+    private StaleReprocessChecker staleReprocessChecker;
 
     @Mock
     private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetEntity;
@@ -496,7 +500,7 @@ public class CreateDraftStageTest {
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
-        assertTrue(result.getInternalError());
+        assertFalse(result.getInternalError());
         verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), anyString());
     }
 

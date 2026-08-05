@@ -41,6 +41,7 @@ import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.stages.finalization.stage.FinalizationStage;
@@ -69,6 +70,9 @@ public class FinalizationStageTest {
 	
 	@Mock
 	private IdrepoDraftService idrepoDraftService;
+
+	@Mock
+	private StaleReprocessChecker staleReprocessChecker;
 	
 	/** The core audit request builder. */
 	@Mock
@@ -167,6 +171,7 @@ public class FinalizationStageTest {
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 		
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		when(staleReprocessChecker.isStaleReprocess(any(), any(), any())).thenReturn(false);
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAnonymousProfile("aa");

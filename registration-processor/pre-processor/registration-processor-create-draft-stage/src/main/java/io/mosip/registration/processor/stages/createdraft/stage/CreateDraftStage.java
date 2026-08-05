@@ -60,8 +60,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
-import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
+import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -175,12 +174,11 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     @Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
     private boolean trimWhitespaces;
 
-    /** REST client for calling ID Repository APIs (e.g. IDREPOGETIDBYUIN). */
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
 
     @Autowired
-    private RegistrationRepositary<RegistrationStatusEntity, String> registrationRepositary;
+    private StaleReprocessChecker staleReprocessChecker;
 
     private TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
@@ -233,16 +231,25 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 registrationId, "CreateDraftStage::process()::entry");
 
-        InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
-                registrationId, regType, object.getIteration(), object.getWorkflowInstanceId());
+        InternalRegistrationStatusDto registrationStatusDto = null;
 
         try {
+            registrationStatusDto = registrationStatusService.getRegistrationStatus(
+                    registrationId, regType, object.getIteration(), object.getWorkflowInstanceId());
+            if (registrationStatusDto == null) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                        "Registration status not found for RID: " + registrationId);
+                object.setIsValid(Boolean.FALSE);
+                object.setInternalError(Boolean.TRUE);
+                return object;
+            }
             registrationStatusDto.setLatestTransactionTypeCode(
                     RegistrationTransactionTypeCode.CREATE_DRAFT.toString());
             registrationStatusDto.setRegistrationStageName(getStageName());
 
-            String uinForStaleCheck = resolveUin(registrationId, regType, registrationStatusDto);
-            if (isStaleReprocess(uinForStaleCheck, registrationStatusDto.getPacketCreateDateTime(), registrationId)) {
+            String resolvedUin = resolveUin(registrationId, regType, registrationStatusDto);
+            if (staleReprocessChecker.isStaleReprocess(resolvedUin, registrationStatusDto.getPacketCreateDateTime(), registrationId)) {
                 regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                         "CreateDraftStage :: Stale reprocess detected. reg_type=" + regType
@@ -253,37 +260,17 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             }
 
             if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)) {
-                String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
-                        ProviderStageName.CREATE_DRAFT);
-                String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
-                        MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(),
-                        ProviderStageName.CREATE_DRAFT);
-                List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
-                Map<String, String> fieldMap = packetManagerService.getFields(registrationId, defaultFields,
-                        registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
-                JSONObject demographicIdentity = new JSONObject();
-                demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
-                        convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-                loadDemographicIdentity(fieldMap, demographicIdentity);
+                JSONObject demographicIdentity = buildDemographicIdentity(registrationId,
+                        registrationStatusDto.getRegistrationType());
                 IdResponseDTO idResponseDTO = new IdResponseDTO();
-                isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, uinField, object,
+                isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, resolvedUin, object,
                         demographicIdentity, description);
                 applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)) {
-                String uinField = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
-                        ProviderStageName.CREATE_DRAFT);
-                String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
-                        MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(),
-                        ProviderStageName.CREATE_DRAFT);
-                List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
-                Map<String, String> fieldMap = packetManagerService.getFields(registrationId, defaultFields,
-                        registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
-                JSONObject demographicIdentity = new JSONObject();
-                demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
-                        convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-                loadDemographicIdentity(fieldMap, demographicIdentity);
-                deactivateUin(registrationId, uinField, object, demographicIdentity, description);
+                JSONObject demographicIdentity = buildDemographicIdentity(registrationId,
+                        registrationStatusDto.getRegistrationType());
+                deactivateUin(registrationId, resolvedUin, object, demographicIdentity, description);
                 isTransactionSuccessful = object.getIsValid();
                 applyDescriptionToStatus(description, registrationStatusDto);
 
@@ -320,20 +307,27 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     idrepoDraftService.idrepoDiscardDraft(registrationId);
                 }
 
-                // For UPDATE/RES_UPDATE packets, fetch the existing UIN so ID Repo can clone
+                // For UPDATE/RES_UPDATE packets, pass the existing UIN so ID Repo can clone
                 // the existing identity into the draft. For NEW packets, pass null — ID Repo
                 // will allocate and assign the UIN internally during draft creation.
                 String uin = null;
                 if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
                         || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)) {
-                    uin = utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
-                            ProviderStageName.CREATE_DRAFT);
+                    uin = resolvedUin;
                     if (StringUtils.isEmpty(uin) || "null".equalsIgnoreCase(uin)) {
                         regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                                 LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                "UIN not found for UPDATE/RES_UPDATE packet.");
-                        throw new ApisResourceAccessException(
-                                PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getMessage());
+                                "UIN not found for UPDATE/RES_UPDATE packet — permanent failure.");
+                        registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                        registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
+                        registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                        registrationStatusDto.setLatestTransactionStatusCode(
+                                RegistrationTransactionStatusCode.FAILED.toString());
+                        description.setCode(PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getCode());
+                        description.setMessage(PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getMessage());
+                        object.setIsValid(Boolean.FALSE);
+                        object.setInternalError(Boolean.FALSE);
+                        return object;
                     }
                 }
 
@@ -440,21 +434,23 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
 
         } finally {
-            if (object.getInternalError()) {
-                updateErrorFlags(registrationStatusDto, object);
+            if (registrationStatusDto != null) {
+                if (object.getInternalError()) {
+                    updateErrorFlags(registrationStatusDto, object);
+                }
+                object.setRid(registrationStatusDto.getRegistrationId());
+                registrationStatusDto.setRegistrationStageName(getStageName());
+                String moduleId = isTransactionSuccessful
+                        ? PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode()
+                        : description.getCode();
+                String moduleName = ModuleName.CREATE_DRAFT.toString();
+                registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
+                String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+                String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+                String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
+                auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+                        eventType, moduleId, moduleName, registrationId);
             }
-            object.setRid(registrationStatusDto.getRegistrationId());
-            registrationStatusDto.setRegistrationStageName(getStageName());
-            String moduleId = isTransactionSuccessful
-                    ? PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode()
-                    : description.getCode();
-            String moduleName = ModuleName.CREATE_DRAFT.toString();
-            registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
-            String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-            String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-            String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
-            auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-                    eventType, moduleId, moduleName, registrationId);
         }
 
         return object;
@@ -476,41 +472,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     "CreateDraftStage :: Could not resolve UIN for stale check: " + e.getMessage());
         }
         return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private boolean isStaleReprocess(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
-        if (StringUtils.isEmpty(uin) || currentPktCrDtimes == null) {
-            return false;
-        }
-        try {
-            List<String> pathSegments = new ArrayList<>();
-            pathSegments.add(uin);
-            ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>)
-                    registrationProcessorRestClientService.getApi(
-                            ApiName.IDREPOGETIDBYUIN, pathSegments, "type", "demo", ResponseWrapper.class);
-            if (response == null || response.getResponse() == null) {
-                return false;
-            }
-            ResponseDTO idRepoResponse = objectMapper.convertValue(response.getResponse(), ResponseDTO.class);
-            if (idRepoResponse == null || StringUtils.isEmpty(idRepoResponse.getEntity())) {
-                return false;
-            }
-            String lastCommittedRegId = idRepoResponse.getEntity();
-            if (lastCommittedRegId.equals(currentRegId)) {
-                return false;
-            }
-            List<LocalDateTime> times = registrationRepositary.findPktCrDtimesByRegId(
-                    lastCommittedRegId, io.mosip.registration.processor.status.code.RegistrationStatusCode.PROCESSED.toString());
-            if (times == null || times.isEmpty()) {
-                return false;
-            }
-            return times.get(0).isAfter(currentPktCrDtimes);
-        } catch (Exception e) {
-            regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    currentRegId, "CreateDraftStage :: isStaleReprocess check failed (fail-safe): " + e.getMessage());
-            return false;
-        }
     }
 
     private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
@@ -594,6 +555,19 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
      * Mirrors {@code UinGeneratorStage.loadDemographicIdentity} so downstream stages see
      * the same shape they would have seen from packet manager.
      */
+    private JSONObject buildDemographicIdentity(String registrationId, String registrationType) throws Exception {
+        String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
+                MappingJsonConstants.IDSCHEMA_VERSION, registrationType, ProviderStageName.CREATE_DRAFT);
+        List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
+        Map<String, String> fieldMap = packetManagerService.getFields(registrationId, defaultFields,
+                registrationType, ProviderStageName.CREATE_DRAFT);
+        JSONObject demographicIdentity = new JSONObject();
+        demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
+                convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
+        loadDemographicIdentity(fieldMap, demographicIdentity);
+        return demographicIdentity;
+    }
+
     private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity)
             throws IOException, JSONException {
         for (Map.Entry e : fieldMap.entrySet()) {
@@ -780,7 +754,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
         idResponseDto = getIdRepoDataByUIN(uin, id, description);
 
-        if (idResponseDto.getResponse() != null && idResponseDto.getResponse().getStatus()
+        if (isIdResponseNotNull(idResponseDto) && idResponseDto.getResponse().getStatus()
                 .equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
             description.setStatusCode(RegistrationStatusCode.FAILED.toString());
             description.setStatusComment(StatusUtil.CDS_UIN_ALREADY_DEACTIVATED.getMessage());
@@ -816,6 +790,16 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     description.setTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
                     object.setIsValid(Boolean.TRUE);
                     statusComment = idResponseDto.getResponse().getStatus();
+                } else {
+                    statusComment = idResponseDto.getResponse().getStatus();
+                    description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                    description.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+                            StatusUtil.CDS_UIN_DEACTIVATION_FAILED.getMessage() + statusComment));
+                    description.setSubStatusCode(StatusUtil.CDS_UIN_DEACTIVATION_FAILED.getCode());
+                    description.setMessage(PlatformErrorMessages.RPR_CDS_UIN_DEACTIVATION_FAILED.getMessage());
+                    description.setCode(PlatformErrorMessages.RPR_CDS_UIN_DEACTIVATION_FAILED.getCode());
+                    description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+                    object.setIsValid(Boolean.FALSE);
                 }
             } else {
                 statusComment = idResponseDto != null && idResponseDto.getErrors() != null
@@ -831,8 +815,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             }
         }
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                LoggerFileConstant.REGISTRATIONID.toString() + id,
-                "Updated Response from IdRepo API", "is : " + statusComment);
+                LoggerFileConstant.REGISTRATIONID.toString(), id,
+                "Updated Response from IdRepo API: " + statusComment);
         return idResponseDto;
     }
 

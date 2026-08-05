@@ -271,7 +271,8 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 
 				if (isTransactionSuccessful
 						&& RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
-						&& entities.stream().anyMatch(e -> DedupeSourceName.BIO.name().equalsIgnoreCase(e.getTrnTypCode()))) {
+						&& entities.stream().anyMatch(e -> DedupeSourceName.BIO.name().equalsIgnoreCase(e.getTrnTypCode()))
+						&& entities.stream().anyMatch(e -> ManualVerificationStatus.APPROVED.name().equalsIgnoreCase(e.getStatusCode()))) {
 					messageDTO.setIsValid(Boolean.FALSE);
 					messageDTO.setInternalError(Boolean.TRUE);
 				}

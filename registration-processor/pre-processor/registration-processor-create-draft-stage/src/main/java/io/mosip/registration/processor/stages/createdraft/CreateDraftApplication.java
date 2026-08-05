@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.createdraft;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import io.mosip.registration.processor.stages.createdraft.stage.CreateDraftStage;
 
@@ -12,9 +13,8 @@ import io.mosip.registration.processor.stages.createdraft.stage.CreateDraftStage
 public class CreateDraftApplication {
 
     public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(CreateDraftApplication.class);
-        app.run(args);
-        CreateDraftStage stage = new CreateDraftStage();
+        ConfigurableApplicationContext context = SpringApplication.run(CreateDraftApplication.class, args);
+        CreateDraftStage stage = context.getBean(CreateDraftStage.class);
         stage.deployVerticle();
     }
 }
