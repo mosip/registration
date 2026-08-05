@@ -2,7 +2,6 @@ package io.mosip.registration.processor.packet.manager.idreposervice;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -100,7 +100,7 @@ public class IdrepoDraftService {
 
     public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoUpdateDraftUin entry " + id);
-        Map<String, String> uinBody = new HashMap<>();
+        ObjectNode uinBody = mapper.createObjectNode();
         uinBody.put("uin", uin);
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                 ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
