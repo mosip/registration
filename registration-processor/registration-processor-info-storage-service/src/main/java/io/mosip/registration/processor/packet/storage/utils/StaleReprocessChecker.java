@@ -41,15 +41,16 @@ public class StaleReprocessChecker {
     private RegistrationRepositary<RegistrationStatusEntity, String> registrationRepositary;
 
     /**
-     * Returns true if a later-committed packet for the same UIN has already been
-     * processed after {@code currentPktCrDtimes}, making this packet obsolete.
-     * Returns false (safe-to-proceed) if the UIN is unknown, the check service is
-     * unavailable, or no qualifying committed packet is found.
+     * Returns {@link StaleCheckResult#STALE} if a later-committed packet for the same UIN was
+     * processed after {@code currentPktCrDtimes}, {@link StaleCheckResult#NOT_STALE} when a
+     * successful lookup confirms no newer committed packet exists, and
+     * {@link StaleCheckResult#UNAVAILABLE} when the check cannot be completed (API error,
+     * null response, etc.) — callers must requeue rather than proceed.
      */
     @SuppressWarnings("unchecked")
-    public boolean isStaleReprocess(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
+    public StaleCheckResult checkStaleReprocess(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
         if (StringUtils.isEmpty(uin) || currentPktCrDtimes == null) {
-            return false;
+            return StaleCheckResult.NOT_STALE;
         }
         try {
             List<String> pathSegments = new ArrayList<>();
@@ -58,26 +59,28 @@ public class StaleReprocessChecker {
                     registrationProcessorRestClientService.getApi(
                             ApiName.IDREPOGETIDBYUIN, pathSegments, "type", "demo", ResponseWrapper.class);
             if (response == null || response.getResponse() == null) {
-                return false;
+                regProcLogger.warn("SESSIONID", "REGISTRATIONID", currentRegId,
+                        "StaleReprocessChecker :: null/empty response from ID Repo — result UNAVAILABLE.");
+                return StaleCheckResult.UNAVAILABLE;
             }
             ResponseDTO idRepoResponse = objectMapper.convertValue(response.getResponse(), ResponseDTO.class);
             if (idRepoResponse == null || StringUtils.isEmpty(idRepoResponse.getEntity())) {
-                return false;
+                return StaleCheckResult.NOT_STALE;
             }
             String lastCommittedRegId = idRepoResponse.getEntity();
             if (lastCommittedRegId.equals(currentRegId)) {
-                return false;
+                return StaleCheckResult.NOT_STALE;
             }
             List<LocalDateTime> times = registrationRepositary.findPktCrDtimesByRegId(
                     lastCommittedRegId, RegistrationStatusCode.PROCESSED.toString());
             if (times == null || times.isEmpty()) {
-                return false;
+                return StaleCheckResult.NOT_STALE;
             }
-            return times.get(0).isAfter(currentPktCrDtimes);
+            return times.get(0).isAfter(currentPktCrDtimes) ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
         } catch (Exception e) {
             regProcLogger.warn("SESSIONID", "REGISTRATIONID", currentRegId,
-                    "StaleReprocessChecker :: isStaleReprocess check failed (fail-safe): " + e.getMessage());
-            return false;
+                    "StaleReprocessChecker :: checkStaleReprocess failed — result UNAVAILABLE: " + e.getMessage());
+            return StaleCheckResult.UNAVAILABLE;
         }
     }
 }

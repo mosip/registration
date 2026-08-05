@@ -95,6 +95,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${mosip.anonymous.profile.eventbus.address}")
 	private String anonymousProfileBusAddress;
 
+	@Value("${mosip.regproc.workflow.biometric-correction.process-name:BIOMETRIC_CORRECTION}")
+	private String biometricCorrectionProcessName;
+
+	@Value("${mosip.regproc.workflow.biometric-correction.resume-stage:QualityClassifierStage}")
+	private String biometricCorrectionResumeStage;
+
 	@Autowired
 	MosipRouter router;
 
@@ -257,8 +263,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		String anonymousProfileJson = tags != null ? tags.get("anonymous") : null;
 
 		if (anonymousProfileJson != null) {
-			anonymousProfileService.saveAnonymousProfile(
-					registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
+			if (registrationStatusDto != null) {
+				anonymousProfileService.saveAnonymousProfile(
+						registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
+			} else {
+				regProcLogger.warn("processAnonymousProfile: registration status not found for {} — profile save skipped",
+						registrationId);
+			}
 		}
 
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
@@ -436,7 +447,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				regProcLogger.info("Draft discarded for rid: {}", rid);
 			}
 		} catch (Exception e) {
-			regProcLogger.error("Failed to discard draft for rid: {} - {}", rid, e.getMessage());
+			regProcLogger.error("Failed to discard draft for rid: {} - {}\n{}", rid, e.getMessage(), ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -577,11 +588,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 							.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
 					registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 				}
-				// BIOMETRIC_CORRECTION: resume at QualityClassifierStage so the reprocessor
-				// routes the correction packet to quality-classifier-bus-in (not create-draft-bus-in),
-				// allowing QC to re-evaluate updated biometrics and clear stale quality tags.
-				if ("BIOMETRIC_CORRECTION".equals(workflowInternalActionDTO.getAdditionalInfoProcess())) {
-					registrationStatusDto.setRegistrationStageName("QualityClassifierStage");
+				if (biometricCorrectionProcessName.equals(workflowInternalActionDTO.getAdditionalInfoProcess())) {
+					registrationStatusDto.setRegistrationStageName(biometricCorrectionResumeStage);
 				}
 				registrationStatusDto.setUpdatedBy(USER);
 				registrationStatusDto

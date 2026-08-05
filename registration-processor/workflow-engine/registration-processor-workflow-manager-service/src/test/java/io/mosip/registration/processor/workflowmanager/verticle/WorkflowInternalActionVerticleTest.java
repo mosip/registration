@@ -186,6 +186,8 @@ public class WorkflowInternalActionVerticleTest {
 	@Before
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "anonymousProfileBusAddress", "anonymous-profile-bus-in");
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "biometricCorrectionProcessName", "BIOMETRIC_CORRECTION");
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "biometricCorrectionResumeStage", "QualityClassifierStage");
 	}
 	
 	@Test

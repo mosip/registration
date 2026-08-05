@@ -179,13 +179,28 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 			}
 			else {
 				String uinForCheck = resolveUinForFinalization(registrationStatusDto.getRegistrationId());
-				if (staleReprocessChecker.isStaleReprocess(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId())) {
+				io.mosip.registration.processor.packet.storage.utils.StaleCheckResult staleCheck =
+						staleReprocessChecker.checkStaleReprocess(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId());
+				if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.STALE) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 							"FinalizationStage :: Stale reprocess detected before publishDraft.");
 					idrepoDraftService.idrepoDiscardDraft(registrationStatusDto.getRegistrationId());
 					markAsObsoleted(registrationStatusDto, object, description);
 					isTransactionSuccessful = false;
+				} else if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.UNAVAILABLE) {
+					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							"FinalizationStage :: Stale check unavailable — scheduling reprocess.");
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+					registrationStatusDto.setStatusComment(trimExceptionMessage
+							.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage()));
+					registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+					object.setInternalError(Boolean.TRUE);
+					description.setMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage());
+					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
 				} else {
 				IdResponseDTO idResponseDTO=idrepoDraftService.idrepoPublishDraft(registrationStatusDto.getRegistrationId());
 				if(idResponseDTO != null && idResponseDTO.getResponse() != null) {

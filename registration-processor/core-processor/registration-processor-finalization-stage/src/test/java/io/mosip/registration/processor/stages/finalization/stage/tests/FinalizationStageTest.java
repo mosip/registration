@@ -41,6 +41,7 @@ import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -171,7 +172,7 @@ public class FinalizationStageTest {
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 		
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
-		when(staleReprocessChecker.isStaleReprocess(any(), any(), any())).thenReturn(false);
+		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAnonymousProfile("aa");
@@ -253,6 +254,17 @@ public class FinalizationStageTest {
 	}
 	
 	@Test
+	public void testStaleReprocess_UnavailableTriggersReprocess() throws Exception {
+		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.UNAVAILABLE);
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoDiscardDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
 	public void testDeployVerticle() {
 		finalizationStage.deployVerticle();
 	}
@@ -275,7 +287,7 @@ public class FinalizationStageTest {
 
 	@Test
 	public void testStaleReprocess_DiscardDraftAndSkipPublish() throws Exception {
-		when(staleReprocessChecker.isStaleReprocess(any(), any(), any())).thenReturn(true);
+		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.STALE);
 
 		MessageDTO result = finalizationStage.process(dto);
 

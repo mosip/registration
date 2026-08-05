@@ -362,6 +362,10 @@ public class PacketClassificationProcessor {
 			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
 				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
 			String schemaVersionStr = identityFieldValueMap.get(idSchemaVersionLabel);
+			if (schemaVersionStr == null) {
+				throw new NumberFormatException("Schema version label '" + idSchemaVersionLabel
+						+ "' not found in identity fields for registration: " + registrationId);
+			}
 			Map<String, String> fieldTypeMap = getFieldTypeMap(schemaVersionStr);
 			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
 
@@ -425,20 +429,15 @@ public class PacketClassificationProcessor {
 						RegistrationStatusCode.PROCESSING.toString(), ModuleName.PACKET_CLASSIFIER.toString());
 				if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
 					allTags.put("anonymous", anonymousProfileJson);
-					try {
-						anonymousProfileService.saveAnonymousProfile(
-								registrationId, ModuleName.PACKET_CLASSIFIER.toString(), anonymousProfileJson);
-					} catch (Exception dbEx) {
-						regProcLogger.warn("Anonymous profile DB save failed for {} ({}); tag still stored",
-								registrationId, dbEx.getMessage());
-					}
 				}
 			} catch (Exception anonymousEx) {
 				regProcLogger.warn("Anonymous profile build failed for {}: {}; packet classification continues",
 						registrationId, anonymousEx.getMessage());
 			}
 
-			regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
+			Map<String, String> loggableTags = new HashMap<>(allTags);
+			loggableTags.remove("anonymous");
+			regProcLogger.debug("generated tags {}", new JSONObject(loggableTags).toString());
 			if (!allTags.isEmpty())
 				packetManagerService.addOrUpdateTags(registrationId, allTags);
 		} finally {

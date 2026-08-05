@@ -48,6 +48,7 @@ import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
@@ -123,6 +124,7 @@ public class CreateDraftStageTest {
         when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
                 .thenReturn(registrationStatusDto);
         when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("ERROR");
+        when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
 
         // Populate-draft path stubs: make the new code in process() succeed without
         // forcing every test to re-stub them. Tests that need different behaviour can
@@ -525,6 +527,20 @@ public class CreateDraftStageTest {
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
+        assertTrue(result.getInternalError());
+    }
+
+    @Test
+    public void testProcess_StaleCheckUnavailable_TriggersReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+
+        when(staleReprocessChecker.checkStaleReprocess(any(), any(), any()))
+                .thenReturn(StaleCheckResult.UNAVAILABLE);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), any());
+        verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
         assertTrue(result.getInternalError());
     }
 

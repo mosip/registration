@@ -249,13 +249,29 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             registrationStatusDto.setRegistrationStageName(getStageName());
 
             String resolvedUin = resolveUin(registrationId, regType, registrationStatusDto);
-            if (staleReprocessChecker.isStaleReprocess(resolvedUin, registrationStatusDto.getPacketCreateDateTime(), registrationId)) {
+            io.mosip.registration.processor.packet.storage.utils.StaleCheckResult staleCheck =
+                    staleReprocessChecker.checkStaleReprocess(resolvedUin, registrationStatusDto.getPacketCreateDateTime(), registrationId);
+            if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.STALE) {
                 regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                         "CreateDraftStage :: Stale reprocess detected. reg_type=" + regType
                                 + " pkt_cr_dtimes=" + registrationStatusDto.getPacketCreateDateTime());
                 markAsObsoleted(registrationStatusDto, object, description);
                 isTransactionSuccessful = false;
+                return object;
+            } else if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.UNAVAILABLE) {
+                regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                        "CreateDraftStage :: Stale check unavailable — scheduling reprocess.");
+                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+                registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+                        StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage()));
+                registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+                registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                        .getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+                object.setInternalError(Boolean.TRUE);
+                description.setMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage());
+                description.setCode(PlatformErrorMessages.RPR_UGS_API_RESOURCE_EXCEPTION.getCode());
                 return object;
             }
 
