@@ -256,8 +256,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of("anonymous"));
 		String anonymousProfileJson = tags != null ? tags.get("anonymous") : null;
 
-		anonymousProfileService.saveAnonymousProfile(
-				registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
+		if (anonymousProfileJson != null) {
+			anonymousProfileService.saveAnonymousProfile(
+					registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
+		}
 
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
 
@@ -303,7 +305,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-		discardDraftSafely(workflowInternalActionDTO.getRid());
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
 			tags.put(workflowInternalActionDTO.getReg_type() + "_FLOW_STATUS",
@@ -317,6 +318,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
+			discardDraftSafely(workflowInternalActionDTO.getRid());
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
 
@@ -336,7 +338,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
-		discardDraftSafely(workflowInternalActionDTO.getRid());
 
 		if (additionalInfoRequestDto != null) {
 			Map<String, String> tags = new HashMap<String, String>();
@@ -350,6 +351,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
+			discardDraftSafely(workflowInternalActionDTO.getRid());
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
 

@@ -771,6 +771,26 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft(anyString());
 	}
 
+	@Test
+	public void should_notDiscardDraft_when_completeAsProcessed() throws Exception {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.COMPLETE_AS_PROCESSED.toString());
+		workflowInternalActionDTO.setActionMessage("packet is complete as processed");
+		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatusForWorkflowEngine(any(), any(), any());
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoHasDraft(anyString());
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoDiscardDraft(anyString());
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcessSuccessForAnonymousProfile() throws IOException, JSONException, BaseCheckedException {
@@ -783,6 +803,7 @@ public class WorkflowInternalActionVerticleTest {
 
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		registrationStatusDto.setRegistrationStageName("PacketClassifierStage");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
 				.thenReturn(registrationStatusDto);
 
@@ -795,5 +816,31 @@ public class WorkflowInternalActionVerticleTest {
 				.thenReturn(null);
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
 		assertEquals(true, object.getIsValid());
+		Mockito.verify(anonymousProfileService, Mockito.times(1)).saveAnonymousProfile(
+				"10006100390000920200603070407", "PacketClassifierStage", "{\"processName\":\"NEW\"}");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void should_notPersistProfile_when_anonymousTagMissing() throws IOException, JSONException, BaseCheckedException {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setReg_type("NEW");
+		workflowInternalActionDTO.setIsValid(true);
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
+
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		registrationStatusDto.setRegistrationStageName("PacketClassifierStage");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(packetManagerService.getTags(anyString(), any())).thenReturn(null);
+		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(null);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		Mockito.verify(anonymousProfileService, Mockito.never())
+				.saveAnonymousProfile(anyString(), anyString(), any());
 	}
 }

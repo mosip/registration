@@ -272,4 +272,16 @@ public class FinalizationStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
+
+	@Test
+	public void testStaleReprocess_DiscardDraftAndSkipPublish() throws Exception {
+		when(staleReprocessChecker.isStaleReprocess(any(), any(), any())).thenReturn(true);
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		Mockito.verify(idrepoDraftService).idrepoDiscardDraft(dto.getRid());
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
 }

@@ -109,7 +109,7 @@ public class CreateDraftStageTest {
     private InternalRegistrationStatusDto registrationStatusDto;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         messageDTO = new MessageDTO();
         messageDTO.setRid(REG_ID);
         messageDTO.setIteration(1);
@@ -132,19 +132,14 @@ public class CreateDraftStageTest {
         ReflectionTestUtils.setField(createDraftStage, "convertIdschemaToDouble", true);
         ReflectionTestUtils.setField(createDraftStage, "trimWhitespaces", false);
 
-        try {
-            when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any()))
-                    .thenReturn("0.1");
-            when(packetManagerService.getFields(anyString(), any(), any(), any()))
-                    .thenReturn(new HashMap<>());
-            when(idSchemaUtil.getDefaultFields(any(Double.class))).thenReturn(new ArrayList<>());
-            when(utilities.getRegistrationProcessorMappingJson(anyString())).thenReturn(new JSONObject());
-            when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any()))
-                    .thenReturn(new IdResponseDTO());
-        } catch (Exception ignored) {
-            // Mockito stubs declare the same checked exceptions as the mocked methods;
-            // ignore here since setup never actually invokes them.
-        }
+        when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any()))
+                .thenReturn("0.1");
+        when(packetManagerService.getFields(anyString(), any(), any(), any()))
+                .thenReturn(new HashMap<>());
+        when(idSchemaUtil.getDefaultFields(any(Double.class))).thenReturn(new ArrayList<>());
+        when(utilities.getRegistrationProcessorMappingJson(anyString())).thenReturn(new JSONObject());
+        when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any()))
+                .thenReturn(new IdResponseDTO());
     }
 
     // -----------------------------------------------------------------------
