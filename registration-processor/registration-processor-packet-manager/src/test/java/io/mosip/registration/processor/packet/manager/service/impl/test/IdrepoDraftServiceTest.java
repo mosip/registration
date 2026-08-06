@@ -273,6 +273,143 @@ public class IdrepoDraftServiceTest {
 
 	}
     @Test
+    public void idrepoGetDraftWithTypeSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "demographics", IdResponseDTO.class)).thenReturn(idResponseDTO);
+
+        ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID, "demographics");
+
+        assertTrue(result.getRegistrationId().equals(ID));
+    }
+
+    @Test
+    public void idrepoGetDraftWithBiometricsTypeTest() throws ApisResourceAccessException, IdrepoDraftException {
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "biometrics", IdResponseDTO.class)).thenReturn(idResponseDTO);
+
+        ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID, "biometrics");
+
+        assertTrue(result.getRegistrationId().equals(ID));
+    }
+
+    @Test
+    public void idrepoGetDraftWithSupportingDocumentsTypeTest() throws ApisResourceAccessException, IdrepoDraftException {
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "supportingDocuments", IdResponseDTO.class)).thenReturn(idResponseDTO);
+
+        ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID, "supportingDocuments");
+
+        assertTrue(result.getRegistrationId().equals(ID));
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoGetDraftWithTypeErrorTest() throws ApisResourceAccessException, IdrepoDraftException {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("ERROR");
+        errorDTO.setErrorCode("ERROR");
+        IdResponseDTO errorResponse = new IdResponseDTO();
+        errorResponse.setErrors(Lists.newArrayList(errorDTO));
+
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "demographics", IdResponseDTO.class)).thenReturn(errorResponse);
+
+        idrepoDraftService.idrepoGetDraft(ID, "demographics");
+    }
+
+    @Test
+    public void idrepoCreateDraftV2SuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+        ResponseWrapper responseWrapper = new ResponseWrapper();
+
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEV2DRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+
+        boolean result = idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+        assertTrue(result);
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoCreateDraftV2ExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("ERROR");
+        errorDTO.setErrorCode("ERROR");
+        ResponseWrapper errorResponse = new ResponseWrapper();
+        errorResponse.setErrors(Lists.newArrayList(errorDTO));
+
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEV2DRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(errorResponse);
+
+        idrepoDraftService.idrepoCreateDraftV2(ID, null, false);
+    }
+
+    @Test
+    public void idrepoUpdateDraftUinSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+        when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(idResponseDTO);
+
+        boolean result = idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+        assertTrue(result);
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoUpdateDraftUinExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("ERROR");
+        errorDTO.setErrorCode("ERROR");
+        IdResponseDTO errorResponse = new IdResponseDTO();
+        errorResponse.setErrors(Lists.newArrayList(errorDTO));
+
+        when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(errorResponse);
+
+        idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoPublishDraftUinDetailsNotFoundTest()
+            throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("UIN details not found in draft");
+        errorDTO.setErrorCode("IDR-IDC-015");
+        IdResponseDTO errorResponse = new IdResponseDTO();
+        errorResponse.setErrors(Lists.newArrayList(errorDTO));
+
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(errorResponse);
+
+        idrepoDraftService.idrepoPublishDraft(ID);
+    }
+
+    @Test
+    public void idrepoUpdateDraftRecordAlreadyExistsIdempotentTest()
+            throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
+        RequestDto requestDto = new RequestDto();
+        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+        IdRequestDto idRequestDto = new IdRequestDto();
+        idRequestDto.setRequest(requestDto);
+
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setMessage("Record already exists in the system");
+        errorDTO.setErrorCode("IDR-IDC-012");
+        IdResponseDTO errorResponse = new IdResponseDTO();
+        errorResponse.setErrors(Lists.newArrayList(errorDTO));
+
+        when(registrationProcessorRestClientService.headApi(
+                ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
+        when(registrationProcessorRestClientService.patchApi(
+                any(), any(), any(), any(), any(), any())).thenReturn(errorResponse);
+
+        IdResponseDTO result = idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+
+        assertTrue(result.getErrors().get(0).getErrorCode().equals("IDR-IDC-012"));
+        verify(registrationProcessorRestClientService, never())
+                .deleteApi(any(), any(), any(), any(), any());
+    }
+
+    @Test
     public void discardDraftSuccessTest() throws IdrepoDraftReprocessableException, IdrepoDraftException, ApisResourceAccessException {
         ResponseDTO discardresponseDTO = new ResponseDTO();
         discardresponseDTO.setStatus("Drafted");

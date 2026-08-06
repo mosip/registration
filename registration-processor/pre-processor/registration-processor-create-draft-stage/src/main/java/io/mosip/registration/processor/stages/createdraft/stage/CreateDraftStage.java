@@ -174,6 +174,12 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     @Value("${mosip.regproc.uin.generator.trim-whitespaces.simpleType-value:false}")
     private boolean trimWhitespaces;
 
+    @Value("#{${registration.processor.additional-process.category-mapping:{:}}}")
+    private Map<String, String> additionalProcessCategoryMapping;
+
+    @Value("${uingenerator.lost.packet.allowed.update.fields:null}")
+    private String lostPacketUpdateFields;
+
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
 
@@ -290,50 +296,23 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 isTransactionSuccessful = object.getIsValid();
                 applyDescriptionToStatus(description, registrationStatusDto);
 
-            } else if (RegistrationType.LOST.toString().equalsIgnoreCase(regType)) {
-                // For LOST packets, create a draft WITHOUT UIN (UIN unknown until ABIS match).
-                // BioDedupeProcessor will call idrepoUpdateDraftUin after the ABIS match.
-                if (idrepoDraftService.idrepoHasDraft(registrationId)) {
-                    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                            "LOST packet draft already exists. Discarding before re-creation.");
-                    idrepoDraftService.idrepoDiscardDraft(registrationId);
-                }
-                idrepoDraftService.idrepoCreateDraftV2(registrationId);
-                populateDraftWithIdentity(registrationId, registrationStatusDto.getRegistrationType(), null);
-                isTransactionSuccessful = Boolean.TRUE;
-                object.setIsValid(Boolean.TRUE);
-                registrationStatusDto.setLatestTransactionStatusCode(
-                        RegistrationTransactionStatusCode.SUCCESS.toString());
-                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
-                registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
-                description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
-                description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
+            } else {
+                // Generic draft create + populate for NEW, UPDATE, RES_UPDATE, LOST,
+                // and any custom type mapped to UPDATE via additionalProcessCategoryMapping.
+                String effectiveProcess = utilities.getInternalProcess(additionalProcessCategoryMapping, regType);
+                boolean isUpdateLike = isUpdateType(regType, effectiveProcess);
+                boolean isNewLike = RegistrationType.NEW.toString().equalsIgnoreCase(regType);
+                boolean isLost = RegistrationType.LOST.toString().equalsIgnoreCase(regType);
 
-            } else if (RegistrationType.NEW.toString().equalsIgnoreCase(regType)
-                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
-                    || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)) {
+                if (isNewLike || isUpdateLike || isLost) {
+                    // UPDATE-like packets need an existing UIN; NEW and LOST do not.
+                    String uin = isUpdateLike ? resolvedUin : null;
+                    boolean generateUin = isNewLike;
 
-                // If a draft already exists (e.g. reprocessed packet), discard it first
-                if (idrepoDraftService.idrepoHasDraft(registrationId)) {
-                    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                            "Draft already exists. Discarding before re-creation.");
-                    idrepoDraftService.idrepoDiscardDraft(registrationId);
-                }
-
-                // For UPDATE/RES_UPDATE packets, pass the existing UIN so ID Repo can clone
-                // the existing identity into the draft. For NEW packets, pass null — ID Repo
-                // will allocate and assign the UIN internally during draft creation.
-                String uin = null;
-                if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
-                        || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)) {
-                    uin = resolvedUin;
-                    if (StringUtils.isEmpty(uin) || "null".equalsIgnoreCase(uin)) {
+                    if (isUpdateLike && (StringUtils.isEmpty(uin) || "null".equalsIgnoreCase(uin))) {
                         regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                                 LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                "UIN not found for UPDATE/RES_UPDATE packet — permanent failure.");
+                                "UIN not found for UPDATE-type packet (" + regType + ") — permanent failure.");
                         registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
                         registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
                         registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
@@ -345,45 +324,55 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         object.setInternalError(Boolean.FALSE);
                         return object;
                     }
+
+                    if (idrepoDraftService.idrepoHasDraft(registrationId)) {
+                        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                                LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                "Draft already exists for " + regType + ". Discarding before re-creation.");
+                        idrepoDraftService.idrepoDiscardDraft(registrationId);
+                    }
+
+                    boolean created = idrepoDraftService.idrepoCreateDraftV2(registrationId, uin, generateUin);
+                    if (!created) {
+                        throw new IdrepoDraftException(
+                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+                    }
+
+                    // Inject packetCreatedOn only for NEW and UPDATE (not RES_UPDATE, LOST, or custom)
+                    boolean injectPacketCreatedOn = RegistrationType.NEW.toString().equalsIgnoreCase(regType)
+                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType);
+                    populateDraftWithIdentity(registrationId, registrationStatusDto.getRegistrationType(),
+                            uin, isLost, injectPacketCreatedOn);
+
+                    isTransactionSuccessful = Boolean.TRUE;
+                    object.setIsValid(Boolean.TRUE);
+                    registrationStatusDto.setLatestTransactionStatusCode(
+                            RegistrationTransactionStatusCode.SUCCESS.toString());
+                    registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
+                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
+                    description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
+                    description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
+                    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                            "Draft created successfully for regType=" + regType);
+
+                } else {
+                    // Pass-through for unhandled packet types
+                    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                            "Skipping create draft for reg type: " + regType);
+                    object.setIsValid(Boolean.TRUE);
+                    isTransactionSuccessful = Boolean.TRUE;
+                    registrationStatusDto.setLatestTransactionStatusCode(
+                            RegistrationTransactionStatusCode.SUCCESS.toString());
+                    registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SKIPPED.getMessage());
+                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SKIPPED.getCode());
+                    description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
+                    description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
                 }
-
-                boolean created = idrepoDraftService.idrepoCreateDraft(registrationId, uin);
-                if (!created) {
-                    throw new IdrepoDraftException(
-                            PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                            PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
-                }
-
-                populateDraftWithIdentity(registrationId, registrationStatusDto.getRegistrationType(), uin);
-
-                isTransactionSuccessful = Boolean.TRUE;
-                object.setIsValid(Boolean.TRUE);
-                registrationStatusDto.setLatestTransactionStatusCode(
-                        RegistrationTransactionStatusCode.SUCCESS.toString());
-                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
-                registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
-                description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
-                description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
-
-                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                        "Draft created successfully for regType: " + regType);
-
-            } else {
-                // Pass-through for any unrecognised packet type
-                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                        "Skipping create draft for reg type: " + regType);
-                object.setIsValid(Boolean.TRUE);
-                isTransactionSuccessful = Boolean.TRUE;
-                registrationStatusDto.setLatestTransactionStatusCode(
-                        RegistrationTransactionStatusCode.SUCCESS.toString());
-                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SKIPPED.getMessage());
-                registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SKIPPED.getCode());
-                description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
-                description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
             }
 
         } catch (ApisResourceAccessException e) {
@@ -475,19 +464,28 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     private String resolveUin(String registrationId, String regType,
             InternalRegistrationStatusDto registrationStatusDto) {
         try {
-            if (RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+            String effectiveProcess = utilities.getInternalProcess(additionalProcessCategoryMapping, regType);
+            boolean needsUin = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
                     || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)
                     || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)
-                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)) {
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess);
+            if (needsUin) {
                 return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
                         ProviderStageName.CREATE_DRAFT);
             }
         } catch (Exception e) {
             regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    "CreateDraftStage :: Could not resolve UIN for stale check: " + e.getMessage());
+                    "CreateDraftStage :: Could not resolve UIN: " + e.getMessage());
         }
         return null;
+    }
+
+    private boolean isUpdateType(String regType, String effectiveProcess) {
+        return RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+                || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)
+                || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess);
     }
 
     private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
@@ -530,19 +528,48 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     /**
      * Builds the demographic identity + biometric documents from the packet
      * and pushes them into the ID Repository draft via {@code idrepoUpdateDraft}.
+     *
+     * @param isLost              when true, restricts demographic fields to those
+     *                            listed in {@code lostPacketUpdateFields}
+     * @param injectPacketCreatedOn when true, retrieves and injects the packet
+     *                            creation date into the identity (NEW/UPDATE only)
      */
-    private void populateDraftWithIdentity(String registrationId, String process, String uin) throws Exception {
+    private void populateDraftWithIdentity(String registrationId, String process, String uin,
+            boolean isLost, boolean injectPacketCreatedOn) throws Exception {
         String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
                 MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.CREATE_DRAFT);
+        List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
-        Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
-                idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)), process,
-                ProviderStageName.CREATE_DRAFT);
+        Map<String, String> fieldMap;
+        if (isLost && StringUtils.isNotEmpty(lostPacketUpdateFields)
+                && !"null".equalsIgnoreCase(lostPacketUpdateFields)) {
+            JSONObject identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+            List<String> allowedFields = new ArrayList<>();
+            for (String fieldName : lostPacketUpdateFields.split(",")) {
+                String actualFieldName = JsonUtil.getJSONValue(
+                        JsonUtil.getJSONObject(identityJson, fieldName.trim()), MappingJsonConstants.VALUE);
+                if (StringUtils.isNotEmpty(actualFieldName)) {
+                    allowedFields.add(actualFieldName);
+                }
+            }
+            List<String> fieldsToFetch = allowedFields.isEmpty() ? defaultFields : allowedFields;
+            fieldMap = packetManagerService.getFields(registrationId, fieldsToFetch, process,
+                    ProviderStageName.CREATE_DRAFT);
+        } else {
+            fieldMap = packetManagerService.getFields(registrationId, defaultFields, process,
+                    ProviderStageName.CREATE_DRAFT);
+        }
 
         JSONObject demographicIdentity = new JSONObject();
         demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
                 convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
         loadDemographicIdentity(fieldMap, demographicIdentity);
+
+        if (injectPacketCreatedOn && defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
+            String packetCreatedOn = utility.retrieveCreatedDateFromPacket(registrationId, process,
+                    ProviderStageName.CREATE_DRAFT);
+            updatePacketCreatedOnInDemographicIdentity(registrationId, demographicIdentity, packetCreatedOn);
+        }
 
         List<Documents> documentInfo = getAllDocumentsByRegId(registrationId, process, demographicIdentity);
 
@@ -560,10 +587,34 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         idRequestDTO.setVersion(idRepoApiVersion);
 
         IdResponseDTO response = idrepoDraftService.idrepoUpdateDraft(registrationId, uin, idRequestDTO);
+        if (response != null && response.getResponse() != null
+                && !"DRAFTED".equalsIgnoreCase(response.getResponse().getStatus())) {
+            regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    "Draft update returned unexpected status: " + response.getResponse().getStatus());
+        }
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
                 LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                 "Draft populated with identity. id-repo response id: "
                         + (response != null ? response.getId() : "null"));
+    }
+
+    private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
+            Map<String, Object> demographicIdentity, String packetCreatedOn) throws IOException {
+        if (packetCreatedOn == null) {
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    "packetCreatedOn not found in packet — skipping.");
+            return;
+        }
+        String packetCreatedOnKey = utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        if (packetCreatedOnKey == null) {
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    "packetCreatedOn not mapped in identity-mapping.json — skipping.");
+            return;
+        }
+        demographicIdentity.put(packetCreatedOnKey, packetCreatedOn);
     }
 
     /**

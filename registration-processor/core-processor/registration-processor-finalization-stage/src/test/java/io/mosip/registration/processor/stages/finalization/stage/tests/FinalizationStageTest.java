@@ -296,4 +296,34 @@ public class FinalizationStageTest {
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
 	}
+
+	@Test
+	public void testProcess_ActivatedPacket_DraftPublishedSuccessfully() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.ACTIVATED.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+
+		MessageDTO result = finalizationStage.process(messageDTO);
+
+		Mockito.verify(idrepoDraftService).idrepoPublishDraft(anyString());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testProcess_DeactivatedPacket_DraftPublishedSuccessfully() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.DEACTIVATED.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+
+		MessageDTO result = finalizationStage.process(messageDTO);
+
+		Mockito.verify(idrepoDraftService).idrepoPublishDraft(anyString());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
 }

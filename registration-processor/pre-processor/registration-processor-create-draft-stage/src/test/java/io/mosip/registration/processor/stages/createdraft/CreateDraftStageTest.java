@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.createdraft;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -153,14 +154,14 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, null)).thenReturn(true);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
         verify(idrepoDraftService, never()).idrepoDiscardDraft(anyString());
-        verify(idrepoDraftService, times(1)).idrepoCreateDraft(REG_ID, null);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, true);
     }
 
     @Test
@@ -169,14 +170,14 @@ public class CreateDraftStageTest {
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(true);
         when(idrepoDraftService.idrepoDiscardDraft(REG_ID)).thenReturn(true);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, null)).thenReturn(true);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
         verify(idrepoDraftService, times(1)).idrepoDiscardDraft(REG_ID);
-        verify(idrepoDraftService, times(1)).idrepoCreateDraft(REG_ID, null);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, true);
     }
 
     // -----------------------------------------------------------------------
@@ -190,13 +191,13 @@ public class CreateDraftStageTest {
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
         when(utility.getUIn(anyString(), anyString(), any())).thenReturn(EXISTING_UIN);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, EXISTING_UIN)).thenReturn(true);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, EXISTING_UIN, false)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
-        verify(idrepoDraftService, times(1)).idrepoCreateDraft(REG_ID, EXISTING_UIN);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, EXISTING_UIN, false);
     }
 
     // -----------------------------------------------------------------------
@@ -210,14 +211,14 @@ public class CreateDraftStageTest {
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(true);
         when(idrepoDraftService.idrepoDiscardDraft(REG_ID)).thenReturn(true);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, false)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
         verify(idrepoDraftService, times(1)).idrepoDiscardDraft(REG_ID);
-        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID);
-        verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), anyString());
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, false);
     }
 
     @Test
@@ -247,7 +248,7 @@ public class CreateDraftStageTest {
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
-        verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), anyString());
+        verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
     }
 
     // -----------------------------------------------------------------------
@@ -414,14 +415,13 @@ public class CreateDraftStageTest {
         registrationStatusDto.setRegistrationType("LOST");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        // idrepoCreateDraftV2 returns default (mock boolean false — return value not checked by LOST branch)
-        // idrepoUpdateDraft returns new IdResponseDTO() from setUp default — return value not checked in populateDraftWithIdentity
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, false)).thenReturn(true);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
         assertFalse(result.getInternalError());
-        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, false);
     }
 
     @Test
@@ -430,7 +430,7 @@ public class CreateDraftStageTest {
         registrationStatusDto.setRegistrationType("LOST");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID))
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, false))
                 .thenThrow(new ApisResourceAccessException("ID Repo unavailable"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
@@ -445,6 +445,7 @@ public class CreateDraftStageTest {
         registrationStatusDto.setRegistrationType("LOST");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, false)).thenReturn(true);
         when(idrepoDraftService.idrepoUpdateDraft(anyString(), any(), any()))
                 .thenThrow(new IdrepoDraftException("DRAFT_ERROR", "update draft failed"));
 
@@ -463,13 +464,13 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, null)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true)).thenReturn(false);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
         assertTrue(result.getInternalError());
-        verify(idrepoDraftService, times(1)).idrepoCreateDraft(REG_ID, null);
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, true);
     }
 
     @Test
@@ -477,7 +478,7 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, null))
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true))
                 .thenThrow(new ApisResourceAccessException("ID Repo not reachable"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
@@ -491,14 +492,13 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("UPDATE");
         registrationStatusDto.setRegistrationType("UPDATE");
 
-        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
         when(utility.getUIn(anyString(), anyString(), any())).thenReturn(null);
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
         assertFalse(result.getInternalError());
-        verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), anyString());
+        verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
     }
 
     @Test
@@ -506,7 +506,7 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
-        when(idrepoDraftService.idrepoCreateDraft(REG_ID, null))
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true))
                 .thenThrow(new IdrepoDraftException("CDS-001", "Draft creation failed"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
@@ -539,7 +539,7 @@ public class CreateDraftStageTest {
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
-        verify(idrepoDraftService, never()).idrepoCreateDraft(anyString(), any());
+        verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
         verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
         assertTrue(result.getInternalError());
     }
