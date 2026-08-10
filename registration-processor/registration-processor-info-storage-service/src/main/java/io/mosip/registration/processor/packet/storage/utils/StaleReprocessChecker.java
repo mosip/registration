@@ -58,10 +58,16 @@ public class StaleReprocessChecker {
             ResponseWrapper<ResponseDTO> response = (ResponseWrapper<ResponseDTO>)
                     registrationProcessorRestClientService.getApi(
                             ApiName.IDREPOGETIDBYUIN, pathSegments, "type", "demo", ResponseWrapper.class);
-            if (response == null || response.getResponse() == null) {
+            if (response == null) {
                 regProcLogger.warn("SESSIONID", "REGISTRATIONID", currentRegId,
-                        "StaleReprocessChecker :: null/empty response from ID Repo — result UNAVAILABLE.");
+                        "StaleReprocessChecker :: null response from ID Repo (URL not configured?) — result UNAVAILABLE.");
                 return StaleCheckResult.UNAVAILABLE;
+            }
+            if (response.getResponse() == null) {
+                // ID Repo returned an error response — identity not yet committed (e.g. NEW packet with allocated-but-unpublished UIN)
+                regProcLogger.info("SESSIONID", "REGISTRATIONID", currentRegId,
+                        "StaleReprocessChecker :: no committed identity found for UIN — result NOT_STALE.");
+                return StaleCheckResult.NOT_STALE;
             }
             ResponseDTO idRepoResponse = objectMapper.convertValue(response.getResponse(), ResponseDTO.class);
             if (idRepoResponse == null || StringUtils.isEmpty(idRepoResponse.getEntity())) {

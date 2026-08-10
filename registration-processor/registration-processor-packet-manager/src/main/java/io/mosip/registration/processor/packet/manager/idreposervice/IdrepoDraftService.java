@@ -94,7 +94,13 @@ public class IdrepoDraftService {
         regProcLogger.debug("idrepoCreateDraftV2 entry " + id + " generateUin=" + generateUin);
         CreateDraftV2RequestDto requestBody = new CreateDraftV2RequestDto(uin, generateUin);
         ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
-                ApiName.IDREPOCREATEV2DRAFT, Lists.newArrayList(id), null, null, requestBody, ResponseWrapper.class);
+                ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), null, null, requestBody, ResponseWrapper.class);
+        if (response == null) {
+            regProcLogger.error("Null response from idrepoCreateDraftV2 for id " + id);
+            throw new IdrepoDraftException(
+                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                "Null response from ID Repository for draft create V2 for id: " + id);
+        }
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             List<ErrorDTO> error = response.getErrors();
             regProcLogger.error("Error while creating draft v2 for id " + id);

@@ -321,7 +321,7 @@ public class IdrepoDraftServiceTest {
         ResponseWrapper responseWrapper = new ResponseWrapper();
 
         when(registrationProcessorRestClientService.postApi(
-                eq(ApiName.IDREPOCREATEV2DRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(responseWrapper);
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 
         boolean result = idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
         assertTrue(result);
@@ -336,7 +336,7 @@ public class IdrepoDraftServiceTest {
         errorResponse.setErrors(Lists.newArrayList(errorDTO));
 
         when(registrationProcessorRestClientService.postApi(
-                eq(ApiName.IDREPOCREATEV2DRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(errorResponse);
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(errorResponse);
 
         idrepoDraftService.idrepoCreateDraftV2(ID, null, false);
     }

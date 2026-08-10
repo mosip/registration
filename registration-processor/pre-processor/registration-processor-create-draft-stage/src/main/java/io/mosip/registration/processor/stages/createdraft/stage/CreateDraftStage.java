@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -332,18 +336,46 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         idrepoDraftService.idrepoDiscardDraft(registrationId);
                     }
 
-                    boolean created = idrepoDraftService.idrepoCreateDraftV2(registrationId, uin, generateUin);
+                    // Fix 1: createDraftV2 runs in parallel with packet data fetching
+                    final boolean injectPacketCreatedOn = RegistrationType.NEW.toString().equalsIgnoreCase(regType)
+                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType);
+                    final String regTypeForPayload = registrationStatusDto.getRegistrationType();
+                    final String uinForDraft = uin;
+                    final boolean generateUinFinal = generateUin;
+                    ExecutorService draftExecutor = Executors.newVirtualThreadPerTaskExecutor();
+                    CompletableFuture<Boolean> createFuture = CompletableFuture.supplyAsync(() -> {
+                        try { return idrepoDraftService.idrepoCreateDraftV2(registrationId, uinForDraft, generateUinFinal); }
+                        catch (Exception e) { throw new CompletionException(e); }
+                    }, draftExecutor);
+                    CompletableFuture<IdRequestDto> payloadFuture = CompletableFuture.supplyAsync(() -> {
+                        try { return buildDraftPayload(registrationId, regTypeForPayload, uinForDraft, isLost, injectPacketCreatedOn); }
+                        catch (Exception e) { throw new CompletionException(e); }
+                    }, draftExecutor);
+                    boolean created;
+                    IdRequestDto draftPayload;
+                    try {
+                        created = createFuture.join();
+                        draftPayload = payloadFuture.join();
+                    } catch (CompletionException ex) {
+                        Throwable cause = ex.getCause();
+                        while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                        sneakyThrow(cause);
+                        throw new RuntimeException(); // unreachable
+                    } finally {
+                        draftExecutor.close();
+                    }
                     if (!created) {
                         throw new IdrepoDraftException(
                                 PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
                                 PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
                     }
-
-                    // Inject packetCreatedOn only for NEW and UPDATE (not RES_UPDATE, LOST, or custom)
-                    boolean injectPacketCreatedOn = RegistrationType.NEW.toString().equalsIgnoreCase(regType)
-                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType);
-                    populateDraftWithIdentity(registrationId, registrationStatusDto.getRegistrationType(),
-                            uin, isLost, injectPacketCreatedOn);
+                    IdResponseDTO draftResponse = idrepoDraftService.idrepoUpdateDraft(registrationId, uin, draftPayload);
+                    if (draftResponse != null && draftResponse.getResponse() != null
+                            && !"DRAFTED".equalsIgnoreCase(draftResponse.getResponse().getStatus())) {
+                        regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                                LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                "Draft update returned unexpected status: " + draftResponse.getResponse().getStatus());
+                    }
 
                     isTransactionSuccessful = Boolean.TRUE;
                     object.setIsValid(Boolean.TRUE);
@@ -526,21 +558,18 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     }
 
     /**
-     * Builds the demographic identity + biometric documents from the packet
-     * and pushes them into the ID Repository draft via {@code idrepoUpdateDraft}.
-     *
-     * @param isLost              when true, restricts demographic fields to those
-     *                            listed in {@code lostPacketUpdateFields}
-     * @param injectPacketCreatedOn when true, retrieves and injects the packet
-     *                            creation date into the identity (NEW/UPDATE only)
+     * Fetches all packet data (demographics + documents) needed for the draft payload.
+     * Runs {@code getFields} in parallel with {@code retrieveCreatedDateFromPacket} (Fix 1 inner),
+     * and fetches all documents in parallel (Fix 2). Returns the assembled {@link IdRequestDto}
+     * ready for {@code idrepoUpdateDraft}.
      */
-    private void populateDraftWithIdentity(String registrationId, String process, String uin,
+    private IdRequestDto buildDraftPayload(String registrationId, String process, String uin,
             boolean isLost, boolean injectPacketCreatedOn) throws Exception {
         String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId,
                 MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.CREATE_DRAFT);
         List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
-        Map<String, String> fieldMap;
+        final List<String> fieldsToFetch;
         if (isLost && StringUtils.isNotEmpty(lostPacketUpdateFields)
                 && !"null".equalsIgnoreCase(lostPacketUpdateFields)) {
             JSONObject identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
@@ -552,51 +581,75 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     allowedFields.add(actualFieldName);
                 }
             }
-            List<String> fieldsToFetch = allowedFields.isEmpty() ? defaultFields : allowedFields;
-            fieldMap = packetManagerService.getFields(registrationId, fieldsToFetch, process,
-                    ProviderStageName.CREATE_DRAFT);
+            fieldsToFetch = allowedFields.isEmpty() ? defaultFields : allowedFields;
         } else {
-            fieldMap = packetManagerService.getFields(registrationId, defaultFields, process,
-                    ProviderStageName.CREATE_DRAFT);
+            fieldsToFetch = defaultFields;
         }
 
-        JSONObject demographicIdentity = new JSONObject();
-        demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
-                convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
-        loadDemographicIdentity(fieldMap, demographicIdentity);
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        try {
+            // Parallelize getFields with retrieveCreatedDateFromPacket
+            CompletableFuture<Map<String, String>> fieldsFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return packetManagerService.getFields(registrationId, fieldsToFetch, process,
+                            ProviderStageName.CREATE_DRAFT);
+                } catch (Exception e) { throw new CompletionException(e); }
+            }, executor);
 
-        if (injectPacketCreatedOn && defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
-            String packetCreatedOn = utility.retrieveCreatedDateFromPacket(registrationId, process,
-                    ProviderStageName.CREATE_DRAFT);
-            updatePacketCreatedOnInDemographicIdentity(registrationId, demographicIdentity, packetCreatedOn);
+            CompletableFuture<String> createdOnFuture = null;
+            if (injectPacketCreatedOn && defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
+                createdOnFuture = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return utility.retrieveCreatedDateFromPacket(registrationId, process,
+                                ProviderStageName.CREATE_DRAFT);
+                    } catch (Exception e) { throw new CompletionException(e); }
+                }, executor);
+            }
+
+            Map<String, String> fieldMap;
+            String packetCreatedOn = null;
+            try {
+                fieldMap = fieldsFuture.join();
+                if (createdOnFuture != null) {
+                    packetCreatedOn = createdOnFuture.join();
+                }
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+                sneakyThrow(cause);
+                throw new RuntimeException(); // unreachable
+            }
+
+            JSONObject demographicIdentity = new JSONObject();
+            demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION,
+                    convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
+            loadDemographicIdentity(fieldMap, demographicIdentity);
+
+            if (packetCreatedOn != null) {
+                updatePacketCreatedOnInDemographicIdentity(registrationId, demographicIdentity, packetCreatedOn);
+            }
+
+            // Fix 2: fetch all documents in parallel using the same executor
+            List<Documents> documentInfo = fetchDocumentsInParallel(registrationId, process,
+                    demographicIdentity, executor);
+
+            RequestDto requestDto = new RequestDto();
+            requestDto.setIdentity(demographicIdentity);
+            requestDto.setDocuments(documentInfo);
+            requestDto.setRegistrationId(registrationId);
+            requestDto.setStatus(RegistrationType.ACTIVATED.toString());
+            requestDto.setBiometricReferenceId(uin);
+
+            IdRequestDto idRequestDTO = new IdRequestDto();
+            idRequestDTO.setId(idRepoUpdate);
+            idRequestDTO.setRequest(requestDto);
+            idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
+            idRequestDTO.setVersion(idRepoApiVersion);
+
+            return idRequestDTO;
+        } finally {
+            executor.close();
         }
-
-        List<Documents> documentInfo = getAllDocumentsByRegId(registrationId, process, demographicIdentity);
-
-        RequestDto requestDto = new RequestDto();
-        requestDto.setIdentity(demographicIdentity);
-        requestDto.setDocuments(documentInfo);
-        requestDto.setRegistrationId(registrationId);
-        requestDto.setStatus(RegistrationType.ACTIVATED.toString());
-        requestDto.setBiometricReferenceId(uin);
-
-        IdRequestDto idRequestDTO = new IdRequestDto();
-        idRequestDTO.setId(idRepoUpdate);
-        idRequestDTO.setRequest(requestDto);
-        idRequestDTO.setRequesttime(DateUtils2.getUTCCurrentDateTimeString());
-        idRequestDTO.setVersion(idRepoApiVersion);
-
-        IdResponseDTO response = idrepoDraftService.idrepoUpdateDraft(registrationId, uin, idRequestDTO);
-        if (response != null && response.getResponse() != null
-                && !"DRAFTED".equalsIgnoreCase(response.getResponse().getStatus())) {
-            regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                    "Draft update returned unexpected status: " + response.getResponse().getStatus());
-        }
-        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                "Draft populated with identity. id-repo response id: "
-                        + (response != null ? response.getId() : "null"));
     }
 
     private void updatePacketCreatedOnInDemographicIdentity(String registrationId,
@@ -672,37 +725,57 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     }
 
     /**
-     * Builds the list of documents (incl. biometrics) for the draft payload.
+     * Fetches all supporting documents and biometrics in parallel (Fix 2).
+     * Submits each fetch as an independent task on the supplied executor so
+     * POI, POA, POR, and biometrics are retrieved concurrently.
      */
-    private List<Documents> getAllDocumentsByRegId(String regId, String process, JSONObject demographicIdentity)
-            throws Exception {
-        List<Documents> applicantDocuments = new ArrayList<>();
-        JSONObject idJSON = demographicIdentity;
+    private List<Documents> fetchDocumentsInParallel(String regId, String process,
+            JSONObject demographicIdentity, ExecutorService executor) throws Exception {
         JSONObject docJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
         JSONObject identityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 
         String applicantBiometricLabel = JsonUtil.getJSONValue(
                 JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
                 MappingJsonConstants.VALUE);
+        HashMap<String, String> applicantBiometric =
+                (HashMap<String, String>) demographicIdentity.get(applicantBiometricLabel);
 
-        HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
+        List<CompletableFuture<Documents>> futures = new ArrayList<>();
 
         for (Object doc : docJson.values()) {
             Map docMap = (LinkedHashMap) doc;
             String docValue = docMap.values().iterator().next().toString();
-            HashMap<String, String> docInIdentityJson = (HashMap<String, String>) idJSON.get(docValue);
+            HashMap<String, String> docInIdentityJson =
+                    (HashMap<String, String>) demographicIdentity.get(docValue);
             if (docInIdentityJson != null) {
-                Documents d = getIdDocument(regId, docValue, process);
-                if (d != null) {
-                    applicantDocuments.add(d);
-                }
+                final String docKey = docValue;
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    try { return getIdDocument(regId, docKey, process); }
+                    catch (Exception e) { throw new CompletionException(e); }
+                }, executor));
             }
         }
 
         if (applicantBiometric != null) {
-            applicantDocuments.add(getBiometricsDocument(regId, applicantBiometricLabel, process));
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                try { return getBiometricsDocument(regId, applicantBiometricLabel, process); }
+                catch (Exception e) { throw new CompletionException(e); }
+            }, executor));
         }
-        return applicantDocuments;
+
+        List<Documents> result = new ArrayList<>();
+        try {
+            for (CompletableFuture<Documents> future : futures) {
+                Documents d = future.join();
+                if (d != null) result.add(d);
+            }
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
+            sneakyThrow(cause);
+            throw new RuntimeException(); // unreachable
+        }
+        return result;
     }
 
     private Documents getIdDocument(String registrationId, String dockey, String process)
@@ -727,6 +800,11 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         documentsInfoDto.setValue(CryptoUtil.encodeToURLSafeBase64(xml));
         documentsInfoDto.setCategory(utilities.getMappingJsonValue(person, MappingJsonConstants.IDENTITY));
         return documentsInfoDto;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
+        throw (T) t;
     }
 
     // -------------------------------------------------------------------------
