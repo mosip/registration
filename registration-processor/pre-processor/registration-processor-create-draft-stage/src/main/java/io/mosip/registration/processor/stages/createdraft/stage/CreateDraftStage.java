@@ -285,7 +285,12 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 return object;
             }
 
-            if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)) {
+            // Compute effectiveProcess once so custom types (opencrvs_new, crvs_new, crvs_death, etc.)
+            // mapped via registration.processor.additional-process.category-mapping are handled correctly.
+            String effectiveProcess = utilities.getInternalProcess(additionalProcessCategoryMapping, regType);
+
+            if (RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(effectiveProcess)) {
                 JSONObject demographicIdentity = buildDemographicIdentity(registrationId,
                         registrationStatusDto.getRegistrationType());
                 IdResponseDTO idResponseDTO = new IdResponseDTO();
@@ -293,7 +298,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         demographicIdentity, description);
                 applyDescriptionToStatus(description, registrationStatusDto);
 
-            } else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)) {
+            } else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(effectiveProcess)) {
                 JSONObject demographicIdentity = buildDemographicIdentity(registrationId,
                         registrationStatusDto.getRegistrationType());
                 deactivateUin(registrationId, resolvedUin, object, demographicIdentity, description);
@@ -302,10 +308,10 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
             } else {
                 // Generic draft create + populate for NEW, UPDATE, RES_UPDATE, LOST,
-                // and any custom type mapped to UPDATE via additionalProcessCategoryMapping.
-                String effectiveProcess = utilities.getInternalProcess(additionalProcessCategoryMapping, regType);
+                // and any custom type mapped to NEW/UPDATE via additionalProcessCategoryMapping.
                 boolean isUpdateLike = isUpdateType(regType, effectiveProcess);
-                boolean isNewLike = RegistrationType.NEW.toString().equalsIgnoreCase(regType);
+                boolean isNewLike = RegistrationType.NEW.toString().equalsIgnoreCase(regType)
+                        || RegistrationType.NEW.toString().equalsIgnoreCase(effectiveProcess);
                 boolean isLost = RegistrationType.LOST.toString().equalsIgnoreCase(regType);
 
                 if (isNewLike || isUpdateLike || isLost) {
@@ -348,7 +354,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         catch (Exception e) { throw new CompletionException(e); }
                     }, draftExecutor);
                     CompletableFuture<IdRequestDto> payloadFuture = CompletableFuture.supplyAsync(() -> {
-                        try { return buildDraftPayload(registrationId, regTypeForPayload, uinForDraft, isLost, injectPacketCreatedOn); }
+                        // Always fetch all default fields for initial draft creation.
+                        // lostPacketUpdateFields restriction is only for UIN Generator's update logic.
+                        try { return buildDraftPayload(registrationId, regTypeForPayload, uinForDraft, false, injectPacketCreatedOn); }
                         catch (Exception e) { throw new CompletionException(e); }
                     }, draftExecutor);
                     boolean created;
@@ -501,7 +509,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)
                     || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)
                     || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)
-                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess);
+                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess)
+                    || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(effectiveProcess)
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(effectiveProcess);
             if (needsUin) {
                 return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
                         ProviderStageName.CREATE_DRAFT);
