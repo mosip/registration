@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 /**
- * Tri-state result for {@link StaleReprocessChecker#checkStaleReprocess}.
+ * Tri-state result returned by {@code Utility#isLatestPacket}.
  */
 public enum StaleCheckResult {
     /** A newer committed packet for the same UIN was processed after the current packet — discard draft and mark obsolete. */

@@ -49,6 +49,8 @@ public enum ModuleName {
 	
 	BIOMETRIC_EXTRACTION,
 
+	FINALIZATION,
+
 	CREATE_DRAFT,
 
 	PRINT_STAGE,

@@ -10,7 +10,7 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +70,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	/** stage properties prefix */
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.finalization.";
 	private static final String USER = "MOSIP_SYSTEM";
+	private static final String UIN_FIELD = "UIN";
 	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -103,7 +104,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private StaleReprocessChecker staleReprocessChecker;
+	private Utility utility;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -179,8 +180,22 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 			}
 			else {
 				String uinForCheck = resolveUinForFinalization(registrationStatusDto.getRegistrationId());
+				if (uinForCheck == null) {
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							"FinalizationStage :: UIN not found in draft identity — scheduling reprocess.");
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+					registrationStatusDto.setStatusComment(trimExceptionMessage
+							.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage()));
+					registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+					object.setInternalError(Boolean.TRUE);
+					description.setMessage("UIN not found in draft — reprocess scheduled.");
+					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
+				} else {
 				io.mosip.registration.processor.packet.storage.utils.StaleCheckResult staleCheck =
-						staleReprocessChecker.checkStaleReprocess(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId());
+						utility.isLatestPacket(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId());
 				if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.STALE) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
@@ -213,6 +228,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 						description.setCode(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode());
 						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					}
+				}
 				}
 				}
 			
@@ -293,9 +309,9 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 				updateErrorFlags(registrationStatusDto, object);
 			}
 			String moduleId = isTransactionSuccessful
-					? PlatformSuccessMessages.RPR_BIOMETRIC_EXTRACTION_SUCCESS.getCode()
+					? PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode()
 					: description.getCode();
-			String moduleName = ModuleName.BIOMETRIC_EXTRACTION.toString();
+			String moduleName = ModuleName.FINALIZATION.toString();
 			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
 			String eventName = eventId.equalsIgnoreCase(EventId.RPR_402.toString()) ? EventName.UPDATE.toString()
@@ -316,7 +332,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		if (draft != null && draft.getIdentity() != null) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> identityMap = objectMapper.convertValue(draft.getIdentity(), Map.class);
-			Object uinVal = identityMap.get("UIN");
+			Object uinVal = identityMap.get(UIN_FIELD);
 			return uinVal != null ? String.valueOf(uinVal) : null;
 		}
 		return null;
@@ -326,7 +342,8 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 		dto.setStatusComment(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
 		dto.setSubStatusCode(StatusUtil.PACKET_REPROCESS_OBSOLETED.getCode());
-		dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+		dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED));
 		description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_DRAFT_REQUEST_UNAVAILABLE.getCode());
 		description.setMessage(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
 		object.setIsValid(false);

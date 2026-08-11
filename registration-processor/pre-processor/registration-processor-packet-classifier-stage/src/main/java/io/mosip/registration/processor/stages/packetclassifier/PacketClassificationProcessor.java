@@ -87,6 +87,10 @@ public class PacketClassificationProcessor {
 
     private static final String VALUE = "value";
 
+	// Tag key used to store the anonymous profile JSON in the packet tag store.
+	// Must match the key read by WorkflowInternalActionVerticle.processAnonymousProfile.
+	static final String ANONYMOUS_PROFILE_TAG_KEY = "anonymous";
+
 	/*
      * java class to trim exception message
      */
@@ -428,7 +432,7 @@ public class PacketClassificationProcessor {
 						biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,
 						RegistrationStatusCode.PROCESSING.toString(), ModuleName.PACKET_CLASSIFIER.toString());
 				if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
-					allTags.put("anonymous", anonymousProfileJson);
+					allTags.put(ANONYMOUS_PROFILE_TAG_KEY, anonymousProfileJson);
 				}
 			} catch (Exception anonymousEx) {
 				regProcLogger.warn("Anonymous profile build failed for {}: {}; packet classification continues",
@@ -436,7 +440,7 @@ public class PacketClassificationProcessor {
 			}
 
 			Map<String, String> loggableTags = new HashMap<>(allTags);
-			loggableTags.remove("anonymous");
+			loggableTags.remove(ANONYMOUS_PROFILE_TAG_KEY);
 			regProcLogger.debug("generated tags {}", new JSONObject(loggableTags).toString());
 			if (!allTags.isEmpty())
 				packetManagerService.addOrUpdateTags(registrationId, allTags);

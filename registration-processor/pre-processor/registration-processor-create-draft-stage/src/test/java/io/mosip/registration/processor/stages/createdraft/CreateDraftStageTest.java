@@ -50,7 +50,6 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
-import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -99,9 +98,6 @@ public class CreateDraftStageTest {
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
 
     @Mock
-    private StaleReprocessChecker staleReprocessChecker;
-
-    @Mock
     private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetEntity;
 
     @Mock
@@ -125,13 +121,12 @@ public class CreateDraftStageTest {
         when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any()))
                 .thenReturn(registrationStatusDto);
         when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("ERROR");
-        when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
+        when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
 
         // Populate-draft path stubs: make the new code in process() succeed without
         // forcing every test to re-stub them. Tests that need different behaviour can
         // override these.
         ReflectionTestUtils.setField(createDraftStage, "idRepoUpdate", "mosip.id.update");
-        ReflectionTestUtils.setField(createDraftStage, "idRepoApiVersion", "v1");
         ReflectionTestUtils.setField(createDraftStage, "convertIdschemaToDouble", true);
         ReflectionTestUtils.setField(createDraftStage, "trimWhitespaces", false);
 
@@ -534,7 +529,7 @@ public class CreateDraftStageTest {
     public void testProcess_StaleCheckUnavailable_TriggersReprocess() throws Exception {
         messageDTO.setReg_type("NEW");
 
-        when(staleReprocessChecker.checkStaleReprocess(any(), any(), any()))
+        when(utility.isLatestPacket(any(), any(), any()))
                 .thenReturn(StaleCheckResult.UNAVAILABLE);
 
         MessageDTO result = createDraftStage.process(messageDTO);

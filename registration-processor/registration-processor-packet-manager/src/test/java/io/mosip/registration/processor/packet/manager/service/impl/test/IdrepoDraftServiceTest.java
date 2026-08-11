@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
@@ -72,6 +74,8 @@ public class IdrepoDraftServiceTest {
         when(mapper.writeValueAsString(any())).thenReturn("string");
         when(mapper.readValue("string", JSONObject.class)).thenReturn(jsonObject);
 
+        ReflectionTestUtils.setField(idrepoDraftService, "uinStampMaxRetry", 3);
+        ReflectionTestUtils.setField(idrepoDraftService, "uinStampRetryDelayMs", 0L);
     }
 
     @Test
@@ -342,7 +346,7 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test
-    public void idrepoUpdateDraftUinSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+    public void idrepoUpdateDraftUinSuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
         when(registrationProcessorRestClientService.patchApi(
                 eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(idResponseDTO);
@@ -352,7 +356,7 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test(expected = IdrepoDraftException.class)
-    public void idrepoUpdateDraftUinExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+    public void idrepoUpdateDraftUinExceptionTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("ERROR");
         errorDTO.setErrorCode("ERROR");
@@ -407,6 +411,41 @@ public class IdrepoDraftServiceTest {
         assertTrue(result.getErrors().get(0).getErrorCode().equals("IDR-IDC-012"));
         verify(registrationProcessorRestClientService, never())
                 .deleteApi(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void idrepoUpdateDraftUinRetrySuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        ErrorDTO keyManagerError = new ErrorDTO();
+        keyManagerError.setMessage("Key Manager error");
+        keyManagerError.setErrorCode("IDR-IDS-003");
+        IdResponseDTO keyManagerErrorResponse = new IdResponseDTO();
+        keyManagerErrorResponse.setErrors(Lists.newArrayList(keyManagerError));
+
+        when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any()))
+                .thenReturn(keyManagerErrorResponse)
+                .thenReturn(idResponseDTO);
+
+        boolean result = idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+        assertTrue(result);
+        verify(registrationProcessorRestClientService, times(2)).patchApi(eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any());
+    }
+
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoUpdateDraftUinRetryExhaustedTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        ErrorDTO keyManagerError = new ErrorDTO();
+        keyManagerError.setMessage("Key Manager error");
+        keyManagerError.setErrorCode("IDR-IDS-003");
+        IdResponseDTO keyManagerErrorResponse = new IdResponseDTO();
+        keyManagerErrorResponse.setErrors(Lists.newArrayList(keyManagerError));
+
+        when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any()))
+                .thenReturn(keyManagerErrorResponse);
+
+        idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
     }
 
     @Test

@@ -68,6 +68,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
+
+	// Must match PacketClassificationProcessor.ANONYMOUS_PROFILE_TAG_KEY — both ends of the tag handshake.
+	private static final String ANONYMOUS_PROFILE_TAG_KEY = "anonymous";
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowInternalActionVerticle.class);
 
@@ -259,8 +262,8 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
 
-		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of("anonymous"));
-		String anonymousProfileJson = tags != null ? tags.get("anonymous") : null;
+		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of(ANONYMOUS_PROFILE_TAG_KEY));
+		String anonymousProfileJson = tags != null ? tags.get(ANONYMOUS_PROFILE_TAG_KEY) : null;
 
 		if (anonymousProfileJson != null) {
 			if (registrationStatusDto != null) {
@@ -270,6 +273,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				regProcLogger.warn("processAnonymousProfile: registration status not found for {} — profile save skipped",
 						registrationId);
 			}
+		} else {
+			// Tag absent — packet was processed before the create-draft stage was active or PacketClassificationProcessor
+			// did not produce the tag. Profile cannot be reconstructed here; log and continue so the event bus
+			// notification still fires (downstream consumers must handle a missing profile gracefully).
+			regProcLogger.warn("processAnonymousProfile: 'anonymous' tag not found for rid {} — " +
+					"anonymous profile will not be stored for this packet", registrationId);
 		}
 
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
@@ -440,6 +449,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	}
 
+	// Called only for FAILED and REJECTED terminal states to release ID Repository draft resources.
+	// REPROCESS packets intentionally do NOT call this — the draft must remain active so reprocessing
+	// can resume from the existing draft without re-running the create-draft stage.
 	private void discardDraftSafely(String rid) {
 		try {
 			if (idrepoDraftService.idrepoHasDraft(rid)) {
@@ -526,9 +538,14 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_FROM_BEGINNING.toString());
 		} else {
+			// No parent additional-info record found — this is a data inconsistency: RESTART_PARENT_FLOW
+			// is only valid for child packets that have a linked parent workflow via additionalInfoRequestService.
 			regProcLogger.error(
-					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
+					"processRestartParentFlow: no parent additional-info record found for rid={} reg_type={} iteration={} — " +
+					"expected a parent-child workflow link. This packet cannot restart a parent flow. Error: {}",
 					workflowInternalActionDTO.getRid(),
+					workflowInternalActionDTO.getReg_type(),
+					workflowInternalActionDTO.getIteration(),
 					PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_NOT_FOUND.getMessage());
 		}
 	}

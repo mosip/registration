@@ -1,6 +1,5 @@
 \c mosip_regprc
 
-DELETE FROM regprc.transaction_type
-WHERE code = 'CREATE_DRAFT'
-  AND lang_code = 'eng'
-  AND cr_by = 'MOSIP_SYSTEM';
+-- CREATE_DRAFT is additive master data. Safe to leave in transaction_type after
+-- application rollback. DELETE is omitted because live registration_transaction
+-- rows may reference this code (FK fk_regtrn_trntyp).

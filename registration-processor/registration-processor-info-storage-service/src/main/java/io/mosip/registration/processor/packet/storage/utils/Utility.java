@@ -25,6 +25,7 @@ import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.json.simple.JSONObject;
@@ -845,5 +846,49 @@ public class Utility {
 		);
 
 		return null;
+	}
+
+	/**
+	 * Checks whether the current packet is the latest committed packet for a given UIN.
+	 *
+	 * Returns STALE if a more recently created packet for the same UIN has already been
+	 * committed to ID Repository, NOT_STALE if the current packet is the latest or no
+	 * prior committed identity exists, and UNAVAILABLE when the check cannot be completed
+	 * (API error, null response, etc.) — callers must requeue rather than proceed.
+	 *
+	 * Uses {@link #resolveLastPacketProcessedDate} with its full fallback chain instead
+	 * of a direct DB query, per reviewer guidance.
+	 */
+	public StaleCheckResult isLatestPacket(String uin, LocalDateTime currentPktCrDtimes, String currentRegId) {
+		if (StringUtils.isEmpty(uin) || currentPktCrDtimes == null) {
+			return StaleCheckResult.NOT_STALE;
+		}
+		try {
+			JSONObject idvidResponse = idRepoService.getIdJsonFromIDRepo(uin, getGetRegProcessorDemographicIdentity());
+			if (idvidResponse == null) {
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), currentRegId,
+						"isLatestPacket :: null response from ID Repo — no committed identity found, result NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+			LocalDate lastPacketDate = resolveLastPacketProcessedDate(currentRegId, uin, idvidResponse);
+			if (lastPacketDate == null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), currentRegId,
+						"isLatestPacket :: could not resolve last packet date — result NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+			LocalDate currentPktDate = currentPktCrDtimes.toLocalDate();
+			boolean isStale = lastPacketDate.isAfter(currentPktDate);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), currentRegId,
+					"isLatestPacket :: lastPacketDate={} currentPktDate={} stale={}", lastPacketDate, currentPktDate, isStale);
+			return isStale ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
+		} catch (Exception e) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), currentRegId,
+					"isLatestPacket :: check failed — result UNAVAILABLE: " + e.getMessage());
+			return StaleCheckResult.UNAVAILABLE;
+		}
 	}
 }

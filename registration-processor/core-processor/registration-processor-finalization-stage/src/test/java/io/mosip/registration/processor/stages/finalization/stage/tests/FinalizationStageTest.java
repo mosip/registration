@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import org.apache.commons.io.IOUtils;
@@ -42,7 +43,7 @@ import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftExcep
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
-import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
+import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.stages.finalization.stage.FinalizationStage;
@@ -73,8 +74,8 @@ public class FinalizationStageTest {
 	private IdrepoDraftService idrepoDraftService;
 
 	@Mock
-	private StaleReprocessChecker staleReprocessChecker;
-	
+	private Utility utility;
+
 	/** The core audit request builder. */
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -149,6 +150,7 @@ public class FinalizationStageTest {
 		ReflectionTestUtils.setField(finalizationStage, "defaultWorkerPoolSize", 10);
 		ReflectionTestUtils.setField(finalizationStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(finalizationStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(finalizationStage, "objectMapper", new com.fasterxml.jackson.databind.ObjectMapper());
 
 		dto.setRid("2018701130000410092018110735");
 		dto.setReg_type("UPDATE");
@@ -160,19 +162,27 @@ public class FinalizationStageTest {
 		Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
 				"test case description", EventId.RPR_405.toString(), EventName.UPDATE.toString(),
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
-		
+
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 		registrationStatusDto.setStatusCode("");
 		registrationStatusDto.setRegistrationType("NEW");
-		
+
 		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
-		
+
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
-		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
+
+		// resolveUinForFinalization fetches draft demographics to get the UIN for stale check
+		java.util.Map<String, Object> identityWithUin = new java.util.HashMap<>();
+		identityWithUin.put("UIN", "9876543210");
+		ResponseDTO draftWithUin = new ResponseDTO();
+		draftWithUin.setIdentity(identityWithUin);
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftWithUin);
+
+		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAnonymousProfile("aa");
@@ -255,7 +265,7 @@ public class FinalizationStageTest {
 	
 	@Test
 	public void testStaleReprocess_UnavailableTriggersReprocess() throws Exception {
-		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.UNAVAILABLE);
+		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.UNAVAILABLE);
 
 		MessageDTO result = finalizationStage.process(dto);
 
@@ -287,7 +297,7 @@ public class FinalizationStageTest {
 
 	@Test
 	public void testStaleReprocess_DiscardDraftAndSkipPublish() throws Exception {
-		when(staleReprocessChecker.checkStaleReprocess(any(), any(), any())).thenReturn(StaleCheckResult.STALE);
+		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.STALE);
 
 		MessageDTO result = finalizationStage.process(dto);
 
@@ -325,5 +335,18 @@ public class FinalizationStageTest {
 		Mockito.verify(idrepoDraftService).idrepoPublishDraft(anyString());
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testProcess_UinNotInDraft_TriggersReprocess() throws Exception {
+		// When draft exists but identity has no UIN, stage must schedule reprocess (not silently continue)
+		ResponseDTO draftNoUin = new ResponseDTO();
+		draftNoUin.setIdentity(new java.util.HashMap<>());
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftNoUin);
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		assertTrue(result.getInternalError());
 	}
 }

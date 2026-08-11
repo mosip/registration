@@ -656,12 +656,7 @@ public class BioDedupeProcessor {
 			// Stamp the resolved UIN on the LOST draft so publish can link files to uinHash.
 			String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
 			if (resolvedUin != null) {
-				try {
-					idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
-				} catch (IdrepoDraftException | ApisResourceAccessException e) {
-					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							registrationId, "Failed to stamp UIN on LOST draft (non-fatal): " + e.getMessage());
-				}
+				stampUinOnDraft(registrationId, resolvedUin, registrationStatusDto, object);
 			}
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
@@ -700,12 +695,7 @@ public class BioDedupeProcessor {
 				// Stamp the resolved UIN on the LOST draft.
 				String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
 				if (resolvedUin != null) {
-					try {
-						idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
-					} catch (IdrepoDraftException e) {
-						regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-								registrationId, "Failed to stamp UIN on LOST draft (non-fatal): " + e.getMessage());
-					}
+					stampUinOnDraft(registrationId, resolvedUin, registrationStatusDto, object);
 				}
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
@@ -788,6 +778,26 @@ public class BioDedupeProcessor {
 		}
 
 		return attribute;
+	}
+
+	private void stampUinOnDraft(String registrationId, String resolvedUin,
+			InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+		try {
+			idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Successfully stamped UIN on LOST draft.");
+		} catch (IdrepoDraftException | IdrepoDraftReprocessableException | ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Failed to stamp UIN on LOST draft: " + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(
+					StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+		}
 	}
 
 	private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {

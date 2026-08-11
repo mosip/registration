@@ -8,6 +8,7 @@ import java.util.Map;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,12 @@ public class IdrepoDraftService {
      */
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
+
+    @Value("${mosip.registration.processor.idrepo.uin.stamp.max-retry:3}")
+    private int uinStampMaxRetry;
+
+    @Value("${mosip.registration.processor.idrepo.uin.stamp.retry-delay-ms:1000}")
+    private long uinStampRetryDelayMs;
 
     public boolean idrepoHasDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoHasDraft entry " + id);
@@ -109,18 +116,36 @@ public class IdrepoDraftService {
         return true;
     }
 
-    public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
+    public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         regProcLogger.debug("idrepoUpdateDraftUin entry " + id);
         ObjectNode uinBody = mapper.createObjectNode();
         uinBody.put("uin", uin);
-        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
-                ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
-        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+        int attempt = 0;
+        while (true) {
+            IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
+                    ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
+            if (response.getErrors() == null || response.getErrors().isEmpty()) {
+                return true;
+            }
             ErrorDTO error = response.getErrors().get(0);
-            regProcLogger.error("Error while stamping UIN on draft for id " + id);
-            throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+            regProcLogger.error("Error while stamping UIN on draft for id " + id + " errorCode: " + error.getErrorCode());
+            if (error.getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+                attempt++;
+                if (attempt >= uinStampMaxRetry) {
+                    regProcLogger.error("idrepoUpdateDraftUin: Key Manager error persists after " + uinStampMaxRetry + " attempt(s) for id " + id);
+                    throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+                }
+                regProcLogger.warn("idrepoUpdateDraftUin: Key Manager error on attempt " + attempt + "/" + uinStampMaxRetry + " for id " + id + ", retrying after " + uinStampRetryDelayMs + "ms");
+                try {
+                    Thread.sleep(uinStampRetryDelayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+                }
+            } else {
+                throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+            }
         }
-        return true;
     }
 
     public boolean idrepoCreateDraft(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
@@ -155,13 +180,17 @@ public class IdrepoDraftService {
             JSONObject existingIdentity = responseDTO.getIdentity() != null
                     ? mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class)
                     : new JSONObject();
-            JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
+            Object incomingIdentityRaw = idRequestDto.getRequest().getIdentity();
+            JSONObject newIdentity = incomingIdentityRaw != null
+                    ? mapper.readValue(mapper.writeValueAsString(incomingIdentityRaw), JSONObject.class)
+                    : new JSONObject();
             Object existingUin = existingIdentity.get(UIN);
             if (existingUin != null) {
                 newIdentity.put(UIN, existingUin);
             }
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
+            // Documents (biometrics) must be carried over from the incoming request so the draft retains biometric data alongside updated demographics.
             requestDto.setDocuments(idRequestDto.getRequest().getDocuments());
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());

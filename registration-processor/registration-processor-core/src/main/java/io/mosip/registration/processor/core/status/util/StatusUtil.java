@@ -384,13 +384,16 @@ public enum StatusUtil {
 	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
 	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification"),
 
+	// Create draft stage — general
 	CREATE_DRAFT_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "001", "Create draft stage success"),
 	CREATE_DRAFT_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "001", "Create draft stage failed"),
-	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002", "Create draft stage skipped"),
+	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002", "Packet superseded by a newer committed packet — draft discarded and marked obsolete"),
+	// Create draft stage — UIN activation
 	CDS_UIN_ALREADY_ACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002", "UIN is already in activated state"),
 	CDS_UIN_ACTIVATED_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "003", "UIN activated successfully"),
 	CDS_UIN_ACTIVATED_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "003", "UIN activation failed"),
 	CDS_UIN_REACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "004", "UIN reactivation failed"),
+	// Create draft stage — UIN deactivation
 	CDS_UIN_ALREADY_DEACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "005", "UIN is already in deactivated state"),
 	CDS_UIN_DEACTIVATION_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "004", "UIN deactivated successfully"),
 	CDS_UIN_DEACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "006", "UIN deactivation failed");

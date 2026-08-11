@@ -438,7 +438,11 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_ADJUDICATION)));
 
 
-			// set biometrics
+			// set biometrics — fetched from PacketManager for in-flight (non-PROCESSED) packets.
+			// For PROCESSED packets the ID Repo path (getDataShareUrlfromIdRepo) is used instead.
+			// NEW/UPDATE packets at this stage have a live Draft in ID Repository (created by the
+			// create-draft stage), but biometrics are still read from the original packet store here
+			// because the Manual Adjudication data-share policy drives which fields are included.
 			JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),

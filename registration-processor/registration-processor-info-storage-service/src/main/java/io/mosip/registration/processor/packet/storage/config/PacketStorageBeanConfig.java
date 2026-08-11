@@ -39,7 +39,6 @@ import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoMan
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.BioSdkUtil;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
-import io.mosip.registration.processor.packet.storage.utils.StaleReprocessChecker;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 
@@ -134,7 +133,4 @@ public class PacketStorageBeanConfig {
 	
 	@Bean
 	public VidValidator<String> vidValidator(){return new VidValidatorImpl();}
-
-	@Bean
-	public StaleReprocessChecker staleReprocessChecker(){return new StaleReprocessChecker();}
 }
