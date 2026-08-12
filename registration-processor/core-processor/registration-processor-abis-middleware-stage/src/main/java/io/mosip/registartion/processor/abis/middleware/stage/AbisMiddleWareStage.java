@@ -140,6 +140,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.abis.middleware.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
+	/** Debug hold: sleep this many ms after all IDENTIFY responses received, before forwarding to AbisHandler. 0 = disabled. */
+	@Value("${mosip.regproc.abis.middleware.debug.post-abis-hold-ms:0}")
+	private long postAbisHoldMs;
+
 	/** Message Format. */
 	@Value("${activemq.message.format}")
 	private String messageFormat;
@@ -514,6 +518,17 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 							"",
 							"AbisMiddlewareStage::consumerListener()::All identify are requests processed sending to Abis handler");
+
+					if (postAbisHoldMs > 0) {
+						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+								registrationId, "AbisMiddleWareStage::processAbisResponse()::debug hold for "
+										+ postAbisHoldMs + " ms before forwarding to AbisHandler");
+						try {
+							Thread.sleep(postAbisHoldMs);
+						} catch (InterruptedException ie) {
+							Thread.currentThread().interrupt();
+						}
+					}
 
 					sendToAbisHandler(eventBus, bioRefId, registrationId, internalRegStatusDto.getRegistrationType(),
 							internalRegStatusDto.getIteration(), internalRegStatusDto.getWorkflowInstanceId());
