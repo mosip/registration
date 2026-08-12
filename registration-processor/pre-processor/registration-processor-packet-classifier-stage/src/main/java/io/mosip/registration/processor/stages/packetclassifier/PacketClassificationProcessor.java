@@ -3,8 +3,10 @@ package io.mosip.registration.processor.stages.packetclassifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +28,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -62,7 +63,6 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
-import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -86,10 +86,6 @@ public class PacketClassificationProcessor {
 	private static final String USER = "MOSIP_SYSTEM";
 
     private static final String VALUE = "value";
-
-	// Tag key used to store the anonymous profile JSON in the packet tag store.
-	// Must match the key read by WorkflowInternalActionVerticle.processAnonymousProfile.
-	static final String ANONYMOUS_PROFILE_TAG_KEY = "anonymous";
 
 	/*
      * java class to trim exception message
@@ -145,9 +141,6 @@ public class PacketClassificationProcessor {
 	 */
 	@Autowired
 	private List<TagGenerator> tagGenerators;
-
-	@Autowired
-	private AnonymousProfileService anonymousProfileService;
 
 	/**
 	 * Id object fields required by all the configured tag generators will be maintained here
@@ -344,7 +337,7 @@ public class PacketClassificationProcessor {
 
 		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 		try {
-			// Fire getMetaInfo in parallel while processing identity fields — they are independent I/O calls
+			// Fire getMetaInfo in parallel — independent of identity field fetching
 			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
 				try {
 					return priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
@@ -353,35 +346,42 @@ public class PacketClassificationProcessor {
 				}
 			}, executor);
 
-			// Fire biometrics fetch in parallel — needed for anonymous profile
-			CompletableFuture<BiometricRecord> biometricFuture = CompletableFuture.supplyAsync(() -> {
-				try {
-					return priorityBasedPacketManagerService.getBiometrics(registrationId,
-							MappingJsonConstants.INDIVIDUAL_BIOMETRICS, process, ProviderStageName.CLASSIFICATION);
-				} catch (Exception e) {
-					throw new CompletionException(e);
-				}
-			}, executor);
-
+			// First call: get tag-generator required fields (includes schema version label)
 			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
 				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
 			String schemaVersionStr = identityFieldValueMap.get(idSchemaVersionLabel);
 			if (schemaVersionStr == null) {
-				throw new NumberFormatException("Schema version label '" + idSchemaVersionLabel
-						+ "' not found in identity fields for registration: " + registrationId);
+				throw new BaseCheckedException(
+						PlatformErrorMessages.RPR_PCM_BASE_CHECKED_EXCEPTION.getCode(),
+						"Schema version label '" + idSchemaVersionLabel
+								+ "' not found in identity fields for registration: " + registrationId);
 			}
-			Map<String, String> fieldTypeMap = getFieldTypeMap(schemaVersionStr);
-			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
 
+			// Merge tag-generator fields + full schema default fields, then fetch the delta
+			// in ONE combined call — avoids a separate getFields for the anonymous profile.
 			List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.parseDouble(schemaVersionStr));
-			Map<String, String> allFieldMap = priorityBasedPacketManagerService.getFields(registrationId, defaultFields, process, ProviderStageName.CLASSIFICATION);
+			final Map<String, String> fetchedFields = identityFieldValueMap;
+			List<String> extraFields = defaultFields.stream()
+					.filter(f -> !fetchedFields.containsKey(f))
+					.collect(Collectors.toList());
+			if (!extraFields.isEmpty()) {
+				Map<String, String> extraFieldMap = priorityBasedPacketManagerService.getFields(
+						registrationId, extraFields, process, ProviderStageName.CLASSIFICATION);
+				Map<String, String> merged = new HashMap<>(identityFieldValueMap);
+				merged.putAll(extraFieldMap);
+				identityFieldValueMap = merged;
+			}
+
+			Map<String, String> fieldTypeMap = getFieldTypeMap(schemaVersionStr);
+			// idObjectFieldDTOMap now contains both tag-generator fields and schema default
+			// fields, so AnonymousProfileTagGenerator can reconstruct allFieldMap from it.
+			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
 
 			Map<String, String> metaInfoMap;
 			try {
 				metaInfoMap = metaInfoFuture.join();
 			} catch (CompletionException e) {
 				Throwable cause = e.getCause();
-				// Unwrap double-wrapping: Supplier wraps in CompletionException, then join() wraps again
 				while (cause instanceof CompletionException && cause.getCause() != null)
 					cause = cause.getCause();
 				if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
@@ -390,7 +390,7 @@ public class PacketClassificationProcessor {
 				throw new IOException("Failed to fetch metaInfo", cause);
 			}
 
-			// Run tag generators in parallel — AgeGroupTagGenerator makes its own I/O call (getApplicantAge)
+			// Run all tag generators in parallel — AnonymousProfileTagGenerator included
 			List<CompletableFuture<Map<String, String>>> tagFutures = tagGenerators.stream()
 					.map(tagGenerator -> CompletableFuture.supplyAsync(() -> {
 						try {
@@ -407,7 +407,6 @@ public class PacketClassificationProcessor {
 			} catch (CompletionException e) {
 				executor.shutdownNow();
 				Throwable cause = e.getCause();
-				// Unwrap double-wrapping: Supplier wraps in CompletionException, then join() wraps again
 				while (cause instanceof CompletionException && cause.getCause() != null)
 					cause = cause.getCause();
 				if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
@@ -425,23 +424,7 @@ public class PacketClassificationProcessor {
 
 			handleNullValueTags(allTags);
 
-			// Build and attach the anonymous profile — failures must not block the packet pipeline
-			try {
-				BiometricRecord biometricRecord = biometricFuture.join();
-				String anonymousProfileJson = anonymousProfileService.buildJsonStringFromPacketInfo(
-						biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,
-						RegistrationStatusCode.PROCESSING.toString(), ModuleName.PACKET_CLASSIFIER.toString());
-				if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
-					allTags.put(ANONYMOUS_PROFILE_TAG_KEY, anonymousProfileJson);
-				}
-			} catch (Exception anonymousEx) {
-				regProcLogger.warn("Anonymous profile build failed for {}: {}; packet classification continues",
-						registrationId, anonymousEx.getMessage());
-			}
-
-			Map<String, String> loggableTags = new HashMap<>(allTags);
-			loggableTags.remove(ANONYMOUS_PROFILE_TAG_KEY);
-			regProcLogger.debug("generated tags {}", new JSONObject(loggableTags).toString());
+			regProcLogger.debug("generated {} tag(s) for {}", allTags.size(), registrationId);
 			if (!allTags.isEmpty())
 				packetManagerService.addOrUpdateTags(registrationId, allTags);
 		} finally {

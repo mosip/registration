@@ -1,9 +1,15 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import org.mockito.ArgumentCaptor;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.mosip.registration.processor.packet.manager.dto.CreateDraftV2RequestDto;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -323,12 +329,19 @@ public class IdrepoDraftServiceTest {
     @Test
     public void idrepoCreateDraftV2SuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
         ResponseWrapper responseWrapper = new ResponseWrapper();
+        ArgumentCaptor<CreateDraftV2RequestDto> bodyCaptor = ArgumentCaptor.forClass(CreateDraftV2RequestDto.class);
 
         when(registrationProcessorRestClientService.postApi(
                 eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class))).thenReturn(responseWrapper);
 
         boolean result = idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+
         assertTrue(result);
+        verify(registrationProcessorRestClientService).postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), bodyCaptor.capture(), eq(ResponseWrapper.class));
+        CreateDraftV2RequestDto captured = bodyCaptor.getValue();
+        assertNull("UIN must be null for a NEW packet", captured.getUin());
+        assertTrue("generateUin must be true for a NEW packet", captured.isGenerateUin());
     }
 
     @Test(expected = IdrepoDraftException.class)
@@ -348,11 +361,16 @@ public class IdrepoDraftServiceTest {
     @Test
     public void idrepoUpdateDraftUinSuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        ArgumentCaptor<ObjectNode> bodyCaptor = ArgumentCaptor.forClass(ObjectNode.class);
         when(registrationProcessorRestClientService.patchApi(
                 eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(idResponseDTO);
 
         boolean result = idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+
         assertTrue(result);
+        verify(registrationProcessorRestClientService).patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), bodyCaptor.capture(), any());
+        assertEquals("1234567890", bodyCaptor.getValue().get("uin").asText());
     }
 
     @Test(expected = IdrepoDraftException.class)

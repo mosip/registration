@@ -186,6 +186,7 @@ public class WorkflowInternalActionVerticleTest {
 	@Before
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "anonymousProfileBusAddress", "anonymous-profile-bus-in");
+		ReflectionTestUtils.setField(workflowInternalActionVerticle, "anonymousProfileTagKey", "anonymous");
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "biometricCorrectionProcessName", "BIOMETRIC_CORRECTION");
 		ReflectionTestUtils.setField(workflowInternalActionVerticle, "biometricCorrectionResumeStage", "QualityClassifierStage");
 	}
@@ -430,6 +431,37 @@ public class WorkflowInternalActionVerticleTest {
 				argument2.getAllValues().get(0).getAdditionalInfoProcess());
 
 	}
+
+	@Test
+	public void testPauseAndRequestAdditionalInfo_BiometricCorrection_SetsResumeStage() {
+		WorkflowInternalActionDTO workflowInternalActionDTO = new WorkflowInternalActionDTO();
+		workflowInternalActionDTO.setRid("10006100390000920200603070407");
+		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.PAUSE_AND_REQUEST_ADDITIONAL_INFO.toString());
+		workflowInternalActionDTO.setActionMessage("packet is paused for Additional Info");
+		workflowInternalActionDTO.setDefaultResumeAction(WorkflowActionCode.STOP_PROCESSING.toString());
+		workflowInternalActionDTO.setIteration(1);
+		workflowInternalActionDTO.setReg_type("NEW");
+		workflowInternalActionDTO.setAdditionalInfoProcess("BIOMETRIC_CORRECTION");
+
+		registrationStatusDto = new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any()))
+				.thenReturn(registrationStatusDto);
+		// No existing additional-info request → goes to the else (pause) branch
+		Mockito.when(additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcessAndIteration(
+				anyString(), anyString(), Mockito.anyInt())).thenReturn(null);
+		Mockito.when(additionalInfoRequestService.getAdditionalInfoRequestByRegIdAndProcess(anyString(), anyString()))
+				.thenReturn(null);
+
+		workflowInternalActionVerticle.process(workflowInternalActionDTO);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> argument =
+				ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService, atLeastOnce())
+				.updateRegistrationStatusForWorkflowEngine(argument.capture(), Mockito.any(), Mockito.any());
+		assertEquals("QualityClassifierStage", argument.getAllValues().get(0).getRegistrationStageName());
+	}
+
 	@Test
 	public void testProcessSuccessForRestartParentFlow() throws WorkflowActionException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, IOException {

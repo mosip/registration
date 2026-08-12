@@ -1470,18 +1470,6 @@ public enum PlatformErrorMessages {
 			"Create draft stage failed"),
 	RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "002",
 			"UIN not found for UPDATE packet"),
-	RPR_CDS_UIN_ALLOCATION_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "003",
-			"UIN allocation failed for create draft stage"),
-	RPR_CDS_UIN_ALREADY_ACTIVATED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "004",
-			"UIN is already in activated state"),
-	RPR_CDS_UIN_ACTIVATION_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "005",
-			"UIN activation failed"),
-	RPR_CDS_UIN_REACTIVATION_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "006",
-			"UIN reactivation failed"),
-	RPR_CDS_UIN_ALREADY_DEACTIVATED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "007",
-			"UIN is already in deactivated state"),
-	RPR_CDS_UIN_DEACTIVATION_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "008",
-			"UIN deactivation failed"),
 	;
 
 

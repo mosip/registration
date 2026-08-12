@@ -279,6 +279,8 @@ public enum StatusUtil {
 	FINALIZATION_IDREPO_DRAFT_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "003",
 			"Exception occured updating idrepo draft."),
 
+	FINALIZATION_STALE_PACKET(StatusConstants.FINALIZATION_MODULE_FAILED + "005",
+			"A newer packet for this identity has already been committed to ID Repository"),
 	FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "004",
 			"Exception occured updating idrepo draft, which can be reprocessed"),
 
@@ -332,8 +334,6 @@ public enum StatusUtil {
 	DEMO_DEDUPE_FAILED_IN_ABIS(StatusConstants.SYSTEM_EXCEPTION_CODE, "Demo Dedupe Failed  in ABIS"),
 	RE_PROCESS_FAILED(StatusConstants.RE_PROCESS_MODULE_FAILED + "001",
 			"Reprocess count has exceeded the configured attempts"),
-	PACKET_REPROCESS_OBSOLETED(StatusConstants.RE_PROCESS_MODULE_FAILED + "002",
-			"Stale reprocess: a newer packet for this identity has already been committed"),
 	RE_PROCESS_COMPLETED(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "001", "Reprocess Completed"),
 	RE_PROCESS_RESTART_FROM_STAGE(StatusConstants.RE_PROCESS_MODULE_SUCCESS + "002",
 			"Reprocess restart from stage Completed"),
@@ -384,19 +384,12 @@ public enum StatusUtil {
 	VERIFICATION_SENT(StatusConstants.VERIFICATION_STAGE + "003", "Sent for verification"),
 	VERIFICATION_RESEND(StatusConstants.VERIFICATION_STAGE + "004", "Resend for verification"),
 
-	// Create draft stage — general
+	// Create draft stage
 	CREATE_DRAFT_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "001", "Create draft stage success"),
 	CREATE_DRAFT_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "001", "Create draft stage failed"),
 	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002", "Packet superseded by a newer committed packet — draft discarded and marked obsolete"),
-	// Create draft stage — UIN activation
-	CDS_UIN_ALREADY_ACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002", "UIN is already in activated state"),
-	CDS_UIN_ACTIVATED_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "003", "UIN activated successfully"),
-	CDS_UIN_ACTIVATED_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "003", "UIN activation failed"),
-	CDS_UIN_REACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "004", "UIN reactivation failed"),
-	// Create draft stage — UIN deactivation
-	CDS_UIN_ALREADY_DEACTIVATED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "005", "UIN is already in deactivated state"),
-	CDS_UIN_DEACTIVATION_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "004", "UIN deactivated successfully"),
-	CDS_UIN_DEACTIVATION_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "006", "UIN deactivation failed");
+	CREATE_DRAFT_STALE_PACKET(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002",
+			"A newer packet for this identity has already been committed to ID Repository");
 
 	private final String statusComment;
 	private final String statusCode;

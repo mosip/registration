@@ -8,9 +8,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.DateUtils2;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
 import org.json.JSONException;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +82,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 
-	// Must match PacketClassificationProcessor.ANONYMOUS_PROFILE_TAG_KEY — both ends of the tag handshake.
-	private static final String ANONYMOUS_PROFILE_TAG_KEY = "anonymous";
+	// Tag name must match the value configured in AnonymousProfileTagGenerator.
+	@Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:anonymous}")
+	private String anonymousProfileTagKey;
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowInternalActionVerticle.class);
 
@@ -115,6 +129,15 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	@Autowired
 	private AnonymousProfileService anonymousProfileService;
+
+	@Autowired
+	private Utilities utility;
+
+	@Autowired
+	private IdSchemaUtil idSchemaUtil;
+
+	@Autowired
+	private PriorityBasedPacketManagerService priorityBasedpacketManagerService;
 
 	private MosipEventBus mosipEventBus = null;
 
@@ -262,10 +285,13 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				workflowInternalActionDTO.getIteration(),
 				workflowInternalActionDTO.getWorkflowInstanceId());
 
-		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of(ANONYMOUS_PROFILE_TAG_KEY));
-		String anonymousProfileJson = tags != null ? tags.get(ANONYMOUS_PROFILE_TAG_KEY) : null;
+		// Primary path: read the anonymous profile JSON stored as a packet tag by
+		// AnonymousProfileTagGenerator during packet classification.
+		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of(anonymousProfileTagKey));
+		String anonymousProfileJson = tags != null ? tags.get(anonymousProfileTagKey) : null;
 
 		if (anonymousProfileJson != null) {
+			// Tag present — use it directly (fast path, no packet manager re-fetch needed).
 			if (registrationStatusDto != null) {
 				anonymousProfileService.saveAnonymousProfile(
 						registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
@@ -274,16 +300,113 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						registrationId);
 			}
 		} else {
-			// Tag absent — packet was processed before the create-draft stage was active or PacketClassificationProcessor
-			// did not produce the tag. Profile cannot be reconstructed here; log and continue so the event bus
-			// notification still fires (downstream consumers must handle a missing profile gracefully).
-			regProcLogger.warn("processAnonymousProfile: 'anonymous' tag not found for rid {} — " +
-					"anonymous profile will not be stored for this packet", registrationId);
+			// Fallback: tag absent because the packet was processed before the packet
+			// classifier stage ran (e.g. older workflow or stage order customisation).
+			// Re-build the anonymous profile from raw packet data — the original code path.
+			regProcLogger.info("processAnonymousProfile: tag '{}' not found for rid {} — falling back to raw packet build",
+					anonymousProfileTagKey, registrationId);
+			buildAndSaveAnonymousProfileFromPacket(registrationId, registrationType,
+					workflowInternalActionDTO, registrationStatusDto);
 		}
 
 		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
 
 		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
+	}
+
+	/**
+	 * Fallback: builds the anonymous profile by fetching all required data from the
+	 * packet manager. Used when the pre-built tag is absent (packet predates the
+	 * AnonymousProfileTagGenerator or the classifier stage was skipped).
+	 */
+	private void buildAndSaveAnonymousProfileFromPacket(String registrationId, String registrationType,
+			WorkflowInternalActionDTO workflowInternalActionDTO,
+			InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, JSONException, BaseCheckedException {
+		try (ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+
+			CompletableFuture<Map<String, String>> metaInfoFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							return priorityBasedpacketManagerService.getMetaInfo(
+									registrationId, registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) { throw new RuntimeException(e); }
+					}, virtualThreadExecutor);
+
+			CompletableFuture<BiometricRecord> biometricsFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							return priorityBasedpacketManagerService.getBiometrics(
+									registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
+									registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) { throw new RuntimeException(e); }
+					}, virtualThreadExecutor);
+
+			CompletableFuture<String> schemaVersionFuture =
+					CompletableFuture.supplyAsync(() -> {
+						try {
+							JSONObject regProcessorIdentityJson =
+									utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+							String idSchemaVersionValue = JsonUtil.getJSONValue(
+									JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
+									MappingJsonConstants.VALUE);
+							return priorityBasedpacketManagerService.getFieldByMappingJsonKey(
+									registrationId, idSchemaVersionValue, registrationType,
+									ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) { throw new RuntimeException(e); }
+					}, virtualThreadExecutor);
+
+			CompletableFuture<Map<String, String>> fieldTypeMapFuture =
+					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
+						try {
+							return idSchemaUtil.getIdSchemaFieldTypes(Double.parseDouble(schemaVersion));
+						} catch (Exception e) { throw new RuntimeException(e); }
+					}, virtualThreadExecutor);
+
+			CompletableFuture<Map<String, String>> fieldMapFuture =
+					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
+						try {
+							return priorityBasedpacketManagerService.getFields(
+									registrationId,
+									idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)),
+									registrationType, ProviderStageName.WORKFLOW_MANAGER);
+						} catch (Exception e) { throw new RuntimeException(e); }
+					}, virtualThreadExecutor);
+
+			Map<String, String> metaInfoMap = metaInfoFuture.get();
+			BiometricRecord biometricRecord = biometricsFuture.get();
+			Map<String, String> fieldTypeMap = fieldTypeMapFuture.get();
+			Map<String, String> fieldMap = fieldMapFuture.get();
+
+			String stageName = registrationStatusDto != null
+					? registrationStatusDto.getRegistrationStageName() : "";
+			String statusCode = registrationStatusDto != null
+					? registrationStatusDto.getStatusCode() : "";
+
+			String json = anonymousProfileService.buildJsonStringFromPacketInfo(
+					biometricRecord, fieldMap, fieldTypeMap, metaInfoMap, statusCode, stageName);
+			anonymousProfileService.saveAnonymousProfile(registrationId, stageName, json);
+
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new BaseUncheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					"Thread interrupted during anonymous profile fallback processing", e);
+		} catch (ExecutionException e) {
+			Throwable cause = e.getCause();
+			regProcLogger.error(
+					"Async operation failed during anonymous profile fallback for rid: {} - {}\n{}",
+					registrationId,
+					cause != null ? cause.getMessage() : e.getMessage(),
+					ExceptionUtils.getStackTrace(cause != null ? cause : e));
+			if (cause instanceof IOException) throw (IOException) cause;
+			if (cause instanceof JSONException) throw (JSONException) cause;
+			if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
+			throw new BaseUncheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					"Async operation failed during anonymous profile fallback processing",
+					cause != null ? cause : e);
+		}
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {

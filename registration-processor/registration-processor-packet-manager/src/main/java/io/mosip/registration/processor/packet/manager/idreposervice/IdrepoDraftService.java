@@ -190,7 +190,9 @@ public class IdrepoDraftService {
             }
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
-            // Documents (biometrics) must be carried over from the incoming request so the draft retains biometric data alongside updated demographics.
+            // Callers (e.g. UinGeneratorStage) set documents on the incoming IdRequestDto.
+            // This branch reconstructs a new RequestDto from scratch, so documents must be
+            // explicitly copied — otherwise the PATCH to idRepo would contain no biometrics.
             requestDto.setDocuments(idRequestDto.getRequest().getDocuments());
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());

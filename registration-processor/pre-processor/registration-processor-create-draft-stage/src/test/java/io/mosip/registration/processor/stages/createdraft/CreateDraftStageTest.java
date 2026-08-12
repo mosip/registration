@@ -314,7 +314,7 @@ public class CreateDraftStageTest {
                 .thenReturn(currentIdResponse);
 
         // setUp default: idrepoUpdateDraft returns new IdResponseDTO() with null response
-        // → isIdResponseNotNull = false → CDS_UIN_REACTIVATION_FAILED
+        // → isIdResponseNotNull = false → UIN_REACTIVATION_FAILED
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
@@ -392,7 +392,7 @@ public class CreateDraftStageTest {
                 .thenReturn(currentIdResponse);
 
         // setUp default: idrepoUpdateDraft returns new IdResponseDTO() with null response
-        // → isIdResponseNotNull = false → CDS_UIN_DEACTIVATION_FAILED
+        // → isIdResponseNotNull = false → UIN_DEACTIVATION_FAILED
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
@@ -537,6 +537,47 @@ public class CreateDraftStageTest {
         verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
         verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
         assertTrue(result.getInternalError());
+    }
+
+    // -----------------------------------------------------------------------
+    // Stale reprocess – STALE path → markAsObsoleted
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testProcess_StaleCheck_MarksPacketObsoleted() throws Exception {
+        messageDTO.setReg_type("UPDATE");
+        registrationStatusDto.setRegistrationType("UPDATE");
+
+        when(utility.getUIn(anyString(), anyString(), any())).thenReturn(EXISTING_UIN);
+        when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.STALE);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        // markAsObsoleted sets FAILED status: isValid=false, internalError=false (no requeue)
+        assertFalse(result.getIsValid());
+        assertFalse(result.getInternalError());
+        verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
+        verify(idrepoDraftService, never()).idrepoUpdateDraft(anyString(), any(), any());
+    }
+
+    // -----------------------------------------------------------------------
+    // RES_UPDATE – treated as update-like by isUpdateType()
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testProcess_ResUpdatePacket_TreatedAsUpdateLike_Success() throws Exception {
+        messageDTO.setReg_type("RES_UPDATE");
+        registrationStatusDto.setRegistrationType("RES_UPDATE");
+
+        when(utility.getUIn(anyString(), anyString(), any())).thenReturn(EXISTING_UIN);
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, EXISTING_UIN, false)).thenReturn(true);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, EXISTING_UIN, false);
     }
 
 }

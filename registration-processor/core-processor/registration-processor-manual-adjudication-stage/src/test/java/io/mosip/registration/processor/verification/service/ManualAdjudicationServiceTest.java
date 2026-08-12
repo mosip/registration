@@ -891,7 +891,7 @@ public class ManualAdjudicationServiceTest {
 	}
 
 	@Test
-	public void testUpdatePacketStatus_NewBioDedup_Approved_Proceeds() {
+	public void testUpdatePacketStatus_NewBioDedup_Approved_RoutesToReregister() {
 		manualVerificationEntity.setTrnTypCode(DedupeSourceName.BIO.name());
 		registrationStatusDto.setRegistrationType("NEW");
 
@@ -918,8 +918,8 @@ public class ManualAdjudicationServiceTest {
 		assertTrue(result);
 		MessageDTO capturedMessage = messageCaptor.getValue();
 		assertNotNull(capturedMessage);
-		assertEquals(Boolean.FALSE, capturedMessage.getInternalError());
-		assertEquals(Boolean.TRUE, capturedMessage.getIsValid());
+		assertEquals(Boolean.TRUE, capturedMessage.getInternalError());
+		assertEquals(Boolean.FALSE, capturedMessage.getIsValid());
 	}
 
 	@Test

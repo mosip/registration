@@ -339,7 +339,13 @@ public class FinalizationStageTest {
 
 	@Test
 	public void testProcess_UinNotInDraft_TriggersReprocess() throws Exception {
-		// When draft exists but identity has no UIN, stage must schedule reprocess (not silently continue)
+		// UPDATE packet where draft exists but identity has no UIN → must schedule reprocess, not publish
+		InternalRegistrationStatusDto updateStatusDto = new InternalRegistrationStatusDto();
+		updateStatusDto.setRegistrationId("2018701130000410092018110735");
+		updateStatusDto.setStatusCode("");
+		updateStatusDto.setRegistrationType("UPDATE");
+		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(updateStatusDto);
+
 		ResponseDTO draftNoUin = new ResponseDTO();
 		draftNoUin.setIdentity(new java.util.HashMap<>());
 		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftNoUin);

@@ -185,11 +185,7 @@ public enum PlatformSuccessMessages {
 			"Packet anonymous profile flow initiated"),
 
 	RPR_CREATE_DRAFT_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "000",
-			"Create draft stage success"),
-	RPR_CDS_UIN_ACTIVATED_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "001",
-			"UIN activated successfully"),
-	RPR_CDS_UIN_DEACTIVATION_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "002",
-			"UIN deactivated successfully");
+			"Create draft stage success");
 
 	/** The success message. */
 	private final String successMessage;

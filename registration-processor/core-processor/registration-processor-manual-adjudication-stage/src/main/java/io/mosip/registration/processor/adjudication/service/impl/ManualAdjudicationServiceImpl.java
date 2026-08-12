@@ -269,6 +269,19 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				isTransactionSuccessful = successFlow(
 						entity, manualVerificationDTO, entities, registrationStatusDto, messageDTO, description);
 
+				// When a NEW packet reaches manual adjudication via the BIO-DEDUP path and the
+				// adjudicator marks it APPROVED (confirming the biometric match is a genuine
+				// duplicate), the resident must re-register — the packet must NOT proceed to
+				// UIN generation. successFlow() sets isValid=true unconditionally, so we
+				// override it here to route the packet to REREGISTER via internalError=true.
+				if (isTransactionSuccessful
+						&& RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
+						&& entities.stream().anyMatch(e -> DedupeSourceName.BIO.name().equalsIgnoreCase(e.getTrnTypCode()))
+						&& entities.stream().anyMatch(e -> ManualVerificationStatus.APPROVED.name().equalsIgnoreCase(e.getStatusCode()))) {
+					messageDTO.setIsValid(Boolean.FALSE);
+					messageDTO.setInternalError(Boolean.TRUE);
+				}
+
 				registrationStatusDto.setUpdatedBy(USER);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						regId, description.getMessage());

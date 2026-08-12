@@ -386,8 +386,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
                     registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
                     registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
-                    description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
-                    description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
+                    description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
+                    description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
                     regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                             "Draft created successfully for regType=" + regType);
@@ -404,8 +404,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
                     registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SKIPPED.getMessage());
                     registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SKIPPED.getCode());
-                    description.setCode(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode());
-                    description.setMessage(PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getMessage());
+                    description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
+                    description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
                 }
             }
 
@@ -474,6 +474,21 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             object.setInternalError(Boolean.TRUE);
             object.setRid(registrationStatusDto.getRegistrationId());
 
+        } catch (IOException e) {
+            registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+            registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+                    StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
+            registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+            registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                    .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_REPROCESS));
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                    PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage()
+                            + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+            object.setInternalError(Boolean.TRUE);
+            description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
+            description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
+
         } catch (PacketManagerNonRecoverableException e) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                     LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
@@ -529,7 +544,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 object.setRid(registrationStatusDto.getRegistrationId());
                 registrationStatusDto.setRegistrationStageName(getStageName());
                 String moduleId = isTransactionSuccessful
-                        ? PlatformSuccessMessages.RPR_CREATE_DRAFT_SUCCESS.getCode()
+                        ? PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode()
                         : description.getCode();
                 String moduleName = ModuleName.CREATE_DRAFT.toString();
                 registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
@@ -575,11 +590,17 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
     private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
         dto.setStatusCode(io.mosip.registration.processor.status.code.RegistrationStatusCode.FAILED.toString());
-        dto.setStatusComment(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
-        dto.setSubStatusCode(StatusUtil.PACKET_REPROCESS_OBSOLETED.getCode());
-        dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+        dto.setStatusComment(StatusUtil.CREATE_DRAFT_STALE_PACKET.getMessage());
+        dto.setSubStatusCode(StatusUtil.CREATE_DRAFT_STALE_PACKET.getCode());
+        dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
         description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-        description.setMessage(StatusUtil.PACKET_REPROCESS_OBSOLETED.getMessage());
+        description.setMessage(StatusUtil.CREATE_DRAFT_STALE_PACKET.getMessage());
+        description.setStatusCode(io.mosip.registration.processor.status.code.RegistrationStatusCode.FAILED.toString());
+        description.setStatusComment(StatusUtil.CREATE_DRAFT_STALE_PACKET.getMessage());
+        description.setSubStatusCode(StatusUtil.CREATE_DRAFT_STALE_PACKET.getCode());
+        description.setTransactionStatusCode(registrationStatusMapperUtil
+                .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
         object.setIsValid(false);
         object.setInternalError(false);
     }

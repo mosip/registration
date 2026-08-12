@@ -141,6 +141,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.abis.handler.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
+	/** Debug hold: sleep this many ms at process() entry before sending to ABIS. 0 = disabled. */
+	@Value("${mosip.regproc.abis.handler.debug.pre-abis-hold-ms:0}")
+	private long preAbisHoldMs;
+
 	@Value("${registration.processor.policy.id}")
 	private String policyId;
 
@@ -250,6 +254,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		String transactionTypeCode = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::process()::entry");
+		if (preAbisHoldMs > 0) {
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "AbisHandlerStage::process()::debug hold for " + preAbisHoldMs + " ms before sending to ABIS");
+			try {
+				Thread.sleep(preAbisHoldMs);
+			} catch (InterruptedException ie) {
+				Thread.currentThread().interrupt();
+			}
+		}
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId, object.getReg_type(),
 					object.getIteration(), object.getWorkflowInstanceId());
