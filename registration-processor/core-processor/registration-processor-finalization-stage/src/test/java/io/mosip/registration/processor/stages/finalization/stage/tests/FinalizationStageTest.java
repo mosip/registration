@@ -338,6 +338,27 @@ public class FinalizationStageTest {
 	}
 
 	@Test
+	public void testProcess_DeactivatedUinStatus_RejectsWithoutInternalError() throws Exception {
+		// Scenario_190: reprocessed NEW packet whose UIN was deactivated in ID Repository.
+		// Draft status comes back as DEACTIVATED → must reject with isValid=false, internalError=false (REREGISTER path).
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+
+		ResponseDTO deactivatedDraft = new ResponseDTO();
+		deactivatedDraft.setStatus("DEACTIVATED");
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(deactivatedDraft);
+
+		MessageDTO result = finalizationStage.process(messageDTO);
+
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
 	public void testProcess_UinNotInDraft_TriggersReprocess() throws Exception {
 		// UPDATE packet where draft exists but identity has no UIN → must schedule reprocess, not publish
 		InternalRegistrationStatusDto updateStatusDto = new InternalRegistrationStatusDto();

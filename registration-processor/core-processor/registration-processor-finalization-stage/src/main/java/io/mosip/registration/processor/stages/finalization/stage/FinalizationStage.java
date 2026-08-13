@@ -180,7 +180,9 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 				object.setIsValid(Boolean.FALSE);
 			}
 			else {
-				String uinForCheck = resolveUinForFinalization(registrationStatusDto.getRegistrationId());
+				io.mosip.registration.processor.packet.manager.dto.ResponseDTO draftForFinalization =
+						idrepoDraftService.idrepoGetDraft(registrationStatusDto.getRegistrationId(), "demographics");
+				String uinForCheck = resolveUinFromDraft(draftForFinalization);
 				String regType = registrationStatusDto.getRegistrationType();
 				boolean isLostPacket = RegistrationType.LOST.toString().equalsIgnoreCase(regType);
 				// UPDATE/RES_UPDATE packets must have UIN in the identity by finalization.
@@ -202,6 +204,21 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 					object.setInternalError(Boolean.TRUE);
 					description.setMessage(StatusUtil.FINALIZATION_FAILURE.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
+				} else if ("DEACTIVATED".equalsIgnoreCase(draftForFinalization != null ? draftForFinalization.getStatus() : null)) {
+					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							"FinalizationStage :: UIN is DEACTIVATED — rejecting packet.");
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+					registrationStatusDto.setStatusComment(trimExceptionMessage
+							.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));
+					registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_FAILURE.getCode());
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED));
+					object.setInternalError(Boolean.FALSE);
+					object.setIsValid(Boolean.FALSE);
+					isTransactionSuccessful = false;
+					description.setMessage(PlatformErrorMessages.RPR_FINALIZATION_FAILED.getMessage());
+					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_FAILED.getCode());
 				} else {
 				io.mosip.registration.processor.packet.storage.utils.StaleCheckResult staleCheck =
 						utility.isLatestPacket(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId());
@@ -336,8 +353,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		return object;
 	}
 
-	private String resolveUinForFinalization(String registrationId) throws ApisResourceAccessException, IdrepoDraftException {
-		io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
+	private String resolveUinFromDraft(io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft) {
 		if (draft != null && draft.getIdentity() != null) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> identityMap = objectMapper.convertValue(draft.getIdentity(), Map.class);
