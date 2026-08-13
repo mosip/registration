@@ -185,12 +185,12 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 				String uinForCheck = resolveUinFromDraft(draftForFinalization);
 				String regType = registrationStatusDto.getRegistrationType();
 				boolean isLostPacket = RegistrationType.LOST.toString().equalsIgnoreCase(regType);
-				// UPDATE/RES_UPDATE packets must have UIN in the identity by finalization.
-				// NEW packets do not carry UIN in identity (idRepo generates it internally);
-				// LOST packets stamp UIN via idrepoUpdateDraftUin which is not returned by getDraft.
-				// isLatestPacket(null, ...) returns NOT_STALE so NEW/LOST proceed correctly with null UIN.
+				// UPDATE/RES_UPDATE: UIN must be present; null → reprocess.
+				// NEW: UIN allocated during CreateDraftStage; null at finalization means deactivated identity → reject.
+				// LOST: UIN stamped externally; proceeds through stale check with null UIN.
 				boolean isUpdateLike = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
 						|| RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType);
+				boolean isNewLike = RegistrationType.NEW.toString().equalsIgnoreCase(regType);
 				if (uinForCheck == null && isUpdateLike) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
@@ -204,10 +204,10 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 					object.setInternalError(Boolean.TRUE);
 					description.setMessage(StatusUtil.FINALIZATION_FAILURE.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
-				} else if ("DEACTIVATED".equalsIgnoreCase(draftForFinalization != null ? draftForFinalization.getStatus() : null)) {
+				} else if (uinForCheck == null && isNewLike) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: UIN is DEACTIVATED — rejecting packet.");
+							"FinalizationStage :: UIN absent from draft identity for NEW packet — identity likely deactivated, rejecting.");
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 					registrationStatusDto.setStatusComment(trimExceptionMessage
 							.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));

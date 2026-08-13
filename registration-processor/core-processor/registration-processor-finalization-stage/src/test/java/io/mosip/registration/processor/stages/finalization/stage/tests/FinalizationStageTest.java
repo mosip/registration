@@ -340,16 +340,24 @@ public class FinalizationStageTest {
 	@Test
 	public void testProcess_DeactivatedUinStatus_RejectsWithoutInternalError() throws Exception {
 		// Scenario_190: reprocessed NEW packet whose UIN was deactivated in ID Repository.
-		// Draft status comes back as DEACTIVATED → must reject with isValid=false, internalError=false (REREGISTER path).
+		// ID Repo cannot stamp UIN into draft identity for a deactivated UIN, so
+		// uinForCheck==null for a NEW packet → reject with isValid=false, internalError=false (REREGISTER path).
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 
-		ResponseDTO deactivatedDraft = new ResponseDTO();
-		deactivatedDraft.setStatus("DEACTIVATED");
-		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(deactivatedDraft);
+		// Ensure the status DTO explicitly reports NEW type (immune to mock-ordering side-effects)
+		InternalRegistrationStatusDto newStatusDto = new InternalRegistrationStatusDto();
+		newStatusDto.setRegistrationId("27847657360002520181210094052");
+		newStatusDto.setStatusCode("");
+		newStatusDto.setRegistrationType(RegistrationType.NEW.name());
+		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(newStatusDto);
+
+		// Draft has no identity field → resolveUinFromDraft returns null → triggers deactivated-identity path
+		ResponseDTO draftNoUin = new ResponseDTO();
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftNoUin);
 
 		MessageDTO result = finalizationStage.process(messageDTO);
 
