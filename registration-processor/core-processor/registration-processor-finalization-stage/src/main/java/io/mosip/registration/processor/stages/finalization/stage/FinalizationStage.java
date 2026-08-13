@@ -190,7 +190,6 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 				// LOST: UIN stamped externally; proceeds through stale check with null UIN.
 				boolean isUpdateLike = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
 						|| RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType);
-				boolean isNewLike = RegistrationType.NEW.toString().equalsIgnoreCase(regType);
 				if (uinForCheck == null && isUpdateLike) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
@@ -204,10 +203,10 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 					object.setInternalError(Boolean.TRUE);
 					description.setMessage(StatusUtil.FINALIZATION_FAILURE.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
-				} else if (uinForCheck == null && isNewLike) {
+				} else if (uinForCheck == null) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: UIN absent from draft identity for NEW packet — identity likely deactivated, rejecting.");
+							"FinalizationStage :: UIN absent from draft identity for the packet — identity likely deactivated, rejecting.");
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 					registrationStatusDto.setStatusComment(trimExceptionMessage
 							.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));
