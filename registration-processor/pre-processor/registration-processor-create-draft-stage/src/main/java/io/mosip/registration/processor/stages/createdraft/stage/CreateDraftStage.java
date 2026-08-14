@@ -73,6 +73,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -327,6 +328,39 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         object.setIsValid(Boolean.FALSE);
                         object.setInternalError(Boolean.FALSE);
                         return object;
+                    }
+
+                    // For reprocessed NEW packets: if the RID already has a committed identity
+                    // whose UIN is deactivated, reject immediately (REREGISTER) instead of
+                    // allocating a fresh UIN and re-processing through the full pipeline.
+                    if (isNewLike) {
+                        try {
+                            JSONObject committedIdentity = utilities.idrepoRetrieveIdentityByRid(registrationId);
+                            if (committedIdentity != null && committedIdentity.get("UIN") != null) {
+                                String committedUin = String.valueOf(committedIdentity.get("UIN"));
+                                String idrepoStatus = utilities.retrieveIdrepoJsonStatus(committedUin);
+                                if (RegistrationType.DEACTIVATED.name().equalsIgnoreCase(idrepoStatus)) {
+                                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+                                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                            "Committed identity for NEW packet RID has deactivated UIN — rejecting.");
+                                    registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
+                                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                                    registrationStatusDto.setLatestTransactionStatusCode(
+                                            RegistrationTransactionStatusCode.FAILED.toString());
+                                    description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
+                                    description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+                                    object.setIsValid(Boolean.FALSE);
+                                    object.setInternalError(Boolean.FALSE);
+                                    return object;
+                                }
+                            }
+                        } catch (IdRepoAppException e) {
+                            // No committed identity found (first-time NEW packet) — proceed normally
+                            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+                                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                    "No committed identity for NEW RID, proceeding: " + e.getMessage());
+                        }
                     }
 
                     if (idrepoDraftService.idrepoHasDraft(registrationId)) {
