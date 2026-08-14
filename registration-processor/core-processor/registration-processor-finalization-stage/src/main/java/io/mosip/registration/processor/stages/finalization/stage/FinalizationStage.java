@@ -203,7 +203,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 					object.setInternalError(Boolean.TRUE);
 					description.setMessage(StatusUtil.FINALIZATION_FAILURE.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
-				} else if (uinForCheck == null) {
+				} else if (uinForCheck == null && !isLostPacket) {
 					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 							"FinalizationStage :: UIN absent from draft identity for the packet — identity likely deactivated, rejecting.");

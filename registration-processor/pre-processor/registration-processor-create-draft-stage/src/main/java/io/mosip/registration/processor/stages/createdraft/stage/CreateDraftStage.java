@@ -334,10 +334,21 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     // whose UIN is deactivated, reject immediately (REREGISTER) instead of
                     // allocating a fresh UIN and re-processing through the full pipeline.
                     if (isNewLike) {
+                        JSONObject committedIdentity = null;
                         try {
-                            JSONObject committedIdentity = utilities.idrepoRetrieveIdentityByRid(registrationId);
-                            if (committedIdentity != null && committedIdentity.get("UIN") != null) {
-                                String committedUin = String.valueOf(committedIdentity.get("UIN"));
+                            committedIdentity = utilities.idrepoRetrieveIdentityByRid(registrationId);
+                        } catch (IdRepoAppException e) {
+                            // Expected for a first-time NEW packet (no committed identity for this RID)
+                            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+                                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                    "No committed identity for NEW RID, proceeding: " + e.getMessage());
+                        }
+                        // ApisResourceAccessException / IOException propagate to outer handler → REPROCESS (safe)
+                        if (committedIdentity != null) {
+                            Object uinObj = committedIdentity.get("UIN");
+                            if (uinObj == null) uinObj = committedIdentity.get("uin");
+                            if (uinObj != null) {
+                                String committedUin = String.valueOf(uinObj);
                                 String idrepoStatus = utilities.retrieveIdrepoJsonStatus(committedUin);
                                 if (RegistrationType.DEACTIVATED.name().equalsIgnoreCase(idrepoStatus)) {
                                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -355,11 +366,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                                     return object;
                                 }
                             }
-                        } catch (IdRepoAppException e) {
-                            // No committed identity found (first-time NEW packet) — proceed normally
-                            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-                                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                    "No committed identity for NEW RID, proceeding: " + e.getMessage());
                         }
                     }
 
