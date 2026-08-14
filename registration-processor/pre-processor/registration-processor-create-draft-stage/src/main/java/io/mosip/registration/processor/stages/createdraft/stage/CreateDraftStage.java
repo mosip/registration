@@ -73,7 +73,6 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
-import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -330,30 +329,19 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         return object;
                     }
 
-                    // For reprocessed NEW packets: if the RID already has a committed identity
-                    // whose UIN is deactivated, reject immediately (REREGISTER) instead of
-                    // allocating a fresh UIN and re-processing through the full pipeline.
+                    // For reprocessed NEW packets: check if the previously committed UIN was
+                    // deactivated. FinalizationStage stores the UIN in referenceRegistrationId
+                    // on the first successful publish; reading it here avoids an unreliable
+                    // RID-based ID Repo lookup that fails in the draft-based flow.
                     if (isNewLike) {
-                        JSONObject committedIdentity = null;
-                        try {
-                            committedIdentity = utilities.idrepoRetrieveIdentityByRid(registrationId);
-                        } catch (IdRepoAppException e) {
-                            // Expected for a first-time NEW packet (no committed identity for this RID)
-                            regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-                                    LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                    "No committed identity for NEW RID, proceeding: " + e.getMessage());
-                        }
-                        // ApisResourceAccessException / IOException propagate to outer handler → REPROCESS (safe)
-                        if (committedIdentity != null) {
-                            Object uinObj = committedIdentity.get("UIN");
-                            if (uinObj == null) uinObj = committedIdentity.get("uin");
-                            if (uinObj != null) {
-                                String committedUin = String.valueOf(uinObj);
-                                String idrepoStatus = utilities.retrieveIdrepoJsonStatus(committedUin);
+                        String previousUin = registrationStatusDto.getReferenceRegistrationId();
+                        if (previousUin != null && !previousUin.isEmpty()) {
+                            try {
+                                String idrepoStatus = utilities.retrieveIdrepoJsonStatus(previousUin);
                                 if (RegistrationType.DEACTIVATED.name().equalsIgnoreCase(idrepoStatus)) {
                                     regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                                             LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                            "Committed identity for NEW packet RID has deactivated UIN — rejecting.");
+                                            "Reprocessed NEW packet: previously committed UIN is deactivated — rejecting.");
                                     registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
                                     registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
                                     registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
@@ -365,6 +353,10 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                                     object.setInternalError(Boolean.FALSE);
                                     return object;
                                 }
+                            } catch (Exception e) {
+                                regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+                                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+                                        "Could not check deactivation status for reprocessed NEW packet, proceeding: " + e.getMessage());
                             }
                         }
                     }
