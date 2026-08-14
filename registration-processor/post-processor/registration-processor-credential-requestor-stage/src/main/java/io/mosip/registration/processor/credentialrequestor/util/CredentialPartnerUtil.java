@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import jakarta.annotation.PostConstruct;
 
-import org.apache.commons.collections.MapUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,12 +27,9 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -43,7 +39,6 @@ import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Component
@@ -82,9 +77,6 @@ public class CredentialPartnerUtil {
     @Value("${config.server.file.storage.uri}")
     private String configServerFileStorageURL;
 
-	@Autowired
-	private PriorityBasedPacketManagerService packetManagerService;
-
     /**
      * This map will hold the actual field names after resolving, using mapping JSON as keys and
      * configured field names as values
@@ -121,7 +113,7 @@ public class CredentialPartnerUtil {
         }
     }
 
-    public List<CredentialPartner> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws PacketManagerException, JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
+    public List<CredentialPartner> getCredentialPartners(String regId, String registrationType, JSONObject identity) throws JSONException, ApisResourceAccessException, IOException, JsonProcessingException {
 
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                 regId, "CredentialPartnerUtil::getCredentialPartners()::entry");
@@ -166,17 +158,6 @@ public class CredentialPartnerUtil {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
                         ExceptionUtils.getStackTrace(e));
                 throw new ParsingException(PlatformErrorMessages.RPR_PRT_DATA_VALIDATION_FAILED.getCode(), e);
-            }
-        }
-
-        // adding additional metadata so that it can be used for MVEL expression
-		Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, registrationType,
-				ProviderStageName.CREDENTIAL_REQUESTOR);
-        if (MapUtils.isNotEmpty(metaInfo)) {
-            String metadata = metaInfo.get(JsonConstant.METADATA);
-            if (!StringUtils.isEmpty(metadata)) {
-                JSONArray jsonArray = new JSONArray(metadata);
-                addToMap(jsonArray, context);
             }
         }
 
