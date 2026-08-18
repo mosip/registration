@@ -69,7 +69,6 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
-import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -268,19 +267,6 @@ public class ManualAdjudicationServiceImpl implements ManualAdjudicationService 
 				// call success flow and process the response received from manual verification system
 				isTransactionSuccessful = successFlow(
 						entity, manualVerificationDTO, entities, registrationStatusDto, messageDTO, description);
-
-				// When a NEW packet reaches manual adjudication via the BIO-DEDUP path and the
-				// adjudicator marks it APPROVED (confirming the biometric match is a genuine
-				// duplicate), the resident must re-register — the packet must NOT proceed to
-				// UIN generation. successFlow() sets isValid=true unconditionally, so we
-				// override it here to route the packet to REREGISTER via internalError=true.
-				if (isTransactionSuccessful
-						&& RegistrationType.NEW.toString().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
-						&& entities.stream().anyMatch(e -> DedupeSourceName.BIO.name().equalsIgnoreCase(e.getTrnTypCode()))
-						&& entities.stream().anyMatch(e -> ManualVerificationStatus.APPROVED.name().equalsIgnoreCase(e.getStatusCode()))) {
-					messageDTO.setIsValid(Boolean.FALSE);
-					messageDTO.setInternalError(Boolean.TRUE);
-				}
 
 				registrationStatusDto.setUpdatedBy(USER);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

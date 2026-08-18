@@ -112,12 +112,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Value("${mosip.anonymous.profile.eventbus.address}")
 	private String anonymousProfileBusAddress;
 
-	@Value("${mosip.regproc.workflow.biometric-correction.process-name:BIOMETRIC_CORRECTION}")
-	private String biometricCorrectionProcessName;
-
-	@Value("${mosip.regproc.workflow.biometric-correction.resume-stage:QualityClassifierStage}")
-	private String biometricCorrectionResumeStage;
-
 	@Autowired
 	MosipRouter router;
 
@@ -727,9 +721,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 					LocalDateTime resumeTimeStamp = DateUtils2
 							.parseToLocalDateTime(workflowInternalActionDTO.getResumeTimestamp());
 					registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
-				}
-				if (biometricCorrectionProcessName.equals(workflowInternalActionDTO.getAdditionalInfoProcess())) {
-					registrationStatusDto.setRegistrationStageName(biometricCorrectionResumeStage);
 				}
 				registrationStatusDto.setUpdatedBy(USER);
 				registrationStatusDto

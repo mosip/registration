@@ -455,7 +455,7 @@ public class CreateDraftStageTest {
     // -----------------------------------------------------------------------
 
     @Test
-    public void testProcess_NewPacket_DraftCreationReturnsFalse_InternalError() throws Exception {
+    public void testProcess_NewPacket_DraftCreationReturnsFalse_PermanentFailure() throws Exception {
         messageDTO.setReg_type("NEW");
 
         when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
@@ -464,7 +464,7 @@ public class CreateDraftStageTest {
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertFalse(result.getIsValid());
-        assertTrue(result.getInternalError());
+        assertFalse(result.getInternalError());
         verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, true);
     }
 

@@ -252,10 +252,6 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 						description.setMessage(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getMessage());
 						description.setCode(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode());
 						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-						// Store the UIN so CreateDraftStage can detect a deactivated identity on reprocess
-						if (RegistrationType.NEW.toString().equalsIgnoreCase(regType) && uinForCheck != null) {
-							registrationStatusDto.setReferenceRegistrationId(uinForCheck);
-						}
 					}
 				}
 				}

@@ -260,18 +260,18 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                         "CreateDraftStage :: Stale reprocess detected. reg_type=" + regType
                                 + " pkt_cr_dtimes=" + registrationStatusDto.getPacketCreateDateTime());
-                markAsObsoleted(registrationStatusDto, object, description);
+                markAsObsoleted(object, description);
                 isTransactionSuccessful = false;
                 return object;
             } else if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.UNAVAILABLE) {
                 regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                         "CreateDraftStage :: Stale check unavailable — scheduling reprocess.");
-                registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-                registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(
+                description.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+                description.setStatusComment(trimExceptionMessage.trimExceptionMessage(
                         StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage()));
-                registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-                registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+                description.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+                description.setTransactionStatusCode(registrationStatusMapperUtil
                         .getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
                 object.setInternalError(Boolean.TRUE);
                 description.setMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage());
@@ -290,7 +290,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 IdResponseDTO idResponseDTO = new IdResponseDTO();
                 isTransactionSuccessful = reActivateUin(idResponseDTO, registrationId, resolvedUin, object,
                         demographicIdentity, description);
-                applyDescriptionToStatus(description, registrationStatusDto);
 
             } else if (RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)
                     || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(effectiveProcess)) {
@@ -298,7 +297,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         registrationStatusDto.getRegistrationType());
                 deactivateUin(registrationId, resolvedUin, object, demographicIdentity, description);
                 isTransactionSuccessful = object.getIsValid();
-                applyDescriptionToStatus(description, registrationStatusDto);
 
             } else {
                 // Generic draft create + populate for NEW, UPDATE, RES_UPDATE, LOST,
@@ -317,48 +315,15 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
                                 LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                                 "UIN not found for UPDATE-type packet (" + regType + ") — permanent failure.");
-                        registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-                        registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
-                        registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
-                        registrationStatusDto.setLatestTransactionStatusCode(
-                                RegistrationTransactionStatusCode.FAILED.toString());
+                        description.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                        description.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
+                        description.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                        description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
                         description.setCode(PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getCode());
                         description.setMessage(PlatformErrorMessages.RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE.getMessage());
                         object.setIsValid(Boolean.FALSE);
                         object.setInternalError(Boolean.FALSE);
                         return object;
-                    }
-
-                    // For reprocessed NEW packets: check if the previously committed UIN was
-                    // deactivated. FinalizationStage stores the UIN in referenceRegistrationId
-                    // on the first successful publish; reading it here avoids an unreliable
-                    // RID-based ID Repo lookup that fails in the draft-based flow.
-                    if (isNewLike) {
-                        String previousUin = registrationStatusDto.getReferenceRegistrationId();
-                        if (previousUin != null && !previousUin.isEmpty()) {
-                            try {
-                                String idrepoStatus = utilities.retrieveIdrepoJsonStatus(previousUin);
-                                if (RegistrationType.DEACTIVATED.name().equalsIgnoreCase(idrepoStatus)) {
-                                    regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                                            LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                            "Reprocessed NEW packet: previously committed UIN is deactivated — rejecting.");
-                                    registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-                                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
-                                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
-                                    registrationStatusDto.setLatestTransactionStatusCode(
-                                            RegistrationTransactionStatusCode.FAILED.toString());
-                                    description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
-                                    description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
-                                    object.setIsValid(Boolean.FALSE);
-                                    object.setInternalError(Boolean.FALSE);
-                                    return object;
-                                }
-                            } catch (Exception e) {
-                                regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
-                                        LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-                                        "Could not check deactivation status for reprocessed NEW packet, proceeding: " + e.getMessage());
-                            }
-                        }
                     }
 
                     if (idrepoDraftService.idrepoHasDraft(registrationId)) {
@@ -370,7 +335,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
                     // Fix 1: createDraftV2 runs in parallel with packet data fetching
                     final boolean injectPacketCreatedOn = RegistrationType.NEW.toString().equalsIgnoreCase(regType)
-                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType);
+                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
+                            || RegistrationType.NEW.toString().equalsIgnoreCase(effectiveProcess)
+                            || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess);
                     final String regTypeForPayload = registrationStatusDto.getRegistrationType();
                     final String uinForDraft = uin;
                     final boolean generateUinFinal = generateUin;
@@ -399,9 +366,15 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         draftExecutor.close();
                     }
                     if (!created) {
-                        throw new IdrepoDraftException(
-                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+                        description.setStatusCode(RegistrationStatusCode.FAILED.toString());
+                        description.setStatusComment(StatusUtil.CREATE_DRAFT_FAILED.getMessage());
+                        description.setSubStatusCode(StatusUtil.CREATE_DRAFT_FAILED.getCode());
+                        description.setTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+                        description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
+                        description.setMessage(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
+                        object.setIsValid(Boolean.FALSE);
+                        object.setInternalError(Boolean.FALSE);
+                        return object;
                     }
                     IdResponseDTO draftResponse = idrepoDraftService.idrepoUpdateDraft(registrationId, uin, draftPayload);
                     if (draftResponse != null && draftResponse.getResponse() != null
@@ -413,11 +386,10 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
                     isTransactionSuccessful = Boolean.TRUE;
                     object.setIsValid(Boolean.TRUE);
-                    registrationStatusDto.setLatestTransactionStatusCode(
-                            RegistrationTransactionStatusCode.SUCCESS.toString());
-                    registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
-                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
+                    description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+                    description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                    description.setStatusComment(StatusUtil.CREATE_DRAFT_SUCCESS.getMessage());
+                    description.setSubStatusCode(StatusUtil.CREATE_DRAFT_SUCCESS.getCode());
                     description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
                     description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
                     regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
@@ -431,11 +403,10 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                             "Skipping create draft for reg type: " + regType);
                     object.setIsValid(Boolean.TRUE);
                     isTransactionSuccessful = Boolean.TRUE;
-                    registrationStatusDto.setLatestTransactionStatusCode(
-                            RegistrationTransactionStatusCode.SUCCESS.toString());
-                    registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-                    registrationStatusDto.setStatusComment(StatusUtil.CREATE_DRAFT_SKIPPED.getMessage());
-                    registrationStatusDto.setSubStatusCode(StatusUtil.CREATE_DRAFT_SKIPPED.getCode());
+                    description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+                    description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+                    description.setStatusComment(StatusUtil.CREATE_DRAFT_SKIPPED.getMessage());
+                    description.setSubStatusCode(StatusUtil.CREATE_DRAFT_SKIPPED.getCode());
                     description.setCode(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getCode());
                     description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
                 }
@@ -570,6 +541,14 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
         } finally {
             if (registrationStatusDto != null) {
+                if (description.getStatusComment() != null)
+                    registrationStatusDto.setStatusComment(description.getStatusComment());
+                if (description.getStatusCode() != null)
+                    registrationStatusDto.setStatusCode(description.getStatusCode());
+                if (description.getSubStatusCode() != null)
+                    registrationStatusDto.setSubStatusCode(description.getSubStatusCode());
+                if (description.getTransactionStatusCode() != null)
+                    registrationStatusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
                 if (object.getInternalError()) {
                     updateErrorFlags(registrationStatusDto, object);
                 }
@@ -620,12 +599,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess);
     }
 
-    private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
-        dto.setStatusCode(io.mosip.registration.processor.status.code.RegistrationStatusCode.FAILED.toString());
-        dto.setStatusComment(StatusUtil.CREATE_DRAFT_STALE_PACKET.getMessage());
-        dto.setSubStatusCode(StatusUtil.CREATE_DRAFT_STALE_PACKET.getCode());
-        dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-                .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
+    private void markAsObsoleted(MessageDTO object, LogDescription description) {
         description.setCode(PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode());
         description.setMessage(StatusUtil.CREATE_DRAFT_STALE_PACKET.getMessage());
         description.setStatusCode(io.mosip.registration.processor.status.code.RegistrationStatusCode.FAILED.toString());
@@ -635,22 +609,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 .getStatusCode(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED));
         object.setIsValid(false);
         object.setInternalError(false);
-    }
-
-    private void applyDescriptionToStatus(LogDescription description,
-            InternalRegistrationStatusDto registrationStatusDto) {
-        if (description.getStatusCode() != null) {
-            registrationStatusDto.setStatusCode(description.getStatusCode());
-        }
-        if (description.getStatusComment() != null) {
-            registrationStatusDto.setStatusComment(description.getStatusComment());
-        }
-        if (description.getTransactionStatusCode() != null) {
-            registrationStatusDto.setLatestTransactionStatusCode(description.getTransactionStatusCode());
-        }
-        // sub_status_code has a NOT NULL constraint; use fallback if the helper didn't set it
-        registrationStatusDto.setSubStatusCode(description.getSubStatusCode() != null
-                ? description.getSubStatusCode() : StatusUtil.CREATE_DRAFT_FAILED.getCode());
     }
 
     private void updateErrorFlags(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
