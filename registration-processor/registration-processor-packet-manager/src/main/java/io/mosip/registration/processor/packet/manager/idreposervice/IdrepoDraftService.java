@@ -40,6 +40,7 @@ public class IdrepoDraftService {
     private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
     private static final String DRAFT_UIN_DETAILS_NOT_FOUND = "IDR-IDC-015";
     private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
+    private static final String NO_RECORD_FOUND_ERROR = "IDR-IDC-007";
 
     @Autowired
     private ObjectMapper mapper;
@@ -97,7 +98,7 @@ public class IdrepoDraftService {
 
 
     public boolean idrepoCreateDraftV2(String id, String uin, boolean generateUin)
-            throws ApisResourceAccessException, IdrepoDraftException {
+            throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         regProcLogger.debug("idrepoCreateDraftV2 entry " + id + " generateUin=" + generateUin);
         CreateDraftV2RequestDto requestBody = new CreateDraftV2RequestDto(uin, generateUin);
         ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
@@ -110,6 +111,37 @@ public class IdrepoDraftService {
         }
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             List<ErrorDTO> error = response.getErrors();
+            if (error.get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
+                regProcLogger.info("IDR-IDC-012 on createDraftV2 for id " + id + " — attempting discard before retry.");
+                try {
+                    idrepoDiscardDraft(id);
+                } catch (IdrepoDraftException discardEx) {
+                    if (discardEx.getMessage() != null && discardEx.getMessage().contains(NO_RECORD_FOUND_ERROR)) {
+                        // Our regId has no draft, so IDR-IDC-012 came from a UIN-hash conflict
+                        // with a concurrently-active draft for a different (newer) packet.
+                        // Schedule reprocess so we retry once the competing draft is gone.
+                        regProcLogger.warn("Draft conflict for id " + id
+                                + " (IDR-IDC-012 + IDR-IDC-007 on discard) — competing active draft; scheduling reprocess.");
+                        throw new IdrepoDraftReprocessableException(
+                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                                "Draft conflict with concurrent packet — retry later for id: " + id);
+                    }
+                    throw discardEx;
+                }
+                response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
+                        ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), null, null, requestBody, ResponseWrapper.class);
+                if (response == null) {
+                    throw new IdrepoDraftException(
+                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                        "Null response after discard-and-recreate for id: " + id);
+                }
+                if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+                    List<ErrorDTO> retryError = response.getErrors();
+                    regProcLogger.error("Error while creating draft v2 after discard for id " + id);
+                    throw new IdrepoDraftException(retryError.get(0).getErrorCode(), retryError.get(0).getMessage());
+                }
+                return true;
+            }
             regProcLogger.error("Error while creating draft v2 for id " + id);
             throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
         }

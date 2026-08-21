@@ -195,68 +195,69 @@ public class FinalizationStageTest {
 		when(idrepoDraftService.idrepoPublishDraft(anyString())).thenReturn(idResponseDTO);
 	}
 	@Test
-	public void testBiometricExtractionSuccess() throws Exception {
+	public void testFinalizationSuccess() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		
 
 		MessageDTO result = finalizationStage.process(messageDTO);
+		Mockito.verify(idrepoDraftService).idrepoPublishDraft("27847657360002520181210094052");
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
-	} 
+	}
+
 	@Test
-	public void testBiometricExtractionDraftUnavailable() throws Exception {
+	public void testFinalizationDraftUnavailable() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		
+
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(false);
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
-	} 
-	
+	}
+
 	@Test
-	public void testBiometricExtractionDraftException() throws Exception {
+	public void testFinalizationDraftException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		
+
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(IdrepoDraftException.class);
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
-	
+
 	@Test
-	public void testBiometricExtractionAPIException() throws Exception {
+	public void testFinalizationAPIException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		
+
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(ApisResourceAccessException.class);
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
-	
+
 	@Test
-	public void testBiometricExtractionUnknownException() throws Exception {
+	public void testFinalizationUnknownException() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
-		
+
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(NullPointerException.class);
 		MessageDTO result = finalizationStage.process(messageDTO);
 		assertTrue(result.getInternalError());
@@ -339,9 +340,6 @@ public class FinalizationStageTest {
 
 	@Test
 	public void testProcess_DeactivatedUinStatus_RejectsWithoutInternalError() throws Exception {
-		// Scenario_190: reprocessed NEW packet whose UIN was deactivated in ID Repository.
-		// ID Repo cannot stamp UIN into draft identity for a deactivated UIN, so
-		// uinForCheck==null for a NEW packet → reject with isValid=false, internalError=false (REREGISTER path).
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
@@ -383,5 +381,34 @@ public class FinalizationStageTest {
 
 		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
 		assertTrue(result.getInternalError());
+	}
+
+	// TC_44473_15: UPDATE packet success path — draft must be published
+	@Test
+	public void testProcess_UpdatePacket_DraftPublishedSuccessfully() throws Exception {
+		// setUp stubs: draft has UIN="9876543210", isLatestPacket→NOT_STALE, publishDraft returns ACTIVATED
+		MessageDTO result = finalizationStage.process(dto); // dto is UPDATE type from setUp
+
+		Mockito.verify(idrepoDraftService).idrepoPublishDraft(dto.getRid());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	// TC_44473_14 error path: non-reprocessable publishDraft failure → FAILED, no requeue
+	@Test
+	public void testProcess_PublishDraftIdrepoException_MarksAsFailed() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+
+		when(idrepoDraftService.idrepoPublishDraft(anyString()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-001", "publish failed"));
+
+		MessageDTO result = finalizationStage.process(messageDTO);
+
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
 	}
 }

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -139,14 +140,9 @@ public class IdrepoDraftServiceTest {
         assertTrue(result.getResponse().getRegistrationId().equals(ID));
     }
     
-    @Test(expected = IdrepoDraftException.class)
+    @Test
 	public void idrepoPublishDraftExceptionTest()
-			throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
-    	RequestDto requestDto = new RequestDto();
-        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
-        IdRequestDto idRequestDto = new IdRequestDto();
-        idRequestDto.setRequest(requestDto);
-
+			throws ApisResourceAccessException, IdrepoDraftReprocessableException {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("ERROR");
         errorDTO.setErrorCode("ERROR");
@@ -154,23 +150,22 @@ public class IdrepoDraftServiceTest {
         idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(idResponseDTO1);
-        ResponseDTO discardresponseDTO = new ResponseDTO();
-        discardresponseDTO.setStatus("Drafted");
-        discardresponseDTO.setRegistrationId(ID);
 
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("UIN", "1234");
-        discardresponseDTO.setIdentity(jsonObject1);
-        IdResponseDTO discardIdresponseDto=new IdResponseDTO();
-        discardIdresponseDto = new IdResponseDTO();
+        IdResponseDTO discardIdresponseDto = new IdResponseDTO();
         discardIdresponseDto.setErrors(null);
         discardIdresponseDto.setId("id.uin.update");
-        discardIdresponseDto.setResponse(discardresponseDTO);
-        when(registrationProcessorRestClientService.
-                deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
+        when(registrationProcessorRestClientService
+                .deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(discardIdresponseDto);
 
-        idrepoDraftService.idrepoPublishDraft(ID);
-        Mockito.verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
+        try {
+            idrepoDraftService.idrepoPublishDraft(ID);
+            fail("Expected IdrepoDraftException to be thrown");
+        } catch (IdrepoDraftException e) {
+            // expected
+        }
+        verify(registrationProcessorRestClientService)
+                .deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class);
     }
 
     @Test
@@ -204,9 +199,9 @@ public class IdrepoDraftServiceTest {
         assertTrue(result.getResponse().getRegistrationId().equals(ID));
     }
 
-    @Test(expected = IdrepoDraftException.class)
+    @Test
 	public void idrepoUpdateDraftExceptionTest()
-			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
+			throws ApisResourceAccessException, IOException, IdrepoDraftReprocessableException {
         RequestDto requestDto = new RequestDto();
         requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
         IdRequestDto idRequestDto = new IdRequestDto();
@@ -218,37 +213,33 @@ public class IdrepoDraftServiceTest {
         IdResponseDTO idResponseDTO1 = new IdResponseDTO();
         idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
 
-        when(registrationProcessorRestClientService.headApi
-                (ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
+        when(registrationProcessorRestClientService.headApi(
+                ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
         when(registrationProcessorRestClientService.patchApi(
                 any(), any(), any(), any(), any(), any())).thenReturn(idResponseDTO1);
 
-        ResponseDTO discardresponseDTO = new ResponseDTO();
-        discardresponseDTO.setStatus("Drafted");
-        discardresponseDTO.setRegistrationId(ID);
-
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("UIN", "1234");
-        discardresponseDTO.setIdentity(jsonObject1);
-        IdResponseDTO discardIdresponseDto=new IdResponseDTO();
-        discardIdresponseDto = new IdResponseDTO();
+        IdResponseDTO discardIdresponseDto = new IdResponseDTO();
         discardIdresponseDto.setErrors(null);
         discardIdresponseDto.setId("id.uin.update");
-        discardIdresponseDto.setResponse(discardresponseDTO);
-        when(registrationProcessorRestClientService.
-                deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
+        when(registrationProcessorRestClientService
+                .deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(discardIdresponseDto);
 
-
-        IdResponseDTO idResponseDTO2=idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
-        verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
-
+        try {
+            idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+            fail("Expected IdrepoDraftException to be thrown");
+        } catch (IdrepoDraftException e) {
+            // expected
+        }
+        verify(registrationProcessorRestClientService)
+                .deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class);
     }
 
-	@Test(expected = IdrepoDraftReprocessableException.class)
+	@Test
 	public void idrepoDraftReprocessableExceptionTest()
-			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
+			throws ApisResourceAccessException, IdrepoDraftException, IOException {
 		RequestDto requestDto = new RequestDto();
 		requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
 		IdRequestDto idRequestDto = new IdRequestDto();
@@ -266,21 +257,22 @@ public class IdrepoDraftServiceTest {
 				Lists.emptyList(), null, IdResponseDTO.class)).thenReturn(idResponseDTO);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
-        ResponseDTO discardresponseDTO = new ResponseDTO();
-        discardresponseDTO.setRegistrationId(ID);
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("UIN", "1234");
-        discardresponseDTO.setIdentity(jsonObject1);
-        IdResponseDTO discardIdresponseDto= new IdResponseDTO();
-        discardIdresponseDto.setErrors(null);
-        discardIdresponseDto.setId("id.uin.update");
-        discardIdresponseDto.setResponse(discardresponseDTO);
-        when(registrationProcessorRestClientService.
-                deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class)).thenReturn(discardIdresponseDto);
 
-		idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
-        Mockito.verify(idrepoDraftService.idrepoDiscardDraft(any()),times(1));
+		IdResponseDTO discardIdresponseDto = new IdResponseDTO();
+		discardIdresponseDto.setErrors(null);
+		discardIdresponseDto.setId("id.uin.update");
+		when(registrationProcessorRestClientService
+				.deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+				.thenReturn(discardIdresponseDto);
 
+		try {
+			idrepoDraftService.idrepoUpdateDraft(ID, null, idRequestDto);
+			fail("Expected IdrepoDraftReprocessableException to be thrown");
+		} catch (IdrepoDraftReprocessableException e) {
+			// expected — key manager error causes discard + reprocessable exception
+		}
+		verify(registrationProcessorRestClientService)
+				.deleteApi(ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class);
 	}
     @Test
     public void idrepoGetDraftWithTypeSuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
@@ -327,7 +319,7 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test
-    public void idrepoCreateDraftV2SuccessTest() throws ApisResourceAccessException, IdrepoDraftException {
+    public void idrepoCreateDraftV2SuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         ResponseWrapper responseWrapper = new ResponseWrapper();
         ArgumentCaptor<CreateDraftV2RequestDto> bodyCaptor = ArgumentCaptor.forClass(CreateDraftV2RequestDto.class);
 
@@ -345,7 +337,7 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test(expected = IdrepoDraftException.class)
-    public void idrepoCreateDraftV2ExceptionTest() throws ApisResourceAccessException, IdrepoDraftException {
+    public void idrepoCreateDraftV2ExceptionTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setMessage("ERROR");
         errorDTO.setErrorCode("ERROR");

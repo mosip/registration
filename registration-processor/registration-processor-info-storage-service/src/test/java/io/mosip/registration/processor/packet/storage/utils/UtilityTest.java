@@ -21,7 +21,9 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.core.exception.BiometricClassificationException;
 import io.mosip.registration.processor.core.exception.PacketDateComputationException;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -77,6 +79,9 @@ public class UtilityTest {
 
     @Mock
     private SyncRegistrationRepository syncRegistrationRepository;
+
+    @Mock
+    private RegistrationRepositary<RegistrationStatusEntity, String> registrationRepositary;
 
     @Mock
     private Logger regProcLogger;
@@ -816,58 +821,71 @@ public class UtilityTest {
     }
 
     @Test
-    public void testIsLatestPacket_NullIdRepoResponse_ReturnsNotStale() throws Exception {
-        ReflectionTestUtils.setField(utility, "getRegProcessorDemographicIdentity", "identity");
-        doReturn(null).when(idRepoService).getIdJsonFromIDRepo(anyString(), anyString());
+    public void testIsLatestPacket_NullIdVidMetadata_ReturnsNotStale() throws Exception {
+        doReturn(null).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
 
+    @Test
+    public void testIsLatestPacket_IdVidMetadataRidNull_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid(null);
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_SameRegId_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("reg123");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        // currentRegId == lastCommittedRegId -> NOT_STALE
         StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
         assertEquals(StaleCheckResult.NOT_STALE, result);
     }
 
     @Test
     public void testIsLatestPacket_PacketIsLatest_ReturnsNotStale() throws Exception {
-        ReflectionTestUtils.setField(utility, "getRegProcessorDemographicIdentity", "identity");
-        // Last committed packet was 2022-01-01 older than current packet (2024-01-01) -> NOT_STALE
-        JSONObject idvidResponse = new JSONObject();
-        idvidResponse.put("packetCreatedOn", "2022-01-01T00:00:00.000Z");
-        doReturn(idvidResponse).when(idRepoService).getIdJsonFromIDRepo(anyString(), anyString());
-
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("oldRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        // Last committed packet was 2022-01-01, current is 2024-01-01 -> NOT_STALE
+        when(registrationRepositary.findPktCrDtimesByRegId("oldRid", "PROCESSED"))
+                .thenReturn(Optional.of(LocalDateTime.of(2022, 1, 1, 0, 0, 0)));
         StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.of(2024, 1, 1, 0, 0, 0), "reg123");
         assertEquals(StaleCheckResult.NOT_STALE, result);
     }
 
     @Test
     public void testIsLatestPacket_PacketIsStale_ReturnsStale() throws Exception {
-        ReflectionTestUtils.setField(utility, "getRegProcessorDemographicIdentity", "identity");
-        // Last committed packet was 2025-06-01 newer than current packet (2023-01-01) -> STALE
-        JSONObject idvidResponse = new JSONObject();
-        idvidResponse.put("packetCreatedOn", "2025-06-01T00:00:00.000Z");
-        doReturn(idvidResponse).when(idRepoService).getIdJsonFromIDRepo(anyString(), anyString());
-
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("newerRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        // Last committed packet was 2025-06-01, current is 2023-01-01 -> STALE
+        when(registrationRepositary.findPktCrDtimesByRegId("newerRid", "PROCESSED"))
+                .thenReturn(Optional.of(LocalDateTime.of(2025, 6, 1, 0, 0, 0)));
         StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.of(2023, 1, 1, 0, 0, 0), "reg123");
         assertEquals(StaleCheckResult.STALE, result);
     }
 
     @Test
-    public void testIsLatestPacket_ExceptionFromIdRepo_ReturnsUnavailable() throws Exception {
-        ReflectionTestUtils.setField(utility, "getRegProcessorDemographicIdentity", "identity");
-        doThrow(new ApisResourceAccessException("network error")).when(idRepoService).getIdJsonFromIDRepo(anyString(), anyString());
-
+    public void testIsLatestPacket_EmptyDbResult_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("someRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        when(registrationRepositary.findPktCrDtimesByRegId("someRid", "PROCESSED"))
+                .thenReturn(Optional.empty());
         StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
-        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+        assertEquals(StaleCheckResult.NOT_STALE, result);
     }
 
     @Test
-    public void testIsLatestPacket_ResolveLastPacketDateNull_ReturnsNotStale() throws Exception {
-        ReflectionTestUtils.setField(utility, "getRegProcessorDemographicIdentity", "identity");
-        // idvidResponse has no packetCreatedOn -> getLastProcessedPacketCreatedDate returns null
-        // getIdVidMetadata returns null -> resolveLastPacketProcessedDate returns null -> NOT_STALE
-        JSONObject idvidResponse = new JSONObject();
-        doReturn(idvidResponse).when(idRepoService).getIdJsonFromIDRepo(anyString(), anyString());
-        doReturn(null).when(utility).getIdVidMetadata(anyString(), any());
-
+    public void testIsLatestPacket_ExceptionFromIdVidMetadata_ReturnsUnavailable() throws Exception {
+        doThrow(new ApisResourceAccessException("network error")).when(utility).getIdVidMetadata(anyString(), any());
         StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
-        assertEquals(StaleCheckResult.NOT_STALE, result);
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
     }
 
 

@@ -5,6 +5,7 @@ package io.mosip.registration.processor.status.repositary;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -64,6 +65,9 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 
 	@Query("SELECT registration FROM RegistrationStatusEntity registration WHERE registration.regId = :regId AND registration.registrationType = :registrationType AND registration.iteration = :iteration")
 	public List<RegistrationStatusEntity> getByIdAndProcessAndIteration(@Param("regId") String regId, @Param("registrationType") String process, @Param("iteration") int iteration);
+
+	@Query("SELECT r.packetCreatedDateTime FROM RegistrationStatusEntity r WHERE r.regId = :regId AND r.statusCode = :statusCode ORDER BY r.packetCreatedDateTime DESC")
+	public Optional<LocalDateTime> findPktCrDtimesByRegId(@Param("regId") String regId, @Param("statusCode") String statusCode);
 
 }
 

@@ -574,16 +574,21 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             InternalRegistrationStatusDto registrationStatusDto) {
         try {
             String effectiveProcess = utilities.getInternalProcess(additionalProcessCategoryMapping, regType);
+            // Use DB registrationType as authoritative source — Kafka reg_type can be stale/wrong during reprocess
+            String dbType = registrationStatusDto.getRegistrationType();
             boolean needsUin = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
                     || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType)
                     || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(regType)
                     || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(regType)
                     || RegistrationType.UPDATE.toString().equalsIgnoreCase(effectiveProcess)
                     || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(effectiveProcess)
-                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(effectiveProcess);
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(effectiveProcess)
+                    || RegistrationType.UPDATE.toString().equalsIgnoreCase(dbType)
+                    || RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(dbType)
+                    || RegistrationType.ACTIVATED.toString().equalsIgnoreCase(dbType)
+                    || RegistrationType.DEACTIVATED.toString().equalsIgnoreCase(dbType);
             if (needsUin) {
-                return utility.getUIn(registrationId, registrationStatusDto.getRegistrationType(),
-                        ProviderStageName.CREATE_DRAFT);
+                return utility.getUIn(registrationId, dbType, ProviderStageName.CREATE_DRAFT);
             }
         } catch (Exception e) {
             regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
