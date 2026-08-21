@@ -163,13 +163,14 @@ public class FinalizationStageTest {
 				"test case description", EventId.RPR_405.toString(), EventName.UPDATE.toString(),
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 
-		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
-		registrationStatusDto = new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
-		registrationStatusDto.setStatusCode("");
-		registrationStatusDto.setRegistrationType("NEW");
-
-		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(registrationStatusDto);
+		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenAnswer(invocation -> {
+			String queriedRid = invocation.getArgument(0);
+			InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+			registrationStatusDto.setRegistrationId(queriedRid);
+			registrationStatusDto.setStatusCode("");
+			registrationStatusDto.setRegistrationType("NEW");
+			return registrationStatusDto;
+		});
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 
