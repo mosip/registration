@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -1048,6 +1049,31 @@ public class CreateDraftStageTest {
         assertFalse(result.getInternalError());
         verify(idrepoDraftService, never()).idrepoCreateDraftV2(anyString(), any(), anyBoolean());
         verify(idrepoDraftService, never()).idrepoUpdateDraft(anyString(), any(), any());
+    }
+
+    // -----------------------------------------------------------------------
+    // Custom packet type mapped via additionalProcessCategoryMapping → draft created
+    // -----------------------------------------------------------------------
+
+    /**
+     * A custom type (e.g. a CRVS type mapped to NEW via
+     * additionalProcessCategoryMapping/utilities.getInternalProcess) must be
+     * treated as NEW and trigger draft creation, not pass through.
+     */
+    @Test
+    public void testProcess_CustomTypeMappedToNew_CreatesDraft() throws Exception {
+        messageDTO.setReg_type("OPENCRVS_NEW");
+        registrationStatusDto.setRegistrationType("OPENCRVS_NEW");
+
+        when(utilities.getInternalProcess(any(), eq("OPENCRVS_NEW"))).thenReturn("NEW");
+        when(idrepoDraftService.idrepoHasDraft(REG_ID)).thenReturn(false);
+        when(idrepoDraftService.idrepoCreateDraftV2(REG_ID, null, true)).thenReturn(true);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        verify(idrepoDraftService, times(1)).idrepoCreateDraftV2(REG_ID, null, true);
     }
 
 }

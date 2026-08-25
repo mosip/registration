@@ -3,10 +3,8 @@ package io.mosip.registration.processor.stages.packetclassifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -136,13 +134,13 @@ public class PacketClassificationProcessor {
 	@Autowired
 	private IdSchemaUtil idSchemaUtil;
 
-	/**
-	 * This List will contain all the tag generators that is applicable as per the configuration
+	/** 
+	 * This List will contain all the tag generators that is applicable as per the configuration 
 	 */
 	@Autowired
 	private List<TagGenerator> tagGenerators;
 
-	/**
+	/** 
 	 * Id object fields required by all the configured tag generators will be maintained here
 	 */
 	private List<String> requiredIdObjectFieldNames;
@@ -222,7 +220,7 @@ public class PacketClassificationProcessor {
 						RegistrationTransactionTypeCode.PACKET_CLASSIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
-			generateAndAddTags(registrationStatusDto.getWorkflowInstanceId(), registrationId,
+			generateAndAddTags(registrationStatusDto.getWorkflowInstanceId(), registrationId, 
 				registrationStatusDto.getRegistrationType(), object.getIteration());
 			object.setTags(null);
 
@@ -332,12 +330,12 @@ public class PacketClassificationProcessor {
 
 	private void generateAndAddTags(String workflowInstanceId, String registrationId, String process, int iteration)
 			throws IOException, BaseCheckedException, NumberFormatException, JSONException {
-		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId,
+		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
 			requiredIdObjectFieldNames);
 
 		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 		try {
-			// Fire getMetaInfo in parallel — independent of identity field fetching
+			// Fire getMetaInfo in parallel while processing identity fields — they are independent I/O calls
 			CompletableFuture<Map<String, String>> metaInfoFuture = CompletableFuture.supplyAsync(() -> {
 				try {
 					return priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
@@ -407,6 +405,7 @@ public class PacketClassificationProcessor {
 			} catch (CompletionException e) {
 				executor.shutdownNow();
 				Throwable cause = e.getCause();
+				// Unwrap double-wrapping: Supplier wraps in CompletionException, then join() wraps again
 				while (cause instanceof CompletionException && cause.getCause() != null)
 					cause = cause.getCause();
 				if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
@@ -423,8 +422,7 @@ public class PacketClassificationProcessor {
 			}
 
 			handleNullValueTags(allTags);
-
-			regProcLogger.debug("generated {} tag(s) for {}", allTags.size(), registrationId);
+			regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
 			if (!allTags.isEmpty())
 				packetManagerService.addOrUpdateTags(registrationId, allTags);
 		} finally {

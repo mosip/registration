@@ -351,6 +351,57 @@ public class IdrepoDraftServiceTest {
     }
 
     @Test
+    public void idrepoCreateDraftV2ConflictDiscardSucceedsRecreateSucceedsTest()
+            throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        ErrorDTO alreadyExistsError = new ErrorDTO();
+        alreadyExistsError.setErrorCode("IDR-IDC-012");
+        alreadyExistsError.setMessage("Record already exists");
+        ResponseWrapper conflictResponse = new ResponseWrapper();
+        conflictResponse.setErrors(Lists.newArrayList(alreadyExistsError));
+
+        ResponseWrapper successResponse = new ResponseWrapper();
+
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
+                .thenReturn(conflictResponse, successResponse);
+
+        IdResponseDTO discardIdResponseDto = new IdResponseDTO();
+        discardIdResponseDto.setErrors(null);
+        when(registrationProcessorRestClientService.deleteApi(
+                ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(discardIdResponseDto);
+
+        boolean result = idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+
+        assertTrue(result);
+    }
+
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoCreateDraftV2ConflictDiscardFailsWithNoRecordFoundTest()
+            throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        ErrorDTO alreadyExistsError = new ErrorDTO();
+        alreadyExistsError.setErrorCode("IDR-IDC-012");
+        alreadyExistsError.setMessage("Record already exists");
+        ResponseWrapper conflictResponse = new ResponseWrapper();
+        conflictResponse.setErrors(Lists.newArrayList(alreadyExistsError));
+
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
+                .thenReturn(conflictResponse);
+
+        ErrorDTO noRecordFoundError = new ErrorDTO();
+        noRecordFoundError.setErrorCode("IDR-IDC-007");
+        noRecordFoundError.setMessage("No record found");
+        IdResponseDTO discardIdResponseDto = new IdResponseDTO();
+        discardIdResponseDto.setErrors(Lists.newArrayList(noRecordFoundError));
+        when(registrationProcessorRestClientService.deleteApi(
+                ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(discardIdResponseDto);
+
+        idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+    }
+
+    @Test
     public void idrepoUpdateDraftUinSuccessTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
         when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
         ArgumentCaptor<ObjectNode> bodyCaptor = ArgumentCaptor.forClass(ObjectNode.class);
@@ -376,6 +427,15 @@ public class IdrepoDraftServiceTest {
         when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
         when(registrationProcessorRestClientService.patchApi(
                 eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(errorResponse);
+
+        idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoUpdateDraftUinNullResponseTest() throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+        when(mapper.createObjectNode()).thenReturn(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any())).thenReturn(null);
 
         idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
     }

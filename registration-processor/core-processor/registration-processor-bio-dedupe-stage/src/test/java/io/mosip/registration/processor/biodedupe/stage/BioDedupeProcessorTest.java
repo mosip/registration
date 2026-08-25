@@ -508,7 +508,8 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testLostPacketValidationMatchedIdEmpty() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
@@ -521,6 +522,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft("reg1234");
 	}
 
 	/**
@@ -536,7 +538,8 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testLostPacketValidationSingleMatchedRegId() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
@@ -546,10 +549,13 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
 		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+		Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoUpdateDraftUin("reg1234", "1234567890");
 	}
 
 	/**
@@ -651,10 +657,13 @@ public class BioDedupeProcessorTest {
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
 		LinkedHashMap<String, String> fieldsMap = new LinkedHashMap<>();
 		fieldsMap.put("dob", "2016/01/01");
-		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldsMap);		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldsMap);
+		Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
 		assertTrue(messageDto.getIsValid());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoUpdateDraftUin("reg1234", "1234567890");
 	}
 
 	@SuppressWarnings("unchecked")

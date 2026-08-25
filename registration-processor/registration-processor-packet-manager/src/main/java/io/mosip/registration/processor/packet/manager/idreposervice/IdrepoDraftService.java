@@ -3,7 +3,6 @@ package io.mosip.registration.processor.packet.manager.idreposervice;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -92,9 +91,9 @@ public class IdrepoDraftService {
             regProcLogger.error("Error occured while getting draft for id : " + id, error.toString());
             throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
         }
-        regProcLogger.debug("idrepoGetDraft exit " + id);
-        return idResponseDTO.getResponse();
-    }
+            regProcLogger.debug("idrepoGetDraft exit " + id);
+            return idResponseDTO.getResponse();
+        }
 
 
     public boolean idrepoCreateDraftV2(String id, String uin, boolean generateUin)
@@ -116,7 +115,7 @@ public class IdrepoDraftService {
                 try {
                     idrepoDiscardDraft(id);
                 } catch (IdrepoDraftException discardEx) {
-                    if (discardEx.getMessage() != null && discardEx.getMessage().contains(NO_RECORD_FOUND_ERROR)) {
+                    if (NO_RECORD_FOUND_ERROR.equalsIgnoreCase(discardEx.getErrorCode())) {
                         // Our regId has no draft, so IDR-IDC-012 came from a UIN-hash conflict
                         // with a concurrently-active draft for a different (newer) packet.
                         // Schedule reprocess so we retry once the competing draft is gone.
@@ -156,6 +155,12 @@ public class IdrepoDraftService {
         while (true) {
             IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                     ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
+            if (response == null) {
+                regProcLogger.error("Null response from idrepoUpdateDraftUin for id " + id);
+                throw new IdrepoDraftException(
+                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
+                    "Null response from ID Repository for draft UIN update for id: " + id);
+            }
             if (response.getErrors() == null || response.getErrors().isEmpty()) {
                 return true;
             }

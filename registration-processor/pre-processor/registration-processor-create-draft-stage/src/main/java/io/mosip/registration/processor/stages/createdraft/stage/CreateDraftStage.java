@@ -260,6 +260,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                         LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                         "CreateDraftStage :: Stale reprocess detected. reg_type=" + regType
                                 + " pkt_cr_dtimes=" + registrationStatusDto.getPacketCreateDateTime());
+                if (idrepoDraftService.idrepoHasDraft(registrationId)) {
+                    idrepoDraftService.idrepoDiscardDraft(registrationId);
+                }
                 markAsObsoleted(object, description);
                 isTransactionSuccessful = false;
                 return object;

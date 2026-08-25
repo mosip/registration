@@ -324,7 +324,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						try {
 							return priorityBasedpacketManagerService.getMetaInfo(
 									registrationId, registrationType, ProviderStageName.WORKFLOW_MANAGER);
-						} catch (Exception e) { throw new RuntimeException(e); }
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
 					}, virtualThreadExecutor);
 
 			CompletableFuture<BiometricRecord> biometricsFuture =
@@ -333,9 +335,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 							return priorityBasedpacketManagerService.getBiometrics(
 									registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 									registrationType, ProviderStageName.WORKFLOW_MANAGER);
-						} catch (Exception e) { throw new RuntimeException(e); }
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
 					}, virtualThreadExecutor);
 
+			// Chain: mappingJson -> idSchemaVersionValue -> schemaVersion (sequential dependencies)
 			CompletableFuture<String> schemaVersionFuture =
 					CompletableFuture.supplyAsync(() -> {
 						try {
@@ -347,14 +352,19 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 							return priorityBasedpacketManagerService.getFieldByMappingJsonKey(
 									registrationId, idSchemaVersionValue, registrationType,
 									ProviderStageName.WORKFLOW_MANAGER);
-						} catch (Exception e) { throw new RuntimeException(e); }
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
 					}, virtualThreadExecutor);
 
+			// Round 2: once schemaVersion is known, fire fieldTypeMap and fieldMap in parallel
 			CompletableFuture<Map<String, String>> fieldTypeMapFuture =
 					schemaVersionFuture.thenApplyAsync(schemaVersion -> {
 						try {
 							return idSchemaUtil.getIdSchemaFieldTypes(Double.parseDouble(schemaVersion));
-						} catch (Exception e) { throw new RuntimeException(e); }
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
 					}, virtualThreadExecutor);
 
 			CompletableFuture<Map<String, String>> fieldMapFuture =
@@ -364,7 +374,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 									registrationId,
 									idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion)),
 									registrationType, ProviderStageName.WORKFLOW_MANAGER);
-						} catch (Exception e) { throw new RuntimeException(e); }
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
 					}, virtualThreadExecutor);
 
 			Map<String, String> metaInfoMap = metaInfoFuture.get();

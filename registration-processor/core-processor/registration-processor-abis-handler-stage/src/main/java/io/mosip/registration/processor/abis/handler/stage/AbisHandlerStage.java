@@ -141,10 +141,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.abis.handler.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 
-	/** Debug hold: sleep this many ms after ABIS IDENTIFY completes, before routing to next stage. 0 = disabled. */
-	@Value("${mosip.regproc.abis.handler.debug.post-abis-hold-ms:0}")
-	private long postAbisHoldMs;
-
 	@Value("${registration.processor.policy.id}")
 	private String policyId;
 
@@ -278,15 +274,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 						registrationStatusDto.getWorkflowInstanceId(), description, transactionTypeCode);
 				object.setMessageBusAddress(MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN);
 			} else {
-				if (postAbisHoldMs > 0) {
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-							regId, "AbisHandlerStage::process()::ABIS IDENTIFY complete — debug hold for " + postAbisHoldMs + " ms before routing to next stage");
-					try {
-						Thread.sleep(postAbisHoldMs);
-					} catch (InterruptedException ie) {
-						Thread.currentThread().interrupt();
-					}
-				}
 				if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.DEMOGRAPHIC_VERIFICATION)) {
 					object.setMessageBusAddress(MessageBusAddress.DEMO_DEDUPE_BUS_IN);
 				} else if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.BIOGRAPHIC_VERIFICATION)) {
