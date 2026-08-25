@@ -178,7 +178,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord);
 		Map<String, String> mdc = MDC.getCopyOfContextMap();
   		kafkaProducer.write(producerRecord, handler -> {
-			MDC.setContextMap(mdc);
+			setMDCContextMap(mdc);
   			if(handler.failed())
 				logger.error("Failed kafkaProducer.write {} {} ", handler.result(), handler.cause());
   			else
@@ -317,6 +317,37 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		return promise.future();
 	}
 
+	private void completeProcessedRecord(KafkaConsumerRecord<String, String> record, boolean commitRecord,
+			Promise<Void> promise) {
+		if(commitRecord)
+			commitOffset(record.topic(), record.partition(),
+				record.offset(), promise);
+		else
+			promise.complete();
+	}
+
+	private void failPromise(Promise<Void> promise, Throwable cause, String failureMessage) {
+		if(cause != null)
+			promise.fail(cause);
+		else
+			promise.fail(failureMessage);
+	}
+
+	private void resumeRecordPartition(KafkaConsumerRecord<String, String> record) {
+		Promise<Void> resumePromise = Promise.promise();
+		resumePartition(new TopicPartition(record.topic(), record.partition()), resumePromise);
+		resumePromise.future().onFailure(cause -> logger.error(
+			"Partition resume failed for topic: {} partition: {}",
+			record.topic(), record.partition(), cause));
+	}
+
+	private void setMDCContextMap(Map<String, String> mdc) {
+		if(mdc != null)
+			MDC.setContextMap(mdc);
+		else
+			MDC.clear();
+	}
+
 	Future<Void> processRecord(MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler,
 		KafkaConsumerRecord<String, String> record, boolean commitRecord) {
@@ -330,14 +361,12 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		eventHandler.handle(eventDTO, res -> {
 			if (!res.succeeded() && res.cause() instanceof MessageExpiredException) {
 				logger.warn("Event handling failed {}", res.cause().getMessage());
-				if(commitRecord)
-					commitOffset(record.topic(), record.partition(), 
-						record.offset(), promise);
-				else					
-					promise.complete();
+				completeProcessedRecord(record, commitRecord, promise);
+				this.eventTracingHandler.closeSpan(span);
 			} else if(!res.succeeded()) {
 				logger.error("Event handling failed {}", res.cause());
-				promise.fail(res.cause());
+				failPromise(promise, res.cause(), "Event handling failed");
+				this.eventTracingHandler.closeSpan(span);
 			} else {
 				if(toAddress != null) {
 					MessageDTO messageDTO = res.result();
@@ -349,21 +378,23 @@ public class KafkaMosipEventBus implements MosipEventBus {
 								getKafkaKey(messageDTO, messageBusToAddress), jsonObject.toString());
 					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
 					kafkaProducer.write(producerRecord, handler -> {
-						MDC.setContextMap(mdc);
-						if(handler.failed())
+						setMDCContextMap(mdc);
+						if(handler.failed()) {
 							logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
-						else
+							resumeRecordPartition(record);
+							failPromise(promise, handler.cause(), "Failed kafkaProducer.write");
+						} else {
 							logger.info("Success kafkaProducer.write {} ", handler.result());
+							completeProcessedRecord(record, commitRecord, promise);
+						}
 						MDC.clear();
+						this.eventTracingHandler.closeSpan(span);
 					});
+				} else {
+					completeProcessedRecord(record, commitRecord, promise);
+					this.eventTracingHandler.closeSpan(span);
 				}
-				if(commitRecord)
-					commitOffset(record.topic(), record.partition(), 
-						record.offset(), promise);
-				else					
-					promise.complete();
 			}
-			this.eventTracingHandler.closeSpan(span);
 		});
 		return promise.future();
 	}
