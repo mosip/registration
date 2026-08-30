@@ -142,6 +142,8 @@ public final class PlatformConstants {
 
 	public static final String RPR_FINALIZATION_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "FIN-";
 
+	public static final String RPR_CREATE_DRAFT_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "CDS-";
+
 	/**
 	 * Instantiates a new RPR platform error codes.
 	 */

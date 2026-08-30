@@ -72,6 +72,9 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
@@ -184,6 +187,9 @@ public class BioDedupeProcessorTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
+	@Mock
+	private IdrepoDraftService idrepoDraftService;
 
 	/**
 	 * Sets the up.
@@ -502,7 +508,8 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testLostPacketValidationMatchedIdEmpty() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
@@ -515,6 +522,7 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft("reg1234");
 	}
 
 	/**
@@ -530,7 +538,8 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testLostPacketValidationSingleMatchedRegId() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
@@ -540,10 +549,13 @@ public class BioDedupeProcessorTest {
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
 		processedMatchedResult.setMatchedResults(matchedRidList);
 		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+		Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+		Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoUpdateDraftUin("reg1234", "1234567890");
 	}
 
 	/**
@@ -645,10 +657,13 @@ public class BioDedupeProcessorTest {
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
 		LinkedHashMap<String, String> fieldsMap = new LinkedHashMap<>();
 		fieldsMap.put("dob", "2016/01/01");
-		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldsMap);		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+		Mockito.when(priorityBasedPacketManagerService.getFields(anyString(), any(), anyString(), any())).thenReturn(fieldsMap);
+		Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
 		assertTrue(messageDto.getIsValid());
+		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoUpdateDraftUin("reg1234", "1234567890");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -984,5 +999,75 @@ public class BioDedupeProcessorTest {
 		assertTrue(result.getIsValid());
 		assertEquals(MessageBusAddress.VERIFICATION_BUS_IN, result.getMessageBusAddress());
 	}
+
+    @Test
+    public void testLostPacketSingleMatch_StampUinFails_DraftException_SetsInternalError() throws Exception {
+        registrationStatusDto.setRegistrationId("reg1234");
+        registrationStatusDto.setRegistrationType("LOST");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+        Set<String> matchedRidList = new HashSet<>();
+        matchedRidList.add("27847657360002520190320095010");
+        ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+        processedMatchedResult.setMatchedResults(matchedRidList);
+        Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+        Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+        Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED))
+                .thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+        Mockito.when(idrepoDraftService.idrepoUpdateDraftUin(any(), any())).thenThrow(new IdrepoDraftException("CDS-ERR", "stamp failed"));
+
+        MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+        assertTrue(result.getInternalError());
+        assertFalse(result.getIsValid());
+    }
+
+    @Test
+    public void testLostPacketSingleMatch_StampUinFails_ApisResourceAccessException_SetsReprocess() throws Exception {
+        registrationStatusDto.setRegistrationId("reg1234");
+        registrationStatusDto.setRegistrationType("LOST");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+        Set<String> matchedRidList = new HashSet<>();
+        matchedRidList.add("27847657360002520190320095010");
+        ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+        processedMatchedResult.setMatchedResults(matchedRidList);
+        Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+        Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+        Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESS))
+                .thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+        Mockito.when(idrepoDraftService.idrepoUpdateDraftUin(any(), any())).thenThrow(new ApisResourceAccessException("API error"));
+
+        MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+        assertTrue(result.getInternalError());
+        assertTrue(result.getIsValid());
+    }
+
+    @Test
+    public void testLostPacketSingleMatch_UinNotFound_SchedulesReprocess() throws Exception {
+        registrationStatusDto.setRegistrationId("reg1234");
+        registrationStatusDto.setRegistrationType("LOST");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+        Set<String> matchedRidList = new HashSet<>();
+        matchedRidList.add("27847657360002520190320095010");
+        ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+        processedMatchedResult.setMatchedResults(matchedRidList);
+        Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+        Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+        Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn(null);
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_UIN_RESOLUTION_REPROCESS))
+                .thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+
+        MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+        Mockito.verify(idrepoDraftService, Mockito.never()).idrepoUpdateDraftUin(any(), any());
+        assertTrue(result.getInternalError());
+        assertTrue(result.getIsValid());
+    }
+
 
 }

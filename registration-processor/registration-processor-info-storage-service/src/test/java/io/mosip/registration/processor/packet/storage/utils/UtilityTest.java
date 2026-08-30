@@ -54,6 +54,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
+
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -791,4 +793,123 @@ public class UtilityTest {
         Boolean res = utility.allBiometricHaveException(bir.getBirs(), rid);
         assertFalse(res);
     }
+    // -----------------------------------------------------------------------
+    // isLatestPacket(String, LocalDateTime, String) tests — Finalization path
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testIsLatestPacket_NullUin_ReturnsNotStale() {
+        StaleCheckResult result = utility.isLatestPacket(null, LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_EmptyUin_ReturnsNotStale() {
+        StaleCheckResult result = utility.isLatestPacket("", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_NullTimestamp_ReturnsUnavailable() {
+        StaleCheckResult result = utility.isLatestPacket("1234567890", (LocalDateTime) null, "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_NullIdVidMetadata_ReturnsNotStale() throws Exception {
+        doReturn(null).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_IdVidMetadataRidNull_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid(null);
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_SameRegId_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("reg123");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+        verify(utility, never()).getPacketCreatedDateTimeFromSyncRegistration(anyString());
+    }
+
+    @Test
+    public void testIsLatestPacket_PacketIsLatest_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("oldRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDateTime.of(2022, 1, 1, 0, 0, 0))
+                .when(utility).getPacketCreatedDateTimeFromSyncRegistration("oldRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.of(2024, 1, 1, 0, 0, 0), "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_PacketIsStale_ReturnsStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("newerRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDateTime.of(2025, 6, 1, 0, 0, 0))
+                .when(utility).getPacketCreatedDateTimeFromSyncRegistration("newerRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.of(2023, 1, 1, 0, 0, 0), "reg123");
+        assertEquals(StaleCheckResult.STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_CannotResolveLastProcessedTime_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("someRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("someRid");
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromRid("someRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_ExceptionFromIdVidMetadata_ReturnsUnavailable() throws Exception {
+        doThrow(new ApisResourceAccessException("network error")).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", LocalDateTime.now(), "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    // -----------------------------------------------------------------------
+    // isLatestPacket(String, String, String) tests — Create Draft path
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_NullTimestamp_ReturnsUnavailable() throws Exception {
+        StaleCheckResult result = utility.isLatestPacket("1234567890", (String) null, "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_PacketIsStale_ReturnsStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("newerRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDateTime.of(2025, 6, 1, 0, 0, 0))
+                .when(utility).getPacketCreatedDateTimeFromSyncRegistration("newerRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2023-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_UnparseableTimestamp_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("otherRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "not-a-date", "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+
 }

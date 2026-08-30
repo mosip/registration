@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.registration.processor.core.config.configserverloader.PropertyLoaderConfig;
+import io.mosip.registration.processor.packet.manager.idreposervice.impl.IdRepoServiceImpl;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionApi;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowActionJob;
 import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternalActionVerticle;
@@ -27,9 +28,10 @@ import io.mosip.registration.processor.workflowmanager.verticle.WorkflowInternal
 		"io.mosip.registration.processor.status.config",
 		"io.mosip.registration.processor.core.kernel.beans",
 		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.idreposervice",
 		"io.mosip.kernel.websub.api.config.publisher",
 		"io.mosip.registration.processor.packet.storage.utils.ActiveMqConnectionUtility" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
-				HibernateDaoConfig.class, PropertyLoaderConfig.class
+				HibernateDaoConfig.class, PropertyLoaderConfig.class, IdRepoServiceImpl.class
 }))
 public class WorkflowManagerApplication 
 {

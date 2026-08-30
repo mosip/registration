@@ -182,7 +182,10 @@ public enum PlatformSuccessMessages {
 			"Packet processing completed with reject status without Parent flow"),
 
 	PACKET_ANONYMOUS_PROFILE(PlatformConstants.RPR_CAMEL_BRIDGE_MODULE + "008",
-			"Packet anonymous profile flow initiated");
+			"Packet anonymous profile flow initiated"),
+
+	RPR_CREATE_DRAFT_SUCCESS(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "000",
+			"Create draft stage success");
 
 	/** The success message. */
 	private final String successMessage;

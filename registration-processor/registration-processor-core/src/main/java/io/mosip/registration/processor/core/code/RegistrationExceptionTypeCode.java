@@ -306,6 +306,23 @@ public enum RegistrationExceptionTypeCode {
 
 	INTRODUCER_BIOMETRIC_ALL_EXCEPTION_IN_PACKET,
 
+	/** The packet create draft failed. */
+	PACKET_CREATE_DRAFT_FAILED,
+
+	/** The packet create draft reprocess. */
+	PACKET_CREATE_DRAFT_REPROCESS,
+
+	/** The packet create draft id repo error. */
+	PACKET_CREATE_DRAFT_ID_REPO_ERROR,
+
+	/** LOST packet: matched RID but UIN could not be resolved from ID Repository. */
+	BIO_DEDUPE_LOST_UIN_RESOLUTION_REPROCESS,
+
+	/** LOST packet: permanent failure stamping UIN on ID Repository draft. */
+	BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED,
+
+	/** LOST packet: transient failure stamping UIN on ID Repository draft. */
+	BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESS,
 
 	IDREPO_DRAFT_REPROCESSABLE_EXCEPTION;
 

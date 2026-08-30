@@ -14,21 +14,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.DateUtils2;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
+import org.json.JSONException;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -46,8 +50,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.code.WorkflowActionCode;
 import io.mosip.registration.processor.core.code.WorkflowInternalActionCode;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
@@ -60,9 +62,8 @@ import io.mosip.registration.processor.core.packet.dto.AdditionalInfoRequestDto;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowPausedForAdditionalInfoEventDTO;
-import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -81,6 +82,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
+
+	// Tag name must match the value configured in AnonymousProfileTagGenerator.
+	@Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:anonymous}")
+	private String anonymousProfileTagKey;
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowInternalActionVerticle.class);
 
@@ -120,6 +125,15 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	@Autowired
 	private AnonymousProfileService anonymousProfileService;
 
+	@Autowired
+	private Utilities utility;
+
+	@Autowired
+	private IdSchemaUtil idSchemaUtil;
+
+	@Autowired
+	private PriorityBasedPacketManagerService priorityBasedpacketManagerService;
+
 	private MosipEventBus mosipEventBus = null;
 
 	public static String MODULE_NAME = ModuleName.WORKFLOW_INTERNAL_ACTION.toString();
@@ -131,16 +145,10 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private WebSubUtil webSubUtil;
 
 	@Autowired
-	private Utilities utility;
-
-	@Autowired
-	private IdSchemaUtil idSchemaUtil;
-
-	@Autowired
-	private PriorityBasedPacketManagerService priorityBasedpacketManagerService;
-
-	@Autowired
 	private PacketManagerService packetManagerService;
+
+	@Autowired
+	private IdrepoDraftService idrepoDraftService;
 
 	@Autowired
 	private Environment env;
@@ -267,19 +275,50 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 		regProcLogger.info("processAnonymousProfile called for registration id {}", registrationId);
 
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(
+				registrationId, registrationType,
+				workflowInternalActionDTO.getIteration(),
+				workflowInternalActionDTO.getWorkflowInstanceId());
+
+		// Primary path: read the anonymous profile JSON stored as a packet tag by
+		// AnonymousProfileTagGenerator during packet classification.
+		Map<String, String> tags = packetManagerService.getTags(registrationId, List.of(anonymousProfileTagKey));
+		String anonymousProfileJson = tags != null ? tags.get(anonymousProfileTagKey) : null;
+
+		if (anonymousProfileJson != null) {
+			// Tag present — use it directly (fast path, no packet manager re-fetch needed).
+			if (registrationStatusDto != null) {
+				anonymousProfileService.saveAnonymousProfile(
+						registrationId, registrationStatusDto.getRegistrationStageName(), anonymousProfileJson);
+			} else {
+				regProcLogger.warn("processAnonymousProfile: registration status not found for {} — profile save skipped",
+						registrationId);
+			}
+		} else {
+			// Fallback: tag absent because the packet was processed before the packet
+			// classifier stage ran (e.g. older workflow or stage order customisation).
+			// Re-build the anonymous profile from raw packet data — the original code path.
+			regProcLogger.info("processAnonymousProfile: tag '{}' not found for rid {} — falling back to raw packet build",
+					anonymousProfileTagKey, registrationId);
+			buildAndSaveAnonymousProfileFromPacket(registrationId, registrationType,
+					workflowInternalActionDTO, registrationStatusDto);
+		}
+
+		this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
+
+		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
+	}
+
+	/**
+	 * Fallback: builds the anonymous profile by fetching all required data from the
+	 * packet manager. Used when the pre-built tag is absent (packet predates the
+	 * AnonymousProfileTagGenerator or the classifier stage was skipped).
+	 */
+	private void buildAndSaveAnonymousProfileFromPacket(String registrationId, String registrationType,
+			WorkflowInternalActionDTO workflowInternalActionDTO,
+			InternalRegistrationStatusDto registrationStatusDto)
+			throws IOException, JSONException, BaseCheckedException {
 		try (ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
-			// Round 1: fire all independent calls in parallel
-			CompletableFuture<InternalRegistrationStatusDto> registrationStatusFuture =
-					CompletableFuture.supplyAsync(() -> {
-						try {
-							return registrationStatusService.getRegistrationStatus(
-									registrationId, registrationType,
-									workflowInternalActionDTO.getIteration(),
-									workflowInternalActionDTO.getWorkflowInstanceId());
-						} catch (Exception e) {
-							throw new RuntimeException(e);
-						}
-					}, virtualThreadExecutor);
 
 			CompletableFuture<Map<String, String>> metaInfoFuture =
 					CompletableFuture.supplyAsync(() -> {
@@ -341,36 +380,37 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 						}
 					}, virtualThreadExecutor);
 
-			// Collect all results
-			InternalRegistrationStatusDto registrationStatusDto = registrationStatusFuture.get();
 			Map<String, String> metaInfoMap = metaInfoFuture.get();
 			BiometricRecord biometricRecord = biometricsFuture.get();
 			Map<String, String> fieldTypeMap = fieldTypeMapFuture.get();
 			Map<String, String> fieldMap = fieldMapFuture.get();
 
-			String json = anonymousProfileService.buildJsonStringFromPacketInfo(
-					biometricRecord, fieldMap, fieldTypeMap,
-					metaInfoMap, registrationStatusDto.getStatusCode(),
-					registrationStatusDto.getRegistrationStageName());
-			anonymousProfileService.saveAnonymousProfile(
-					registrationId, registrationStatusDto.getRegistrationStageName(), json);
+			String stageName = registrationStatusDto != null
+					? registrationStatusDto.getRegistrationStageName() : "";
+			String statusCode = registrationStatusDto != null
+					? registrationStatusDto.getStatusCode() : "";
 
-			this.send(this.mosipEventBus, new MessageBusAddress(anonymousProfileBusAddress), workflowInternalActionDTO);
+			String json = anonymousProfileService.buildJsonStringFromPacketInfo(
+					biometricRecord, fieldMap, fieldTypeMap, metaInfoMap, statusCode, stageName);
+			anonymousProfileService.saveAnonymousProfile(registrationId, stageName, json);
 
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new BaseUncheckedException(
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-					"Thread interrupted during anonymous profile processing", e);
+					"Thread interrupted during anonymous profile fallback processing", e);
 		} catch (ExecutionException e) {
+			regProcLogger.error(
+					"Async operation failed during anonymous profile fallback for rid: {} - {}\n{}",
+					registrationId,
+					e.getCause() != null ? e.getCause().getMessage() : e.getMessage(),
+					ExceptionUtils.getStackTrace(e.getCause() != null ? e.getCause() : e));
 			rethrowUnwrappedCause(unwrapAsyncException(e));
 		}
-
-		regProcLogger.info("processAnonymousProfile ended for registration id {}", registrationId);
 	}
 
 	/**
-	 * Unwraps failures from {@link CompletableFuture#get()} / async lambdas so types match sequential 1.3.x propagation.
+	 * Unwraps failures from {@link CompletableFuture#get()} / async lambdas so types match sequential propagation.
 	 */
 	private static Throwable unwrapAsyncException(Throwable throwable) {
 		if (throwable == null) {
@@ -400,7 +440,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			Thread.currentThread().interrupt();
 			throw new BaseUncheckedException(
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-					"Thread interrupted during anonymous profile processing",
+					"Thread interrupted during anonymous profile fallback processing",
 					(InterruptedException) t);
 		}
 		if (t instanceof TablenotAccessibleException) {
@@ -427,12 +467,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		if (t instanceof Exception) {
 			throw new BaseCheckedException(
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-					t.getMessage() != null ? t.getMessage() : "Error during anonymous profile processing",
+					t.getMessage() != null ? t.getMessage() : "Error during anonymous profile fallback processing",
 					(Exception) t);
 		}
 		throw new BaseCheckedException(
 				PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-				"Error during anonymous profile processing: " + t,
+				"Error during anonymous profile fallback processing: " + t,
 				new Exception(t));
 	}
 
@@ -446,6 +486,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.INTERNAL_WORKFLOW_ACTION.toString());
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
+		discardDraftSafely(workflowInternalActionDTO.getRid());
 	}
 
 	private void processMarkAsReprocess(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -519,6 +560,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
+			discardDraftSafely(workflowInternalActionDTO.getRid());
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
 
@@ -594,6 +636,20 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setSubStatusCode(StatusUtil.WORKFLOW_INTERNAL_ACTION_SUCCESS.getCode());
 		registrationStatusService.updateRegistrationStatusForWorkflowEngine(registrationStatusDto, MODULE_ID, MODULE_NAME);
 
+	}
+
+	// Called only for REJECTED terminal states to release ID Repository draft resources.
+	// FAILED and REPROCESS packets intentionally do NOT call this — the draft must remain available
+	// for reprocessing or downstream handling without re-running the create-draft stage.
+	private void discardDraftSafely(String rid) {
+		try {
+			if (idrepoDraftService.idrepoHasDraft(rid)) {
+				idrepoDraftService.idrepoDiscardDraft(rid);
+				regProcLogger.info("Draft discarded for rid: {}", rid);
+			}
+		} catch (Exception e) {
+			regProcLogger.error("Failed to discard draft for rid: {} - {}\n{}", rid, e.getMessage(), ExceptionUtils.getStackTrace(e));
+		}
 	}
 
 	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String registrationId) {

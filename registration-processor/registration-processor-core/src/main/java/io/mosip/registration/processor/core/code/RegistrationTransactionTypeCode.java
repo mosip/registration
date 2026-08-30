@@ -38,6 +38,8 @@ public enum RegistrationTransactionTypeCode {
 	UIN_GENERATOR,
 	/** The biometric extraction. */
 	BIOMETRIC_EXTRACTION,
+	/** The create draft. */
+	CREATE_DRAFT,
 	/** The notification. */
 	NOTIFICATION,
 	/** The print service. */

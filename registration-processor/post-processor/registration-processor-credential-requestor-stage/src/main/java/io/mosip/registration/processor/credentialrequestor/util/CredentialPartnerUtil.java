@@ -79,6 +79,9 @@ public class CredentialPartnerUtil {
 	@Value("#{${mosip.registration.processor.credential.conditional.partner-id-map:{:}}}")
     private Map<String, String> credentialPartnerExpression;
 
+    @Value("${mosip.registration.processor.credential.conditional.metadata-enabled:false}")
+    private boolean metadataEnabled;
+
     @Value("${config.server.file.storage.uri}")
     private String configServerFileStorageURL;
 
@@ -169,14 +172,16 @@ public class CredentialPartnerUtil {
             }
         }
 
-        // adding additional metadata so that it can be used for MVEL expression
-		Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, registrationType,
-				ProviderStageName.CREDENTIAL_REQUESTOR);
-        if (MapUtils.isNotEmpty(metaInfo)) {
-            String metadata = metaInfo.get(JsonConstant.METADATA);
-            if (!StringUtils.isEmpty(metadata)) {
-                JSONArray jsonArray = new JSONArray(metadata);
-                addToMap(jsonArray, context);
+        if (metadataEnabled) {
+            // adding additional metadata so that it can be used for MVEL expression
+            Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, registrationType,
+                    ProviderStageName.CREDENTIAL_REQUESTOR);
+            if (MapUtils.isNotEmpty(metaInfo)) {
+                String metadata = metaInfo.get(JsonConstant.METADATA);
+                if (!StringUtils.isEmpty(metadata)) {
+                    JSONArray jsonArray = new JSONArray(metadata);
+                    addToMap(jsonArray, context);
+                }
             }
         }
 

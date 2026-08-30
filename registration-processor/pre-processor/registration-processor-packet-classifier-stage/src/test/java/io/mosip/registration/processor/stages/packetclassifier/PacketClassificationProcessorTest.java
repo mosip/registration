@@ -49,6 +49,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.AnonymousProfileService;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
@@ -98,6 +99,9 @@ public class PacketClassificationProcessorTest {
 
 	@Mock
 	private TagGenerator tagGenerator;
+
+	@Mock
+	private AnonymousProfileService anonymousProfileService;
 
 	private MessageDTO messageDTO;
 	private String stageName;

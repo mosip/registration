@@ -25,6 +25,7 @@ import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.json.simple.JSONObject;
@@ -535,6 +536,41 @@ public class Utility {
 		return packetCreatedDate;
 	}
 
+	/**
+	 * Retrieves the packet creation date time for the given RID from the sync registration table
+	 *
+	 * @param rid
+	 * @return
+	 */
+	public LocalDateTime getPacketCreatedDateTimeFromSyncRegistration(String rid) {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::getPacketCreatedDateTimeFromSyncRegistration():: entry");
+
+		List<SyncRegistrationEntity> registrations = syncRegistrationRepository.findByRegistrationId(rid);
+		if (registrations == null || registrations.isEmpty()) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"utility::getPacketCreatedDateTimeFromSyncRegistration():: no SyncRegistration records found");
+			return null;
+		}
+
+		// Fetch latest packetId based on createOn
+		String packetId = registrations.stream()
+				.max(Comparator.comparing(SyncRegistrationEntity::getCreateDateTime)) // latest record
+				.map(SyncRegistrationEntity::getPacketId) // extract packetId
+				.orElse(null); // if no records, return null
+
+		LocalDateTime packetCreatedDateTime = extractPacketCreatedDateTime(packetId);
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::getPacketCreatedDateTimeFromSyncRegistration():: exit with packetCreatedDate: " + packetCreatedDateTime);
+
+		return packetCreatedDateTime;
+	}
+
 	private LocalDate extractPacketCreatedDate(String id) {
 		String packetCreatedDateFormat = "yyyyMMddHHmmss";
 
@@ -546,6 +582,19 @@ public class Utility {
 		String dateStr = id.substring(id.length() - 14);
 		return parseToLocalDate(dateStr, packetCreatedDateFormat);
 	}
+	
+	private LocalDateTime extractPacketCreatedDateTime(String id) {
+		String packetCreatedDateFormat = "yyyyMMddHHmmss";
+
+		if (id == null || id.length() < 14) {
+			regProcLogger.debug("Provided id is null or shorter than 14 characters. Cannot extract packet creation date. id : {} " , id);
+			return null;
+		}
+
+		String dateStr = id.substring(id.length() - 14);
+		return parseToLocalDateTime(dateStr, packetCreatedDateFormat);
+	}
+
 
 
 	/**
@@ -592,6 +641,49 @@ public class Utility {
 	}
 
 	/**
+	 * Wrapper that returns LocalDateTime only
+	 *
+	 * @param datetimeString
+	 * @param dateFormat
+	 * @return
+	 */
+	public LocalDateTime parseToLocalDateTime(String datetimeString, String dateFormat) {
+
+		// Log the incoming parameters for debugging
+		regProcLogger.debug("parseToLocalDateTime : Attempting to parse date time: {} with format: {}", datetimeString, dateFormat);
+
+		LocalDateTime ldt = null;
+
+		try {
+			// Parse the date string into LocalDateTime
+			ldt = parseUTCToLocalDateTime(datetimeString, dateFormat);
+
+			// Perform validation if parsing was successful
+			if (ldt != null) {
+				LocalDateTime now = LocalDateTime.now();
+
+				// Check if date is in the future
+				if (after(ldt, now)) {
+					regProcLogger.error("parseToLocalDateTime : Parsed LocalDateTime occurs in the future: {}", ldt);
+					return null;
+				}
+
+				// Check if date is older than 100 years
+				LocalDateTime hundredYearsAgo = now.minusYears(200);
+				if (before(ldt, hundredYearsAgo)) {
+					regProcLogger.error("parseToLocalDateTime : Date is older than 200 years : {}", ldt);
+					return null;
+				}
+			}
+		} catch (io.mosip.kernel.core.exception.ParseException e) {
+			regProcLogger.debug("parseToLocalDateTime :  Failed to parse date: {} with format: {}", datetimeString, dateFormat, e);
+			return null;
+		}
+
+		return ldt;
+	}
+
+	/**
 	 * Extracts the packet creation date from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}
 	 *
 	 * @param rid
@@ -610,6 +702,27 @@ public class Utility {
 				"utility::getPacketCreatedDateFromRid():: exit with packetCreatedDate: " + packetCreatedDate);
 
 		return packetCreatedDate;
+	}
+
+	/**
+	 * Extracts the packet creation date time from the given Registration ID (RID) by interpreting its last 14 digits as a timestamp in the format {@code yyyyMMddHHmmss}
+	 *
+	 * @param rid
+	 * @return
+	 */
+	public LocalDateTime getPacketCreatedDateTimeFromRid(String rid) {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::getPacketCreatedDateTimeFromRid():: entry");
+
+		LocalDateTime packetCreatedDateTime = extractPacketCreatedDateTime(rid);
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::getPacketCreatedDateTimeFromRid():: exit with packetCreatedDate: " + packetCreatedDateTime);
+
+		return packetCreatedDateTime;
 	}
 
 	/**
@@ -845,5 +958,231 @@ public class Utility {
 		);
 
 		return null;
+	}
+
+	/**
+	 * Checks whether the current packet is stale — a newer packet for the same UIN
+	 * has already been processed and committed to ID Repo.
+	 *
+	 * <p>Step 1 — resolve the latest processed RID via {@code getIdVidMetadata} (ID Repo
+	 * idvidmetaInfo API). That API reads the UIN table first (latest RID for the UIN);
+	 * it does not walk {@code uin_h} history, so it always reflects the most recently
+	 * committed identity. A null response means no UIN exists yet (e.g. fresh NEW).</p>
+	 *
+	 * <p>Step 2 — if the current {@code rid} equals that latest RID, the current packet
+	 * is the last processed one → {@link StaleCheckResult#NOT_STALE}. Otherwise resolve
+	 * the creation time of the latest RID from sync registration ({@code registration_list}):
+	 * look up the {@code packetId} for that RID and extract {@code yyyyMMddHHmmss} from
+	 * its suffix; if unavailable, fall back to the same extraction from the RID itself.</p>
+	 *
+	 * <p>Step 3 — parse {@code currentPacketDateTimeString} (packet metaInfo creation date,
+	 * same ISO format stored by UIN Generator / {@link #getLastProcessedPacketCreatedDate})
+	 * and compare with full {@link LocalDateTime} precision. If the latest RID's time is
+	 * strictly after the current packet's time → {@link StaleCheckResult#STALE}.</p>
+	 *
+	 * <p>Identity {@code packetCreatedOn} and {@link #computePacketCreatedFromIdentityUpdate}
+	 * are intentionally not used here — both are tied to the latest RID, which is already
+	 * resolved in Step 1 via idvidmetaInfo.</p>
+	 *
+	 * @return {@link StaleCheckResult#NOT_STALE} when UIN is absent (caller skips stale check),
+	 *         when no committed UIN/RID exists yet, when the current RID is the latest, or when
+	 *         the current packet is not older than the latest;
+	 *         {@link StaleCheckResult#STALE} when a strictly newer processed packet exists;
+	 *         {@link StaleCheckResult#UNAVAILABLE} when the current creation time is missing,
+	 *         the latest RID's creation time cannot be resolved, or the check fails — callers
+	 *         must requeue.
+	 */
+	public StaleCheckResult isLatestPacket(String uin, String currentPacketDateTimeString, String rid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"isLatestPacket :: entry");
+		try {
+			if (StringUtils.isEmpty(uin)) {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: uin not found");
+				return StaleCheckResult.NOT_STALE;
+			}
+			if (StringUtils.isEmpty(currentPacketDateTimeString)){
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Not able to find the current packet creation date time.");
+				return StaleCheckResult.UNAVAILABLE;
+			}
+			// Step 1: Get the last processed RID for the UIN
+			IdVidMetadataResponse idVidMetadata = getIdVidMetadata(uin, null);
+			if (idVidMetadata == null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Processed RID not found for the UIN — NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+			String lastProcessedRID = idVidMetadata.getRid();
+			if (lastProcessedRID.equals(rid)) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Current packet is the last processed — NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+
+			String packetCreatedDateTimeIsoFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+			LocalDateTime currentPacketDateTime = parseToLocalDateTime(currentPacketDateTimeString, packetCreatedDateTimeIsoFormat);
+			if (currentPacketDateTime == null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Unable to parse current packet date time : {}", currentPacketDateTimeString);
+				return StaleCheckResult.UNAVAILABLE;
+			}
+
+
+			// Step 2 : Try from packetId (yyyyMMddHHmmss)
+			LocalDateTime lastProcessedPacketDateTime = getPacketCreatedDateTimeFromSyncRegistration(lastProcessedRID);
+			if (lastProcessedPacketDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Successfully resolved packet creation date from packetId. date : {}", lastProcessedPacketDateTime);
+				boolean isStale = lastProcessedPacketDateTime.isAfter(currentPacketDateTime);
+				return isStale ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
+			}
+
+			//  Step 2 : Try from RID directly (yyyyMMddHHmmss)
+			lastProcessedPacketDateTime = getPacketCreatedDateTimeFromRid(lastProcessedRID);
+			if (lastProcessedPacketDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Successfully resolved packet creation date from RID. date : {}", lastProcessedPacketDateTime);
+				boolean isStale = lastProcessedPacketDateTime.isAfter(currentPacketDateTime);
+				return isStale ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
+			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"Unable to compute the creation date of the last processed packet");
+			return StaleCheckResult.UNAVAILABLE;
+		} catch (Exception e) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"isLatestPacket :: check failed — result UNAVAILABLE: " + e.getMessage());
+			return StaleCheckResult.UNAVAILABLE;
+		}
+	}
+
+	/**
+	 * Checks whether the current packet is stale — a newer packet for the same UIN
+	 * has already been processed and committed to ID Repo.
+	 *
+	 * <p>Step 1 — resolve the latest processed RID via {@code getIdVidMetadata} (ID Repo
+	 * idvidmetaInfo API). That API reads the UIN table first (latest RID for the UIN);
+	 * it does not walk {@code uin_h} history, so it always reflects the most recently
+	 * committed identity. A null response means no UIN exists yet (e.g. fresh NEW).</p>
+	 *
+	 * <p>Step 2 — if the current {@code rid} equals that latest RID, the current packet
+	 * is the last processed one → {@link StaleCheckResult#NOT_STALE}. Otherwise resolve
+	 * the creation time of the latest RID from sync registration ({@code registration_list}):
+	 * look up the {@code packetId} for that RID and extract {@code yyyyMMddHHmmss} from
+	 * its suffix; if unavailable, fall back to the same extraction from the RID itself.</p>
+	 *
+	 * <p>Step 3 — parse {@code currentPacketDateTimeString} (packet metaInfo creation date,
+	 * same ISO format stored by UIN Generator / {@link #getLastProcessedPacketCreatedDate})
+	 * and compare with full {@link LocalDateTime} precision. If the latest RID's time is
+	 * strictly after the current packet's time → {@link StaleCheckResult#STALE}.</p>
+	 *
+	 * <p>Identity {@code packetCreatedOn} and {@link #computePacketCreatedFromIdentityUpdate}
+	 * are intentionally not used here — both are tied to the latest RID, which is already
+	 * resolved in Step 1 via idvidmetaInfo.</p>
+	 *
+	 * @return {@link StaleCheckResult#NOT_STALE} when UIN is absent (caller skips stale check),
+	 *         when no committed UIN/RID exists yet, when the current RID is the latest, or when
+	 *         the current packet is not older than the latest;
+	 *         {@link StaleCheckResult#STALE} when a strictly newer processed packet exists;
+	 *         {@link StaleCheckResult#UNAVAILABLE} when the current creation time is missing,
+	 *         the latest RID's creation time cannot be resolved, or the check fails — callers
+	 *         must requeue.
+	 */
+	public StaleCheckResult isLatestPacket(String uin, LocalDateTime currentPacketDateTime, String rid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"isLatestPacket :: entry");
+		try {
+			if (StringUtils.isEmpty(uin)) {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: uin not found");
+				return StaleCheckResult.NOT_STALE;
+			}
+			if (currentPacketDateTime == null){
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Not able to find the current packet creation date time.");
+				return StaleCheckResult.UNAVAILABLE;
+			}
+			// Step 1: Get the last processed RID for the UIN
+			IdVidMetadataResponse idVidMetadata = getIdVidMetadata(uin, null);
+			if (idVidMetadata == null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Processed RID not found for the UIN — NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+			String lastProcessedRID = idVidMetadata.getRid();
+			if (lastProcessedRID.equals(rid)) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Current packet is the last processed — NOT_STALE.");
+				return StaleCheckResult.NOT_STALE;
+			}
+
+			// Step 2 : Try from packetId (yyyyMMddHHmmss)
+			LocalDateTime lastProcessedPacketDateTime = getPacketCreatedDateTimeFromSyncRegistration(lastProcessedRID);
+			if (lastProcessedPacketDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Successfully resolved packet creation date from packetId. date : {}", lastProcessedPacketDateTime);
+				boolean isStale = lastProcessedPacketDateTime.isAfter(currentPacketDateTime);
+				return isStale ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
+			}
+
+			//  Step 2 : Try from RID directly (yyyyMMddHHmmss)
+			lastProcessedPacketDateTime = getPacketCreatedDateTimeFromRid(lastProcessedRID);
+			if (lastProcessedPacketDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"isLatestPacket :: Successfully resolved packet creation date from RID. date : {}", lastProcessedPacketDateTime);
+				boolean isStale = lastProcessedPacketDateTime.isAfter(currentPacketDateTime);
+				return isStale ? StaleCheckResult.STALE : StaleCheckResult.NOT_STALE;
+			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"Unable to compute the creation date of the last processed packet");
+			return StaleCheckResult.UNAVAILABLE;
+		} catch (Exception e) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"isLatestPacket :: check failed — result UNAVAILABLE: " + e.getMessage());
+			return StaleCheckResult.UNAVAILABLE;
+		}
+	}
+
+	public LocalDateTime getPacketCreatedDateTimeWithoutPacketManager(String rid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+				LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"getPacketCreatedDateTimeWithoutPacketManager :: entry");
+		try {
+			// Step 1 : Try from packetId (yyyyMMddHHmmss)
+			LocalDateTime packetCreatedDateTime = getPacketCreatedDateTimeFromSyncRegistration(rid);
+			if (packetCreatedDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from packetId. date : {}", packetCreatedDateTime);
+				return packetCreatedDateTime;
+			}
+
+			//  Step 2 : Try from RID directly (yyyyMMddHHmmss)
+			packetCreatedDateTime = getPacketCreatedDateTimeFromRid(rid);
+			if (packetCreatedDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from RID. date : {}", packetCreatedDateTime);
+				return packetCreatedDateTime;
+			}
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"Unable to compute the creation date from the packet RID");
+			return null;
+		} catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"getPacketCreatedDateTimeWithoutPacketManager :: Exception occurred : " + e.getMessage());
+			return null;
+		}
 	}
 }
