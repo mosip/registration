@@ -203,6 +203,12 @@ public enum StatusUtil {
 			"Multiple Match was Found for the Biometrics Received"),
 	BIO_DEDUPE_NO_BIOMETRICS_FOUND(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "004",
 			"No biometric match found for the applicant"),
+	LOST_PACKET_MATCHED_UIN_UNAVAILABLE(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "005",
+			"Unable to resolve UIN from ID Repository for the matched LOST packet identity"),
+	BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "006",
+			"Failed to stamp resolved UIN on LOST ID Repository draft"),
+	BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESSABLE(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "007",
+			"Failed to stamp resolved UIN on LOST ID Repository draft"),
 
 	// Biometric authentication stage
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001",
@@ -279,10 +285,12 @@ public enum StatusUtil {
 	FINALIZATION_IDREPO_DRAFT_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "003",
 			"Exception occured updating idrepo draft."),
 
-	FINALIZATION_STALE_PACKET(StatusConstants.FINALIZATION_MODULE_FAILED + "005",
-			"A newer packet for this identity has already been committed to ID Repository"),
 	FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.FINALIZATION_MODULE_FAILED + "004",
 			"Exception occured updating idrepo draft, which can be reprocessed"),
+	FINALIZATION_STALE_PACKET(StatusConstants.FINALIZATION_MODULE_FAILED + "005",
+			"A newer packet for this identity has already been committed to ID Repository"),
+	FINALIZATION_UNABLE_TO_CHECK_STALE(StatusConstants.FINALIZATION_MODULE_FAILED + "006",
+			"Unable to complete stale packet check"),
 
 	// Request handler service
 	// 1)Resident UIN update
@@ -386,10 +394,12 @@ public enum StatusUtil {
 
 	// Create draft stage
 	CREATE_DRAFT_SUCCESS(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "001", "Create draft stage success"),
+
 	CREATE_DRAFT_FAILED(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "001", "Create draft stage failed"),
-	CREATE_DRAFT_SKIPPED(StatusConstants.CREATE_DRAFT_MODULE_SUCCESS + "002", "Packet superseded by a newer committed packet — draft discarded and marked obsolete"),
 	CREATE_DRAFT_STALE_PACKET(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "002",
-			"A newer packet for this identity has already been committed to ID Repository");
+			"A newer packet for this identity has already been committed to ID Repository"),
+	CREATE_DRAFT_UNABLE_TO_CHECK_STALE(StatusConstants.CREATE_DRAFT_MODULE_FAILED + "003",
+			"Unable to complete stale packet check");
 
 	private final String statusComment;
 	private final String statusCode;

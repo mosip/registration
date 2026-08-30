@@ -1,11 +1,18 @@
 package io.mosip.registration.processor.stages.finalization.stage.tests;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.mockito.ArgumentCaptor;
+
+import java.time.LocalDateTime;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -32,7 +39,11 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
@@ -157,7 +168,6 @@ public class FinalizationStageTest {
 
 		MockitoAnnotations.initMocks(this);
 
-
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
 		Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
 				"test case description", EventId.RPR_405.toString(), EventName.UPDATE.toString(),
@@ -174,16 +184,21 @@ public class FinalizationStageTest {
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 
-		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn("UIN");
+		LocalDateTime packetCreatedDateTime = LocalDateTime.of(2024, 1, 1, 10, 0, 0);
+		when(utility.getPacketCreatedDateTimeWithoutPacketManager(anyString())).thenReturn(packetCreatedDateTime);
 
-		// resolveUinForFinalization fetches draft demographics to get the UIN for stale check
+		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		when(idrepoDraftService.idrepoDiscardDraft(anyString())).thenReturn(true);
+
 		java.util.Map<String, Object> identityWithUin = new java.util.HashMap<>();
 		identityWithUin.put("UIN", "9876543210");
 		ResponseDTO draftWithUin = new ResponseDTO();
 		draftWithUin.setIdentity(identityWithUin);
 		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftWithUin);
 
-		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.NOT_STALE);
+		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
+				.thenReturn(StaleCheckResult.NOT_STALE);
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAnonymousProfile("aa");
@@ -204,7 +219,11 @@ public class FinalizationStageTest {
 		messageDTO.setIteration(1);
 
 		MessageDTO result = finalizationStage.process(messageDTO);
-		Mockito.verify(idrepoDraftService).idrepoPublishDraft("27847657360002520181210094052");
+
+		verify(utility).getMappedFieldName(MappingJsonConstants.UIN);
+		verify(utility).getPacketCreatedDateTimeWithoutPacketManager("27847657360002520181210094052");
+		verify(utility).isLatestPacket(eq("9876543210"), any(LocalDateTime.class), eq("27847657360002520181210094052"));
+		verify(idrepoDraftService).idrepoPublishDraft("27847657360002520181210094052");
 		assertFalse(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
@@ -267,13 +286,27 @@ public class FinalizationStageTest {
 	
 	@Test
 	public void testStaleReprocess_UnavailableTriggersReprocess() throws Exception {
-		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.UNAVAILABLE);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
+				.thenReturn(StaleCheckResult.UNAVAILABLE);
 
 		MessageDTO result = finalizationStage.process(dto);
 
-		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoDiscardDraft(anyString());
-		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService, never()).idrepoDiscardDraft(anyString());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		verify(registrationStatusMapperUtil).getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS);
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				updatedStatus.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_UNABLE_TO_CHECK_STALE.getCode(), updatedStatus.getSubStatusCode());
 		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -299,12 +332,23 @@ public class FinalizationStageTest {
 
 	@Test
 	public void testStaleReprocess_DiscardDraftAndSkipPublish() throws Exception {
-		when(utility.isLatestPacket(any(), any(), any())).thenReturn(StaleCheckResult.STALE);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
+				.thenReturn(StaleCheckResult.STALE);
 
 		MessageDTO result = finalizationStage.process(dto);
 
-		Mockito.verify(idrepoDraftService).idrepoDiscardDraft(dto.getRid());
-		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService).idrepoDiscardDraft(dto.getRid());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		verify(registrationStatusMapperUtil).getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED);
+		assertEquals(RegistrationStatusCode.FAILED.toString(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_STALE_PACKET.getCode(), updatedStatus.getSubStatusCode());
 		assertFalse(result.getIsValid());
 		assertFalse(result.getInternalError());
 	}
@@ -340,34 +384,42 @@ public class FinalizationStageTest {
 	}
 
 	@Test
-	public void testProcess_DeactivatedUinStatus_RejectsWithoutInternalError() throws Exception {
+	public void testProcess_UinNotInDraft_MarksFailedForNew() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 
-		// Ensure the status DTO explicitly reports NEW type (immune to mock-ordering side-effects)
 		InternalRegistrationStatusDto newStatusDto = new InternalRegistrationStatusDto();
 		newStatusDto.setRegistrationId("27847657360002520181210094052");
 		newStatusDto.setStatusCode("");
 		newStatusDto.setRegistrationType(RegistrationType.NEW.name());
 		when(registrationStatusService.getRegistrationStatus(anyString(), any(), any(), any())).thenReturn(newStatusDto);
 
-		// Draft has no identity field → resolveUinFromDraft returns null → triggers deactivated-identity path
 		ResponseDTO draftNoUin = new ResponseDTO();
 		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftNoUin);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
 
 		MessageDTO result = finalizationStage.process(messageDTO);
 
-		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		verify(utility, never()).isLatestPacket(anyString(), any(LocalDateTime.class), anyString());
+		verify(utility, never()).getPacketCreatedDateTimeWithoutPacketManager(anyString());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_FAILURE.getCode(), updatedStatus.getSubStatusCode());
 		assertFalse(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testProcess_UinNotInDraft_TriggersReprocess() throws Exception {
-		// UPDATE packet where draft exists but identity has no UIN → must schedule reprocess, not publish
+	public void testProcess_UinNotInDraft_MarksFailed() throws Exception {
 		InternalRegistrationStatusDto updateStatusDto = new InternalRegistrationStatusDto();
 		updateStatusDto.setRegistrationId("2018701130000410092018110735");
 		updateStatusDto.setStatusCode("");
@@ -377,11 +429,40 @@ public class FinalizationStageTest {
 		ResponseDTO draftNoUin = new ResponseDTO();
 		draftNoUin.setIdentity(new java.util.HashMap<>());
 		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftNoUin);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
 
 		MessageDTO result = finalizationStage.process(dto);
 
-		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoPublishDraft(anyString());
-		assertTrue(result.getInternalError());
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(utility).getMappedFieldName(MappingJsonConstants.UIN);
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		verify(utility, never()).isLatestPacket(anyString(), any(LocalDateTime.class), anyString());
+		assertEquals(RegistrationStatusCode.FAILED.toString(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_FAILURE.getCode(), updatedStatus.getSubStatusCode());
+		assertFalse(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testProcess_ResolvesMappedUinFieldFromDraft() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn("uin");
+		java.util.Map<String, Object> identityWithMappedUin = new java.util.HashMap<>();
+		identityWithMappedUin.put("uin", "1122334455");
+		ResponseDTO draftWithMappedUin = new ResponseDTO();
+		draftWithMappedUin.setIdentity(identityWithMappedUin);
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics"))).thenReturn(draftWithMappedUin);
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		verify(utility).isLatestPacket(eq("1122334455"), any(LocalDateTime.class), eq(dto.getRid()));
+		verify(idrepoDraftService).idrepoPublishDraft(dto.getRid());
+		assertFalse(result.getInternalError());
+		assertTrue(result.getIsValid());
 	}
 
 	// TC_44473_15: UPDATE packet success path — draft must be published

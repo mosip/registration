@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
@@ -32,7 +31,6 @@ import io.mosip.registration.processor.status.service.AnonymousProfileService;
  * of the packet classification pipeline.
  */
 @Component
-@ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('AnonymousProfile')")
 public class AnonymousProfileTagGenerator implements TagGenerator {
 
     private static final Logger regProcLogger =

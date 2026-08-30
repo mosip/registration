@@ -70,7 +70,7 @@ startupProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 5
@@ -82,7 +82,7 @@ livenessProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 20
   periodSeconds: 90
   timeoutSeconds: 60
@@ -94,7 +94,7 @@ readinessProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8099/registrationprocessor/v1/uin-generator/actuator/health,http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8097/registrationprocessor/v1/credentialrequestor-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
   periodSeconds: 90
   timeoutSeconds: 60
@@ -343,10 +343,6 @@ metrics:
   podAnnotations:
     prometheus.io/scrape: "true"
   endpointPathList:
-    - endpointPath: '/registrationprocessor/v1/uin-generator/actuator/prometheus'
-      port_name: uin-generator
-      port: 8099
-      targetPort: 8099
     - endpointPath: '/registrationprocessor/v1/credentialrequestor-stage/actuator/prometheus'
       port_name: credentialrequestor-stage
       port: 8097

@@ -348,13 +348,6 @@ public class PacketClassificationProcessor {
 			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
 				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
 			String schemaVersionStr = identityFieldValueMap.get(idSchemaVersionLabel);
-			if (schemaVersionStr == null) {
-				throw new BaseCheckedException(
-						PlatformErrorMessages.RPR_PCM_BASE_CHECKED_EXCEPTION.getCode(),
-						"Schema version label '" + idSchemaVersionLabel
-								+ "' not found in identity fields for registration: " + registrationId);
-			}
-
 			// Merge tag-generator fields + full schema default fields, then fetch the delta
 			// in ONE combined call — avoids a separate getFields for the anonymous profile.
 			List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.parseDouble(schemaVersionStr));

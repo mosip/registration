@@ -231,7 +231,7 @@ public class BioDedupeProcessor {
 					Set<String> matchedRegIds = new HashSet<>(
 							Optional.ofNullable(processedMatchedResult.getMatchedResults()).orElse(Collections.emptySet())
 					);
-					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
+					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds, description);
 				}
 
 			}
@@ -240,7 +240,7 @@ public class BioDedupeProcessor {
 				isDuplicateRequestForSameTransactionId = true;
 
 			registrationStatusDto.setRegistrationStageName(stageName);
-			isTransactionSuccessful = true;
+			isTransactionSuccessful = !object.getInternalError();
 
 		} catch (DataAccessException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
@@ -621,7 +621,8 @@ public class BioDedupeProcessor {
 	}
 
 	private void lostPacketPostAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
-			MessageDTO object, Set<String> matchedRegIds) throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
+			MessageDTO object, Set<String> matchedRegIds, LogDescription description)
+			throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		String registrationId = registrationStatusDto.getRegistrationId();
@@ -653,11 +654,7 @@ public class BioDedupeProcessor {
 			moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
 			packetInfoManager.saveRegLostUinDet(registrationId,
 					object.getWorkflowInstanceId(), matchedRegId, moduleId, moduleName);
-			// Stamp the resolved UIN on the LOST draft so publish can link files to uinHash.
-			String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
-			if (resolvedUin != null) {
-				stampUinOnDraft(registrationId, resolvedUin, registrationStatusDto, object);
-			}
+			resolveAndStampUinOnLostDraft(registrationId, matchedRegId, registrationStatusDto, object, description);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
 					BioDedupeConstants.FOUND_UIN_IN_BIO_CHECK + registrationId);
@@ -692,11 +689,7 @@ public class BioDedupeProcessor {
 				moduleId = PlatformSuccessMessages.RPR_BIO_LOST_PACKET_UNIQUE_MATCH_FOUND.getCode();
 				packetInfoManager.saveRegLostUinDet(registrationId,
 						object.getWorkflowInstanceId(), matchedRegId, moduleId, moduleName);
-				// Stamp the resolved UIN on the LOST draft.
-				String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
-				if (resolvedUin != null) {
-					stampUinOnDraft(registrationId, resolvedUin, registrationStatusDto, object);
-				}
+				resolveAndStampUinOnLostDraft(registrationId, matchedRegId, registrationStatusDto, object, description);
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 						BioDedupeConstants.FOUND_UIN_IN_DEMO_CHECK + registrationId);
@@ -780,23 +773,67 @@ public class BioDedupeProcessor {
 		return attribute;
 	}
 
+	private void resolveAndStampUinOnLostDraft(String registrationId, String matchedRegId,
+			InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, LogDescription description)
+			throws ApisResourceAccessException, IOException {
+		String resolvedUin = idRepoService.getUinByRid(matchedRegId, utilities.getGetRegProcessorDemographicIdentity());
+		if (resolvedUin == null) {
+			markLostUinUnavailableForReprocess(registrationId, matchedRegId, registrationStatusDto, object, description);
+			return;
+		}
+		stampUinOnDraft(registrationId, resolvedUin, registrationStatusDto, object, description);
+	}
+
+	/**
+	 * Schedules reprocess when UIN could not be resolved for a matched LOST RID.
+	 */
+	private void markLostUinUnavailableForReprocess(String registrationId, String matchedRegId,
+			InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, LogDescription description) {
+		regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "Unable to resolve UIN for matched RID: " + matchedRegId);
+		registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+		registrationStatusDto.setStatusComment(StatusUtil.LOST_PACKET_MATCHED_UIN_UNAVAILABLE.getMessage());
+		registrationStatusDto.setSubStatusCode(StatusUtil.LOST_PACKET_MATCHED_UIN_UNAVAILABLE.getCode());
+		registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_UIN_RESOLUTION_REPROCESS));
+		object.setInternalError(Boolean.TRUE);
+		object.setIsValid(Boolean.FALSE);
+		description.setCode(PlatformErrorMessages.RPR_BDS_LOST_MATCHED_UIN_UNAVAILABLE.getCode());
+		description.setMessage(PlatformErrorMessages.RPR_BDS_LOST_MATCHED_UIN_UNAVAILABLE.getMessage());
+	}
+
 	private void stampUinOnDraft(String registrationId, String resolvedUin,
-			InternalRegistrationStatusDto registrationStatusDto, MessageDTO object) {
+			InternalRegistrationStatusDto registrationStatusDto, MessageDTO object, LogDescription description) {
 		try {
 			idrepoDraftService.idrepoUpdateDraftUin(registrationId, resolvedUin);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "Successfully stamped UIN on LOST draft.");
-		} catch (IdrepoDraftException | IdrepoDraftReprocessableException | ApisResourceAccessException e) {
+		} catch (IdrepoDraftException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Failed to stamp UIN on LOST draft: " + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+					registrationId, "Failed to stamp UIN on LOST draft: " + e.getMessage());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
-					StatusUtil.IDREPO_DRAFT_EXCEPTION.getMessage() + e.getMessage());
-			registrationStatusDto.setSubStatusCode(StatusUtil.IDREPO_DRAFT_EXCEPTION.getCode());
+					StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED.getMessage() + e.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION));
+					.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED));
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
+			description.setCode(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getMessage());
+		} catch (ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Failed to stamp UIN on LOST draft (reprocessable): " + e.getMessage());
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(
+					StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESSABLE.getMessage() + e.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESSABLE.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESS));
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			description.setCode(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_REPROCESSABLE.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_REPROCESSABLE.getMessage());
 		}
 	}
 

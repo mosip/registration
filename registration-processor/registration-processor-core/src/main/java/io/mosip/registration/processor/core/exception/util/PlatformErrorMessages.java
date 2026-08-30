@@ -579,6 +579,15 @@ public enum PlatformErrorMessages {
 	RPR_BIO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "004",
 			"Unable to Access API Resource"),
 
+	RPR_BDS_LOST_MATCHED_UIN_UNAVAILABLE(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "005",
+			"Unable to resolve UIN for matched LOST packet"),
+
+	RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "006",
+			"Failed to stamp UIN on LOST draft"),
+
+	RPR_BDS_LOST_DRAFT_UIN_STAMP_REPROCESSABLE(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "007",
+			"Failed to stamp UIN on LOST draft"),
+
 	/** The abis reference id not found. */
 	// stages - Abis Middleware
 	ABIS_REFERENCE_ID_NOT_FOUND(PlatformConstants.RPR_ABIS_MIDDLEWARE + "001", "Unable to Find ABIS Reference ID"),
@@ -1453,6 +1462,8 @@ public enum PlatformErrorMessages {
 			"Draft request is unavaialble in id-repo draft repository."),
 	RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_FINALIZATION_STAGE + "004",
 			"Not able to access the API resource"),
+	RPR_FINALIZATION_UNABLE_TO_CHECK_STALE(PlatformConstants.RPR_FINALIZATION_STAGE + "005",
+			"Unable to complete stale packet check"),
 
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
 			"Bio authentication failed"),
@@ -1468,8 +1479,12 @@ public enum PlatformErrorMessages {
 
 	RPR_CDS_DRAFT_CREATION_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "001",
 			"Create draft stage failed"),
-	RPR_CDS_UIN_NOT_FOUND_FOR_UPDATE(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "002",
-			"UIN not found for UPDATE packet"),
+	RPR_CDS_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "003",
+			"Not able to access the API resource"),
+	RPR_CDS_UNABLE_TO_CHECK_STALE(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "004",
+			"Unable to complete stale packet check"),
+	RPR_CDS_DRAFT_UPDATE_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "005",
+			"Draft update failed"),
 	;
 
 

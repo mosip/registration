@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -399,20 +400,80 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
 					"Thread interrupted during anonymous profile fallback processing", e);
 		} catch (ExecutionException e) {
-			Throwable cause = e.getCause();
 			regProcLogger.error(
 					"Async operation failed during anonymous profile fallback for rid: {} - {}\n{}",
 					registrationId,
-					cause != null ? cause.getMessage() : e.getMessage(),
-					ExceptionUtils.getStackTrace(cause != null ? cause : e));
-			if (cause instanceof IOException) throw (IOException) cause;
-			if (cause instanceof JSONException) throw (JSONException) cause;
-			if (cause instanceof BaseCheckedException) throw (BaseCheckedException) cause;
+					e.getCause() != null ? e.getCause().getMessage() : e.getMessage(),
+					ExceptionUtils.getStackTrace(e.getCause() != null ? e.getCause() : e));
+			rethrowUnwrappedCause(unwrapAsyncException(e));
+		}
+	}
+
+	/**
+	 * Unwraps failures from {@link CompletableFuture#get()} / async lambdas so types match sequential propagation.
+	 */
+	private static Throwable unwrapAsyncException(Throwable throwable) {
+		if (throwable == null) {
+			return null;
+		}
+		Throwable t = throwable;
+		while (t.getCause() != null
+				&& (t instanceof ExecutionException
+						|| t instanceof CompletionException
+						|| t.getClass() == RuntimeException.class)) {
+			// Only move down through async/get() wrappers; stop on real failures (e.g. TablenotAccessibleException)
+			t = t.getCause();
+		}
+		return t;
+	}
+
+	/**
+	 * Rethrows the root failure from async work so {@link #process(MessageDTO)} sees the same exception types
+	 * as sequential calls (e.g. {@link TablenotAccessibleException} vs generic wrapping).
+	 */
+	private static void rethrowUnwrappedCause(Throwable t)
+			throws IOException, JSONException, BaseCheckedException {
+		if (t instanceof Error) {
+			throw (Error) t;
+		}
+		if (t instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
 			throw new BaseUncheckedException(
 					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
-					"Async operation failed during anonymous profile fallback processing",
-					cause != null ? cause : e);
+					"Thread interrupted during anonymous profile fallback processing",
+					(InterruptedException) t);
 		}
+		if (t instanceof TablenotAccessibleException) {
+			throw (TablenotAccessibleException) t;
+		}
+		if (t instanceof DateTimeParseException) {
+			throw (DateTimeParseException) t;
+		}
+		if (t instanceof WorkflowInternalActionException) {
+			throw (WorkflowInternalActionException) t;
+		}
+		if (t instanceof IOException) {
+			throw (IOException) t;
+		}
+		if (t instanceof JSONException) {
+			throw (JSONException) t;
+		}
+		if (t instanceof BaseCheckedException) {
+			throw (BaseCheckedException) t;
+		}
+		if (t instanceof RuntimeException) {
+			throw (RuntimeException) t;
+		}
+		if (t instanceof Exception) {
+			throw new BaseCheckedException(
+					PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+					t.getMessage() != null ? t.getMessage() : "Error during anonymous profile fallback processing",
+					(Exception) t);
+		}
+		throw new BaseCheckedException(
+				PlatformErrorMessages.RPR_WORKFLOW_INTERNAL_ACTION_FAILED.getCode(),
+				"Error during anonymous profile fallback processing: " + t,
+				new Exception(t));
 	}
 
 	private void processCompleteAsRejectedWithoutParentFlow(WorkflowInternalActionDTO workflowInternalActionDTO) {
@@ -467,7 +528,6 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_PROCESSING.toString());
 		} else {
-			discardDraftSafely(workflowInternalActionDTO.getRid());
 			sendWorkflowCompletedWebSubEvent(registrationStatusDto);
 		}
 
@@ -578,9 +638,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 
 	}
 
-	// Called only for FAILED and REJECTED terminal states to release ID Repository draft resources.
-	// REPROCESS packets intentionally do NOT call this — the draft must remain active so reprocessing
-	// can resume from the existing draft without re-running the create-draft stage.
+	// Called only for REJECTED terminal states to release ID Repository draft resources.
+	// FAILED and REPROCESS packets intentionally do NOT call this — the draft must remain available
+	// for reprocessing or downstream handling without re-running the create-draft stage.
 	private void discardDraftSafely(String rid) {
 		try {
 			if (idrepoDraftService.idrepoHasDraft(rid)) {
@@ -667,14 +727,9 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			workflowActionService.processWorkflowAction(internalRegistrationStatusDtos,
 					WorkflowActionCode.RESUME_FROM_BEGINNING.toString());
 		} else {
-			// No parent additional-info record found — this is a data inconsistency: RESTART_PARENT_FLOW
-			// is only valid for child packets that have a linked parent workflow via additionalInfoRequestService.
 			regProcLogger.error(
-					"processRestartParentFlow: no parent additional-info record found for rid={} reg_type={} iteration={} — " +
-					"expected a parent-child workflow link. This packet cannot restart a parent flow. Error: {}",
+					"Error in  WorkflowEventUpdateVerticle:processRestartParentFlow for registration id {} {}",
 					workflowInternalActionDTO.getRid(),
-					workflowInternalActionDTO.getReg_type(),
-					workflowInternalActionDTO.getIteration(),
 					PlatformErrorMessages.RPR_WIA_ADDITIONALINFOPROCESS_NOT_FOUND.getMessage());
 		}
 	}

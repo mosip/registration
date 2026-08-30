@@ -70,7 +70,7 @@ startupProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:9073/registrationprocessor/v1/createdraft/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 5
@@ -82,7 +82,7 @@ livenessProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:9073/registrationprocessor/v1/createdraft/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
   periodSeconds: 210
   timeoutSeconds: 180
@@ -94,7 +94,7 @@ readinessProbe:
     command:
       - /bin/bash
       - -c
-      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
+      - MY_PROBE_CHECK_PATHS="http://localhost:8090/registrationprocessor/v1/securezone/actuator/health,http://localhost:9072/registrationprocessor/v1/qualityclassifier/actuator/health,http://localhost:9073/registrationprocessor/v1/createdraft/actuator/health,http://localhost:8088/registrationprocessor/v1/sender-stage/actuator/health"; i=1; for str in $(echo $MY_PROBE_CHECK_PATHS | sed "s/,/\n/g"); do curl_output="$(curl -w %{http_code} -o /dev/null -s $str)"; if ! [ "$curl_output" = "200" ]; then echo "$str failed with status code $curl_output" >> /dev/stderr && exit $i; fi; ((i++)); done
   initialDelaySeconds: 0
   periodSeconds: 210
   timeoutSeconds: 180
@@ -351,6 +351,10 @@ metrics:
       port_name: qualityclassifier
       port: 9072
       targetPort: 9072
+    - endpointPath: '/registrationprocessor/v1/createdraft/actuator/prometheus'
+      port_name: createdraft
+      port: 9073
+      targetPort: 9073
     - endpointPath: '/registrationprocessor/v1/sender-stage/actuator/prometheus'
       port_name: sender-stage
       port: 8088

@@ -7,7 +7,6 @@ import java.util.List;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,9 +36,6 @@ public class IdrepoDraftService {
     private static final Integer IDREPO_DRAFT_NOT_FOUND = 204;
     private static Logger regProcLogger = RegProcessorLogger.getLogger(IdrepoDraftService.class);
     private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
-    private static final String DRAFT_UIN_DETAILS_NOT_FOUND = "IDR-IDC-015";
-    private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
-    private static final String NO_RECORD_FOUND_ERROR = "IDR-IDC-007";
 
     @Autowired
     private ObjectMapper mapper;
@@ -49,12 +45,6 @@ public class IdrepoDraftService {
      */
     @Autowired
     private RegistrationProcessorRestClientService<Object> registrationProcessorRestClientService;
-
-    @Value("${mosip.registration.processor.idrepo.uin.stamp.max-retry:3}")
-    private int uinStampMaxRetry;
-
-    @Value("${mosip.registration.processor.idrepo.uin.stamp.retry-delay-ms:1000}")
-    private long uinStampRetryDelayMs;
 
     public boolean idrepoHasDraft(String id) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoHasDraft entry " + id);
@@ -95,9 +85,40 @@ public class IdrepoDraftService {
             return idResponseDTO.getResponse();
         }
 
+    /**
+     * @deprecated UIN Generator only — uses legacy ID Repo create (query-param UIN).
+     *             Create Draft must use {@link #idrepoCreateDraftV2}.
+     */
+    @Deprecated
+    public boolean idrepoCreateDraft(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
+        regProcLogger.debug("idrepoCreateDraft entry " + id);
+        String queryParam = uin != null ? UIN : null;
+        String queryParamValue = uin != null ? uin : null;
 
+        ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
+                ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), queryParam, queryParamValue, null, ResponseWrapper.class);
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            List<ErrorDTO> error = response.getErrors();
+            regProcLogger.error("Error while creating draft for id " + id);
+            throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
+        }
+        return (response.getErrors() == null || response.getErrors().isEmpty());
+    }
+
+    /**
+     * Creates an ID Repository draft using the V2 create API (JSON request body).
+     * Called by {@link #idrepoUpdateDraftV2} when no draft exists for the registration id.
+     *
+     * @param id          registration id (RID)
+     * @param uin         UIN to associate with the draft; {@code null} when UIN is not yet known (LOST)
+     * @param generateUin {@code true} to request ID Repo to generate a new UIN (NEW); {@code false} when
+     *                    UIN is supplied or will be stamped later (UPDATE, LOST)
+     * @return {@code true} when the draft is created successfully
+     * @throws ApisResourceAccessException when the ID Repo REST call fails
+     * @throws IdrepoDraftException        when ID Repo returns an error or a null response
+     */
     public boolean idrepoCreateDraftV2(String id, String uin, boolean generateUin)
-            throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+            throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoCreateDraftV2 entry " + id + " generateUin=" + generateUin);
         CreateDraftV2RequestDto requestBody = new CreateDraftV2RequestDto(uin, generateUin);
         ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
@@ -106,107 +127,117 @@ public class IdrepoDraftService {
             regProcLogger.error("Null response from idrepoCreateDraftV2 for id " + id);
             throw new IdrepoDraftException(
                 PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                "Null response from ID Repository for draft create V2 for id: " + id);
+                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getMessage());
         }
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             List<ErrorDTO> error = response.getErrors();
-            if (error.get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
-                regProcLogger.info("IDR-IDC-012 on createDraftV2 for id " + id + " — attempting discard before retry.");
-                try {
-                    idrepoDiscardDraft(id);
-                } catch (IdrepoDraftException discardEx) {
-                    if (NO_RECORD_FOUND_ERROR.equalsIgnoreCase(discardEx.getErrorCode())) {
-                        // Our regId has no draft, so IDR-IDC-012 came from a UIN-hash conflict
-                        // with a concurrently-active draft for a different (newer) packet.
-                        // Schedule reprocess so we retry once the competing draft is gone.
-                        regProcLogger.warn("Draft conflict for id " + id
-                                + " (IDR-IDC-012 + IDR-IDC-007 on discard) — competing active draft; scheduling reprocess.");
-                        throw new IdrepoDraftReprocessableException(
-                                PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                                "Draft conflict with concurrent packet — retry later for id: " + id);
-                    }
-                    throw discardEx;
-                }
-                response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
-                        ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), null, null, requestBody, ResponseWrapper.class);
-                if (response == null) {
-                    throw new IdrepoDraftException(
-                        PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                        "Null response after discard-and-recreate for id: " + id);
-                }
-                if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-                    List<ErrorDTO> retryError = response.getErrors();
-                    regProcLogger.error("Error while creating draft v2 after discard for id " + id);
-                    throw new IdrepoDraftException(retryError.get(0).getErrorCode(), retryError.get(0).getMessage());
-                }
-                return true;
-            }
             regProcLogger.error("Error while creating draft v2 for id " + id);
             throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
         }
         return true;
     }
 
-    public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+    /**
+     * Stamps a resolved UIN on an existing bare LOST draft.
+     * Called by Bio Dedupe after ABIS match; Create Draft creates the draft without UIN via
+     * {@link #idrepoUpdateDraftV2} with {@code generateUin = false}.
+     *
+     * @param id  registration id (RID)
+     * @param uin matched UIN to write onto the draft
+     * @return {@code true} when the UIN is stamped successfully
+     * @throws ApisResourceAccessException when the ID Repo REST call fails
+     * @throws IdrepoDraftException        when ID Repo returns an error or a null response
+     */
+    public boolean idrepoUpdateDraftUin(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
         regProcLogger.debug("idrepoUpdateDraftUin entry " + id);
         ObjectNode uinBody = mapper.createObjectNode();
         uinBody.put("uin", uin);
-        int attempt = 0;
-        while (true) {
-            IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
-                    ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
-            if (response == null) {
-                regProcLogger.error("Null response from idrepoUpdateDraftUin for id " + id);
-                throw new IdrepoDraftException(
-                    PlatformErrorMessages.RPR_CDS_DRAFT_CREATION_FAILED.getCode(),
-                    "Null response from ID Repository for draft UIN update for id: " + id);
-            }
-            if (response.getErrors() == null || response.getErrors().isEmpty()) {
-                return true;
-            }
+        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
+                ApiName.IDREPOUPDATEDRAFTUIN, Lists.newArrayList(id), null, null, uinBody, IdResponseDTO.class);
+        if (response == null) {
+            regProcLogger.error("Null response from idrepoUpdateDraftUin for id " + id);
+            throw new IdrepoDraftException(
+                PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getCode(),
+                PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getMessage());
+        }
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             ErrorDTO error = response.getErrors().get(0);
             regProcLogger.error("Error while stamping UIN on draft for id " + id + " errorCode: " + error.getErrorCode());
-            if (error.getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
-                attempt++;
-                if (attempt >= uinStampMaxRetry) {
-                    regProcLogger.error("idrepoUpdateDraftUin: Key Manager error persists after " + uinStampMaxRetry + " attempt(s) for id " + id);
-                    throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
-                }
-                regProcLogger.warn("idrepoUpdateDraftUin: Key Manager error on attempt " + attempt + "/" + uinStampMaxRetry + " for id " + id + ", retrying after " + uinStampRetryDelayMs + "ms");
-                try {
-                    Thread.sleep(uinStampRetryDelayMs);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
-                }
-            } else {
-                throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
-            }
+            throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
         }
+        return true;
     }
 
-    public boolean idrepoCreateDraft(String id, String uin) throws ApisResourceAccessException, IdrepoDraftException {
-        regProcLogger.debug("idrepoCreateDraft entry " + id);
-        String queryParam = uin != null ? UIN : null;
-        String queryParamValue = uin != null ? uin : null;
-
-        ResponseWrapper response = (ResponseWrapper) registrationProcessorRestClientService.postApi(
-                ApiName.IDREPOCREATEDRAFT, Lists.newArrayList(id), queryParam, queryParamValue, null, ResponseWrapper.class);
-        if (response.getErrors() != null && !response.getErrors().isEmpty())
-        {
-            List<ErrorDTO> error=response.getErrors();
-            regProcLogger.error("Error while creating draft for id " + id);
-            throw new IdrepoDraftException(error.get(0).getErrorCode(), error.get(0).getMessage());
-        }
-        return (response.getErrors() == null || response.getErrors().isEmpty());
-    }
-
+    /**
+     * @deprecated UIN Generator only — legacy create/update flow matching upstream develop.
+     *             Create Draft must use {@link #idrepoUpdateDraftV2}.
+     */
+    @Deprecated
     public IdResponseDTO idrepoUpdateDraft(String id, String uin, IdRequestDto idRequestDto)
             throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
         regProcLogger.debug("idrepoUpdateDraft entry " + id);
         if (!idrepoHasDraft(id)) {
             regProcLogger.info("Existing draft not found for id " + id + ". Creating new draft.");
             idrepoCreateDraft(id, uin);
+        } else {
+            regProcLogger.info("Existing draft found for id " + id + ". Updating uin in demographic identity.");
+            ResponseDTO responseDTO = idrepoGetDraft(id);
+            RequestDto requestDto = new RequestDto();
+            requestDto.setAnonymousProfile(responseDTO.getAnonymousProfile());
+            requestDto.setBiometricReferenceId(responseDTO.getBiometricReferenceId());
+            JSONObject existingIdentity = mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class);
+            JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
+            newIdentity.put(UIN, existingIdentity.get(UIN));
+//          setting the identity to request while updating the draft.
+            requestDto.setIdentity(newIdentity);
+            requestDto.setRegistrationId(responseDTO.getRegistrationId());
+            requestDto.setStatus(responseDTO.getStatus());
+            requestDto.setUin(responseDTO.getUin());
+            idRequestDto.setRequest(requestDto);
+        }
+        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
+                    ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
+            if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+                regProcLogger.info("Error while updating the drant " + id);
+                regProcLogger.info(id+" Discarding the draft because of "+response.getErrors().get(0).getMessage());
+                idrepoDiscardDraft(id);
+                ErrorDTO error = response.getErrors().get(0);
+                regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
+                if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+                    regProcLogger.error("Error occured Deleting the Draft : " + id, error.toString());
+                    throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+                } else {
+                    throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+                }
+        }
+        regProcLogger.debug("idrepoUpdateDraft exit " + id);
+        return response;
+    }
+
+    /**
+     * Create Draft stage entry point — V2 create-if-absent / merge-if-present flow.
+     * Creates a draft via {@link #idrepoCreateDraftV2} when none exists; otherwise merges incoming
+     * identity into the existing draft before PATCHing ID Repo.
+     * Pass {@code null} or {@code true} for {@code generateUin} on NEW, UPDATE, ACTIVATED, and DEACTIVATED.
+     * Pass {@code false} only for LOST (bare draft; UIN is stamped later via {@link #idrepoUpdateDraftUin}).
+     *
+     * @param id            registration id (RID)
+     * @param uin           UIN for draft creation when no draft exists; may be {@code null} for NEW/LOST
+     * @param idRequestDto  identity and metadata to populate or merge into the draft
+     * @param generateUin   {@code true} to generate UIN on create (NEW); {@code false} for LOST/UPDATE;
+     *                      {@code null} defaults to {@code true}
+     * @return ID Repo response from the draft update PATCH
+     * @throws ApisResourceAccessException when an ID Repo REST call fails
+     * @throws IdrepoDraftException        when ID Repo returns an error or a null response
+     * @throws IOException                 when identity JSON merge fails
+     */
+    public IdResponseDTO idrepoUpdateDraftV2(String id, String uin, IdRequestDto idRequestDto, Boolean generateUin)
+            throws ApisResourceAccessException, IdrepoDraftException, IOException {
+        regProcLogger.debug("idrepoUpdateDraftV2 entry " + id + " generateUin=" + generateUin);
+        boolean effectiveGenerateUin = (generateUin == null) ? true : generateUin.booleanValue();
+        if (!idrepoHasDraft(id)) {
+            regProcLogger.info("Existing draft not found for id " + id + ". Creating new draft.");
+            idrepoCreateDraftV2(id, uin, effectiveGenerateUin);
         } else {
             regProcLogger.info("Existing draft found for id " + id + ". Updating uin in demographic identity.");
             ResponseDTO responseDTO = idrepoGetDraft(id);
@@ -227,10 +258,6 @@ public class IdrepoDraftService {
             }
 //          setting the identity to request while updating the draft.
             requestDto.setIdentity(newIdentity);
-            // Callers (e.g. UinGeneratorStage) set documents on the incoming IdRequestDto.
-            // This branch reconstructs a new RequestDto from scratch, so documents must be
-            // explicitly copied — otherwise the PATCH to idRepo would contain no biometrics.
-            requestDto.setDocuments(idRequestDto.getRequest().getDocuments());
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());
             requestDto.setUin(responseDTO.getUin());
@@ -238,24 +265,18 @@ public class IdrepoDraftService {
         }
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                     ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
-            if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-                ErrorDTO firstError = response.getErrors().get(0);
-                if (firstError.getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
-                    regProcLogger.info("Record already exists for id " + id + " — treating as success for idempotent reprocess.");
-                    return response;
-                }
-                regProcLogger.info("Error while updating the drant " + id);
-                regProcLogger.info(id+" Discarding the draft because of "+firstError.getMessage());
-                idrepoDiscardDraft(id);
-                regProcLogger.error("Error occured while updating draft for id : " + id, firstError.toString());
-                if (firstError.getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
-                    regProcLogger.error("Error occured Deleting the Draft : " + id, firstError.toString());
-                    throw new IdrepoDraftReprocessableException(firstError.getErrorCode(), firstError.getMessage());
-                } else {
-                    throw new IdrepoDraftException(firstError.getErrorCode(), firstError.getMessage());
-                }
+        if (response == null) {
+            regProcLogger.error("Null response from idrepoUpdateDraftV2 for id " + id);
+            throw new IdrepoDraftException(
+                PlatformErrorMessages.RPR_CDS_DRAFT_UPDATE_FAILED.getCode(),
+                PlatformErrorMessages.RPR_CDS_DRAFT_UPDATE_FAILED.getMessage());
         }
-        regProcLogger.debug("idrepoUpdateDraft exit " + id);
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            ErrorDTO error = response.getErrors().get(0);
+            regProcLogger.error("Error while updating draft v2 for id " + id + " errorCode: " + error.getErrorCode());
+            throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+        }
+        regProcLogger.debug("idrepoUpdateDraftV2 exit " + id);
         return response;
     }
 
@@ -273,9 +294,6 @@ public class IdrepoDraftService {
             regProcLogger.error("Error occured while publishing the Draft : " + id, error.toString());
             if (error.getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
                 throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
-            } else if (error.getErrorCode().equalsIgnoreCase(DRAFT_UIN_DETAILS_NOT_FOUND)) {
-                regProcLogger.error("UIN details not found in draft, cannot publish : " + id);
-                throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
             } else {
                 idrepoDiscardDraft(id);
                 throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());

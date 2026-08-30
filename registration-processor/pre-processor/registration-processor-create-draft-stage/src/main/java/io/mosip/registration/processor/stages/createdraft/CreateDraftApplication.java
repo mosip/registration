@@ -10,7 +10,6 @@ public class CreateDraftApplication {
 
 		AnnotationConfigApplicationContext configApplicationContext = new AnnotationConfigApplicationContext();
 		configApplicationContext.scan("io.mosip.registration.processor.core.config",
-				"io.mosip.registration.processor.stages.createdraft.config",
 				"io.mosip.registration.processor.status.config",
 				"io.mosip.registration.processor.rest.client.config",
 				"io.mosip.registration.processor.packet.storage.config",

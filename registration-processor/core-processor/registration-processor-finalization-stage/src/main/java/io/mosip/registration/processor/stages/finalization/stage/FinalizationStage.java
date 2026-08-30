@@ -1,11 +1,11 @@
 package io.mosip.registration.processor.stages.finalization.stage;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
+import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.packet.storage.utils.Utility;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -29,6 +30,7 @@ import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -42,7 +44,6 @@ import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftExcep
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -66,7 +67,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	/** stage properties prefix */
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.finalization.";
 	private static final String USER = "MOSIP_SYSTEM";
-	private static final String UIN_FIELD = "UIN";
+	private static final String DEMOGRAPHICS = "demographics";
 	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -78,7 +79,7 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 	private String clusterManagerUrl;
 	
 	/** After this time intervel, message should be considered as expired (In seconds). */
-	@Value("${mosip.regproc.biometric.extraction.message.expiry-time-limit}")
+	@Value("${mosip.regproc.finalization.message.expiry-time-limit}")
 	private Long messageExpiryTimeLimit;
 	
 	/** The registration status service. */
@@ -148,14 +149,13 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "FinalizationStage::process()::entry");
 		try {
-		 registrationStatusDto = registrationStatusService.getRegistrationStatus(
-				registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
-		registrationStatusDto
-			.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.FINALIZATION.toString());
-		registrationStatusDto.setRegistrationStageName(getStageName());
-		
-		
-			if(!idrepoDraftService.idrepoHasDraft(registrationStatusDto.getRegistrationId())) {
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(
+					registrationId, object.getReg_type(), object.getIteration(), object.getWorkflowInstanceId());
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.FINALIZATION.toString());
+			registrationStatusDto.setRegistrationStageName(getStageName());
+
+			if (!idrepoDraftService.idrepoHasDraft(registrationStatusDto.getRegistrationId())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
 						.getStatusCode(RegistrationExceptionTypeCode.DRAFT_REQUEST_UNAVAILABLE));
@@ -173,85 +173,40 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						StatusUtil.FINALIZATION_DRAFT_REQUEST_UNAVAILABLE.getMessage());
 				object.setIsValid(Boolean.FALSE);
-			}
-			else {
-				io.mosip.registration.processor.packet.manager.dto.ResponseDTO draftForFinalization =
-						idrepoDraftService.idrepoGetDraft(registrationStatusDto.getRegistrationId(), "demographics");
-				String uinForCheck = resolveUinFromDraft(draftForFinalization);
-				String regType = registrationStatusDto.getRegistrationType();
-				boolean isLostPacket = RegistrationType.LOST.toString().equalsIgnoreCase(regType);
-				// UPDATE/RES_UPDATE: UIN must be present; null → reprocess.
-				// NEW: UIN allocated during CreateDraftStage; null at finalization means deactivated identity → reject.
-				// LOST: UIN stamped externally; proceeds through stale check with null UIN.
-				boolean isUpdateLike = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType)
-						|| RegistrationType.RES_UPDATE.toString().equalsIgnoreCase(regType);
-				if (uinForCheck == null && isUpdateLike) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: UIN not found in draft identity for UPDATE packet — scheduling reprocess.");
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-					registrationStatusDto.setStatusComment(trimExceptionMessage
-							.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));
-					registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_FAILURE.getCode());
-					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS));
-					object.setInternalError(Boolean.TRUE);
-					description.setMessage(StatusUtil.FINALIZATION_FAILURE.getMessage());
-					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
-				} else if (uinForCheck == null && !isLostPacket) {
-					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: UIN absent from draft identity for the packet — identity likely deactivated, rejecting.");
+			} else {
+				ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, DEMOGRAPHICS);
+				String uin = resolveUinFromDraft(registrationId, draft);
+				if (StringUtils.isEmpty(uin)) {
+					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "FinalizationStage :: Unable to find the UIN from the draft for packet");
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-					registrationStatusDto.setStatusComment(trimExceptionMessage
-							.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));
+					registrationStatusDto.setStatusComment(trimExceptionMessage.trimExceptionMessage(StatusUtil.FINALIZATION_FAILURE.getMessage()));
 					registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_FAILURE.getCode());
-					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED));
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED));
 					object.setInternalError(Boolean.FALSE);
 					object.setIsValid(Boolean.FALSE);
-					isTransactionSuccessful = false;
 					description.setMessage(PlatformErrorMessages.RPR_FINALIZATION_FAILED.getMessage());
 					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_FAILED.getCode());
-				} else {
-				io.mosip.registration.processor.packet.storage.utils.StaleCheckResult staleCheck =
-						utility.isLatestPacket(uinForCheck, registrationStatusDto.getPacketCreateDateTime(), registrationStatusDto.getRegistrationId());
-				if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.STALE) {
-					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: Stale reprocess detected before publishDraft.");
-					idrepoDraftService.idrepoDiscardDraft(registrationStatusDto.getRegistrationId());
-					markAsObsoleted(registrationStatusDto, object, description);
-					isTransactionSuccessful = false;
-				} else if (staleCheck == io.mosip.registration.processor.packet.storage.utils.StaleCheckResult.UNAVAILABLE) {
-					regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							"FinalizationStage :: Stale check unavailable — scheduling reprocess.");
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-					registrationStatusDto.setStatusComment(trimExceptionMessage
-							.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage()));
-					registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-							.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-					object.setInternalError(Boolean.TRUE);
-					description.setMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage());
-					description.setCode(PlatformErrorMessages.RPR_FINALIZATION_STAGE_API_RESOURCE_EXCEPTION.getCode());
-				} else {
-				IdResponseDTO idResponseDTO=idrepoDraftService.idrepoPublishDraft(registrationStatusDto.getRegistrationId());
-				if(idResponseDTO != null && idResponseDTO.getResponse() != null) {
-						registrationStatusDto.setStatusComment(StatusUtil.FINALIZATION_SUCCESS.getMessage());
-						registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_SUCCESS.getCode());
-						isTransactionSuccessful = true;
-						object.setIsValid(Boolean.TRUE);
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-						description.setMessage(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getMessage());
-						description.setCode(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode());
-						description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-					}
+					return object;
 				}
+
+				LocalDateTime currentPacketCreatedDateTime = utility.getPacketCreatedDateTimeWithoutPacketManager(registrationId);
+				if (!handleStaleCheck(registrationId, uin, currentPacketCreatedDateTime, object, description)) {
+					return object;
 				}
+
+				IdResponseDTO idResponseDTO = idrepoDraftService.idrepoPublishDraft(registrationStatusDto.getRegistrationId());
+				if (idResponseDTO != null && idResponseDTO.getResponse() != null) {
+					registrationStatusDto.setStatusComment(StatusUtil.FINALIZATION_SUCCESS.getMessage());
+					registrationStatusDto.setSubStatusCode(StatusUtil.FINALIZATION_SUCCESS.getCode());
+					isTransactionSuccessful = true;
+					object.setIsValid(Boolean.TRUE);
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+					description.setMessage(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getMessage());
+					description.setCode(PlatformSuccessMessages.RPR_FINALIZATION_SUCCESS.getCode());
+					description.setTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 				}
-			
+			}
+
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, description.getMessage());
 			registrationStatusDto.setUpdatedBy(USER);
@@ -347,22 +302,31 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		return object;
 	}
 
-	private String resolveUinFromDraft(io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft) {
-		if (draft != null && draft.getIdentity() != null) {
+	private String resolveUinFromDraft(String registrationId, ResponseDTO draft) {
+		if (draft == null || draft.getIdentity() == null) {
+			return null;
+		}
+		try {
+			String uinFieldName = utility.getMappedFieldName(MappingJsonConstants.UIN);
+			if (StringUtils.isEmpty(uinFieldName)) {
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+						"FinalizationStage :: UIN field mapping is not configured.");
+				return null;
+			}
 			@SuppressWarnings("unchecked")
 			Map<String, Object> identityMap = objectMapper.convertValue(draft.getIdentity(), Map.class);
-			Object uinVal = identityMap.get(UIN_FIELD);
+			Object uinVal = identityMap.get(uinFieldName);
 			return uinVal != null ? String.valueOf(uinVal) : null;
+		} catch (IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"FinalizationStage :: Failed to resolve UIN field mapping: " + e.getMessage());
+			return null;
 		}
-		return null;
 	}
 
-	private void markAsObsoleted(InternalRegistrationStatusDto dto, MessageDTO object, LogDescription description) {
-		dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-		dto.setStatusComment(StatusUtil.FINALIZATION_STALE_PACKET.getMessage());
-		dto.setSubStatusCode(StatusUtil.FINALIZATION_STALE_PACKET.getCode());
-		dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-				.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED));
+	private void markAsObsoleted(MessageDTO object, LogDescription description) {
 		description.setCode(PlatformErrorMessages.RPR_FINALIZATION_FAILED.getCode());
 		description.setMessage(StatusUtil.FINALIZATION_STALE_PACKET.getMessage());
 		description.setStatusCode(RegistrationStatusCode.FAILED.toString());
@@ -387,5 +351,38 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 		} else {
 			object.setIsValid(false);
 		}
+	}
+
+	/**
+	 * Stale check before publishDraft, after UIN is resolved from the ID Repo draft.
+	 *
+	 * @return {@code true} to continue processing; {@code false} if the caller should return immediately
+	 */
+	private boolean handleStaleCheck(String registrationId, String uinField,
+									 LocalDateTime currentPacketCreateDateTime, MessageDTO object, LogDescription description)
+			throws ApisResourceAccessException, IdrepoDraftException, IdrepoDraftReprocessableException {
+		StaleCheckResult staleCheck = utility.isLatestPacket(uinField,
+				currentPacketCreateDateTime, registrationId);
+		if (staleCheck == StaleCheckResult.STALE) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"handleStaleCheck :: Stale packet reprocess detected before publish draft hence discarding the draft. packet type : " + object.getReg_type()
+							+ " packetCreatedOn : " + currentPacketCreateDateTime + "");
+			idrepoDraftService.idrepoDiscardDraft(registrationId);
+			markAsObsoleted(object, description);
+			return false;
+		}
+		if (staleCheck == StaleCheckResult.UNAVAILABLE) {
+			regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId, "FinalizationStage :: Stale check unavailable — scheduling reprocess.");
+			description.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			description.setStatusComment(trimExceptionMessage.trimExceptionMessage(StatusUtil.FINALIZATION_UNABLE_TO_CHECK_STALE.getMessage()));
+			description.setSubStatusCode(StatusUtil.FINALIZATION_UNABLE_TO_CHECK_STALE.getCode());
+			description.setTransactionStatusCode(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS));
+			object.setInternalError(Boolean.TRUE);
+			description.setMessage(StatusUtil.FINALIZATION_UNABLE_TO_CHECK_STALE.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_FINALIZATION_UNABLE_TO_CHECK_STALE.getCode());
+			return false;
+		}
+		return true;
 	}
 }
