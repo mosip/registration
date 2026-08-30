@@ -1,4 +1,4 @@
-\c mosip_regprc
+\c :mosipdbname
 
 CREATE INDEX IF NOT EXISTS idx_registration_workflow_instance_id ON regprc.registration(workflow_instance_id desc);
 CREATE INDEX IF NOT EXISTS idx_registration_sts_resume ON regprc.registration(status_code, resume_timestamp, default_resume_action);
