@@ -185,7 +185,7 @@ public class AnonymousProfileServiceImplTest {
 	@Test
 	public void buildJsonStringFromPacketInfoTest() throws JSONException, IOException, BaseCheckedException {
 
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"Ben Mansour\",\"14022\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":\"Female\",\"location\":[\"Ben Mansour\",\"14022\"],\"preferredLanguages\":null,\"channel\":[\"phone\"],\"exceptions\":[],\"verified\":null,\"biometricInfo\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\",\"qualityScore\":80,\"attempts\":\"1\",\"digitalId\":\"9KgAwIBAgIBBT\"}],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\",\"supervisorId\":null,\"supervisorDecision\":null,\"supervisorComment\":null}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();
@@ -241,7 +241,7 @@ public class AnonymousProfileServiceImplTest {
 		metaInfoMap.put("operationsData",
 				"[{\"label\" : \"supervisorId\",\"value\" : \"110024\"},{\"label\" : \"supervisorBiometricFileName\",\"value\" : \"null\"}]");
 		
-		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":null,\"location\":[null,\"14022\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\"}],\"verified\":null,\"biometricInfo\":[],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\"}";
+		String json = "{\"processName\":\"NEW\",\"processStage\":\"packetValidatorStage\",\"date\":\"2021-09-12T06:50:19.517872400Z\",\"startDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"endDateTime\":\"2021-09-12T06:50:19.517872400Z\",\"yearOfBirth\":1998,\"gender\":null,\"location\":[null,\"14022\"],\"preferredLanguages\":[\"English\"],\"channel\":[\"email\",\"phone\"],\"exceptions\":[{\"type\":\"FINGER\",\"subType\":\"Left RingFinger\"}],\"verified\":null,\"biometricInfo\":[],\"device\":null,\"documents\":[\"CIN\",\"RNC\"],\"assisted\":[\"110024\"],\"enrollmentCenterId\":\"1003\",\"status\":\"PROCESSED\",\"supervisorId\":\"110024\",\"supervisorDecision\":null,\"supervisorComment\":null}";
 		Document doc1 = new Document();
 		doc1.setDocumentType("CIN");
 		Document doc2 = new Document();

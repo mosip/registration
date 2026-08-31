@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,12 +34,18 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.AnonymousProfileService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @RefreshScope
 @RunWith(PowerMockRunner.class)
@@ -49,6 +56,17 @@ public class AnonymousProfileTagGeneratorTest {
 	private static final String VALUE = "value";
 	private static final String TAG_NAME = "ANONYMOUS";
 	private static final String PROFILE_JSON = "{\"gender\":\"Female\"}";
+	private static final String WORKFLOW_INSTANCE_ID = "8e34c5d5-2ba1-4d69-9e60-31b0a1d1c1d0";
+	private static final String REGISTRATION_ID = "10001100010000120260824";
+
+	/**
+	 * The profile as AnonymousProfileServiceImpl builds it: supervisorId comes from
+	 * the packet operationsData, the decision and comment are not in the packet at
+	 * all and start out null.
+	 */
+	private static final String SUPERVISOR_PROFILE_JSON = "{\"processName\":\"NEW\",\"status\":\"PROCESSING\","
+			+ "\"assisted\":[\"110024\",\"SUP001\"],\"supervisorId\":\"SUP001\","
+			+ "\"supervisorDecision\":null,\"supervisorComment\":null}";
 
 	@InjectMocks
 	private AnonymousProfileTagGenerator anonymousProfileTagGenerator;
@@ -61,6 +79,9 @@ public class AnonymousProfileTagGeneratorTest {
 
 	@Mock
 	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
+	@Mock
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	private List<String> mappingFieldNames;
 
@@ -228,6 +249,83 @@ public class AnonymousProfileTagGeneratorTest {
 				"preferredLang", "zone", "postalCode"));
 		assertEquals(expected, new HashSet<>(requiredIdObjectFieldNames));
 		assertEquals(expected.size(), requiredIdObjectFieldNames.size());
+	}
+
+	@Test
+	public void supervisorDecisionAndCommentAreAddedFromRegistrationListTest() throws Exception {
+		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		syncRegistrationEntity.setSupervisorStatus("APPROVED");
+		syncRegistrationEntity.setSupervisorComment("Verified by supervisor");
+		when(syncRegistrationService.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID))
+				.thenReturn(syncRegistrationEntity);
+
+		AnonymousProfileDTO profile = taggedProfile(generateSupervisorTags());
+
+		assertEquals("APPROVED", profile.getSupervisorDecision());
+		assertEquals("Verified by supervisor", profile.getSupervisorComment());
+		// the packet-sourced field must survive the enrichment round trip
+		assertEquals("SUP001", profile.getSupervisorId());
+	}
+
+	@Test
+	public void rejectedDecisionIsCarriedThroughTest() throws Exception {
+		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
+		syncRegistrationEntity.setSupervisorStatus("REJECTED");
+		syncRegistrationEntity.setSupervisorComment("Poor biometric quality");
+		when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
+				.thenReturn(syncRegistrationEntity);
+
+		AnonymousProfileDTO profile = taggedProfile(generateSupervisorTags());
+
+		assertEquals("REJECTED", profile.getSupervisorDecision());
+		assertEquals("Poor biometric quality", profile.getSupervisorComment());
+	}
+
+	/** A packet with no registration_list record must still get its profile tagged. */
+	@Test
+	public void profileIsStillTaggedWhenSyncRecordIsMissingTest() throws Exception {
+		when(syncRegistrationService.findByWorkflowInstanceId(anyString())).thenReturn(null);
+
+		Map<String, String> tags = generateSupervisorTags();
+
+		assertEquals(SUPERVISOR_PROFILE_JSON, tags.get(TAG_NAME));
+		assertNull(taggedProfile(tags).getSupervisorDecision());
+		assertNull(taggedProfile(tags).getSupervisorComment());
+	}
+
+	/**
+	 * The lookup is only attempted once a profile exists, and a build failure still
+	 * leaves classification unblocked with no tag - the workflow manager then falls
+	 * back to building the profile from the packet.
+	 */
+	@Test
+	public void noTagAndNoLookupWhenProfileBuildFailsTest() throws Exception {
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
+				anyString())).thenThrow(new RuntimeException("profile build failed"));
+
+		assertTrue(anonymousProfileTagGenerator.generateTags(WORKFLOW_INSTANCE_ID, REGISTRATION_ID, "NEW",
+				new HashMap<>(), null, 0).isEmpty());
+		verify(syncRegistrationService, never()).findByWorkflowInstanceId(anyString());
+	}
+
+	/** A registration_list read failure must not break packet classification. */
+	@Test
+	public void classificationContinuesWhenSupervisorLookupFailsTest() throws Exception {
+		when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
+				.thenThrow(new RuntimeException("registration_list unavailable"));
+
+		assertTrue(generateSupervisorTags().isEmpty());
+	}
+
+	private Map<String, String> generateSupervisorTags() throws Exception {
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
+				anyString())).thenReturn(SUPERVISOR_PROFILE_JSON);
+		return anonymousProfileTagGenerator.generateTags(WORKFLOW_INSTANCE_ID, REGISTRATION_ID, "NEW",
+				new HashMap<>(), null, 0);
+	}
+
+	private AnonymousProfileDTO taggedProfile(Map<String, String> tags) throws Exception {
+		return JsonUtil.readValueWithUnknownProperties(tags.get(TAG_NAME), AnonymousProfileDTO.class);
 	}
 
 	private void putMapping(JSONObject mappingJSON, String mappingKey, String actualFieldName) {

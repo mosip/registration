@@ -211,6 +211,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 			assisted.add(supervisorId);
 		}
 		anonymousProfileDTO.setAssisted(assisted);
+		// Same value as in assisted[], labelled separately so reports can group by supervisor.
+		anonymousProfileDTO.setSupervisorId(supervisorId);
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
 
 		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");
