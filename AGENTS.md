@@ -69,14 +69,22 @@ Stages are bundled into deployment groups (1–7), each running as a single JVM 
 | Group | Key Stages |
 |-------|-----------|
 | 1 | Packet Receiver |
-| 2 | Securezone Notification, Quality Classifier, Message Sender |
+| 2 | Securezone Notification, Quality Classifier, Create Draft, Message Sender |
 | 3 | ABIS Handler, ABIS Middleware, Bio Dedupe, Manual Adjudication |
 | 4 | Biometric Authentication, Demo Dedupe |
 | 5 | CMD/Operator/Supervisor/Introducer Validators, Packet Validator |
 | 6 | Packet Uploader, Packet Classifier, Verification |
-| 7 | UIN Generator, Biometric Extraction, Finalization, Credential Requestor |
+| 7 | Biometric Extraction, Finalization, Credential Requestor |
 
 Supporting services: Registration Status Service, Notification Service, Transaction Service.
+
+> `registration-processor-uin-generator-stage` still exists as a module but is no longer bundled into stage-group-7 — draft creation moved earlier into the Create Draft stage (Group 2). See [docs/create-draft-stage-flow.md](docs/create-draft-stage-flow.md).
+
+### Packet Manager vs. ID Repo Draft
+
+Since the Create Draft stage was introduced (Group 2, before ABIS), **post-ABIS stages must read/update the ID Repository draft (`/idrepository/v1/identity/draft/v2/*` APIs) instead of calling Packet Manager.** Packet Manager decrypts and caches the packet; if ABIS is slow, that cache expires and forces a costly re-decryption right when Packet Manager is also busy serving fresh pre-ABIS packets. Draft-based reads avoid that overload.
+
+When writing or modifying code in any stage that runs **after ABIS Handler/Middleware/Bio Dedupe** (Manual Adjudication, Biometric Extraction, Finalization, Credential Requestor, and anything downstream), do not introduce new Packet Manager calls for identity/documents/biometrics — use the ID Repo draft APIs instead. Packet Manager access remains correct for stages **before or at ABIS** (Group 1, 2, 3 up through Bio Dedupe/handler prep). See [docs/create-draft-stage-flow.md](docs/create-draft-stage-flow.md) for the full API list and rationale.
 
 ### Key Technologies
 
@@ -123,7 +131,7 @@ registration-processor/
 ├── registration-processor-common-camel-bridge/ # Camel bridge — loads XML routes, dispatches to stage Kafka topics
 ├── mosip-stage-executor/                 # Stage group runtime; discovers and wires stage beans
 ├── init/                                 # Group 1: Packet Receiver, Registration Status Service, DMZ Packet Server
-├── pre-processor/                        # Groups 2, 5, 6: Securezone, Quality Classifier, validators, uploader, classifier
+├── pre-processor/                        # Groups 2, 5, 6: Securezone, Quality Classifier, Create Draft, validators, uploader, classifier
 ├── core-processor/                       # Groups 3, 4, 7: dedupe (bio/demo), ABIS, auth, manual adjudication, UIN generator, finalization
 ├── post-processor/                       # Group 7 tail: Message Sender, Credential Requestor, Transaction Service
 ├── stage-groups/                         # Deployable fat-JARs (stage-group-1 through stage-group-7)

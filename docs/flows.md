@@ -13,6 +13,7 @@ Sections here list the sequence in which various stages/services are called for 
 * [Supervisor validator](../registration-processor/pre-processor/registration-processor-supervisor-validator-stage)
 * [Introducer validator](../registration-processor/pre-processor/registration-processor-introducer-validator-stage)
 * [Quality classifier](../registration-processor/pre-processor/registration-processor-quality-classifier-stage)
+* [Create draft](../registration-processor/pre-processor/registration-processor-create-draft-stage)
 * [Biometric authentication](../registration-processor/core-processor/registration-processor-biometric-authentication-stage)
 * [Demo dedupe](../registration-processor/core-processor/registration-processor-demo-dedupe-stage)
 * [Bio dedupe](../registration-processor/core-processor/registration-processor-bio-dedupe-stage)
@@ -20,7 +21,6 @@ Sections here list the sequence in which various stages/services are called for 
 * [ABIS handler](../registration-processor/core-processor/registration-processor-abis-handler-stage)
 * [ABIS middleware ](../registration-processor/core-processor/registration-processor-abis-middleware-stage)
 * [Manual adjudication](../registration-processor/core-processor/registration-processor-manual-adjudication-stage)
-* UIN generator
 * Biometric extraction
 * Finalization 
 * Printing
@@ -34,7 +34,7 @@ The flow depends on the type of correction.  See [example XML](example.correctio
 * [Packet receiver](../registration-processor/init/registration-processor-packet-receiver-stage)
 * [Securezone notification](../registration-processor/pre-processor/registration-processor-securezone-notification-stage)
 * [Packet uploader](../registration-processor/pre-processor/registration-processor-packet-uploader-stage)
-* UIN generator
+* [Create draft](../registration-processor/pre-processor/registration-processor-create-draft-stage)
 * Biometric extraction
 * Finalization 
 
