@@ -61,6 +61,7 @@ The Registration Processor organizes its processing flow into distinct stage gro
 -   Group 2
     -   [Securezone notification](registration-processor/pre-processor/registration-processor-securezone-notification-stage) : Sends notifications to the SecureZone system following the initial sanity checks and assists in controlling the traffic flow to the next processing stages.
     -   [Quality classifier](registration-processor/pre-processor/registration-processor-quality-classifier-stage) : Checks biometric quality (fingerprint/iris/face) using a biometric SDK to ensure data meets required quality standards.
+    -   [Create draft](registration-processor/pre-processor/registration-processor-create-draft-stage) : Creates and populates the ID Repository draft with identity, documents and biometrics before ABIS.
     -   [Message sender](registration-processor/registration-processor-message-sender-impl) : Responsible for sending notifications as the packet progresses through the stages.
 -   Group 3
     -   [ABIS handler](registration-processor/core-processor/registration-processor-abis-handler-stage) : Responsible for preparing the request data to be sent to ABIS for deduplication.
@@ -81,7 +82,6 @@ The Registration Processor organizes its processing flow into distinct stage gro
     -   [Packet classifier](registration-processor/pre-processor/registration-processor-packet-classifier-stage) : Classifies packets into categories, such as by age or exceptional biometrics, to ensure proper handling in subsequent stages.
     -   [Verification](registration-processor/core-processor/registration-processor-verification-stage) : Asynchronously sends cases to the external manual verification system and receives decisions for applications requiring human review of documents in cases such as INFANT flows.
 -   Group 7 – Final Processing
-    -   [UIN generator](registration-processor/core-processor/registration-processor-uin-generator-stage) : Creates or updates a UIN draft using the applicant’s biometric and demographic data.
     -   [Biometric extraction](registration-processor/core-processor/registration-processor-biometric-extraction-stage) : Performs biometric extraction to extract biometric templates from raw biometric data for storage and matching.  
     -   [Finalization](registration-processor/core-processor/registration-processor-finalization-stage) : Updates the processing status and finalizes the UIN draft in IDREPO as a UIN entry.
     -   [Credential requestor](registration-processor/post-processor/registration-processor-credential-requestor-stage) : Responsible for generating credentials for different partners, formerly known as the Print Service.
