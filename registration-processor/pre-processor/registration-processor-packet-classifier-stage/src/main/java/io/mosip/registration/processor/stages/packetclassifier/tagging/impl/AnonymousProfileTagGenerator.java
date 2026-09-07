@@ -101,8 +101,19 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
                     ModuleName.PACKET_CLASSIFIER.toString());
 
             if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
+                // Supervisor decision is fetched here; failure is non-fatal and costs
+                // only those two fields, never the profile itself
+                String profileJson = anonymousProfileJson;
+                try {
+                    profileJson = addSupervisorDecision(anonymousProfileJson, workflowInstanceId, registrationId);
+                } catch (Exception e) {
+                    regProcLogger.warn(
+                            "AnonymousProfileTagGenerator: supervisor decision fetch failed for {}; profile tagged without it. Error: {}",
+                            registrationId, e.getMessage());
+                }
+
                 Map<String, String> tags = new HashMap<>();
-                tags.put(tagName, addSupervisorDecision(anonymousProfileJson, workflowInstanceId, registrationId));
+                tags.put(tagName, profileJson);
                 return tags;
             }
         } catch (Exception e) {
@@ -121,13 +132,16 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
      * key, the same way {@link SupervisorApprovalStatusTagGenerator} does.
      *
      * A missing sync record leaves both fields null and the profile is still
-     * tagged - supervisor reporting must never cost us the profile itself.
+     * tagged. The record is usually absent at classification time because the
+     * supervisor decision has not synced yet, so that is logged at debug and the
+     * caller treats any failure here as non-fatal - supervisor reporting must
+     * never cost us the profile itself.
      */
     private String addSupervisorDecision(String anonymousProfileJson, String workflowInstanceId,
             String registrationId) throws IOException {
         SyncRegistrationEntity regEntity = syncRegistrationService.findByWorkflowInstanceId(workflowInstanceId);
         if (regEntity == null) {
-            regProcLogger.warn(
+            regProcLogger.debug(
                     "AnonymousProfileTagGenerator: no registration_list record for {}; supervisor decision and comment left null",
                     registrationId);
             return anonymousProfileJson;

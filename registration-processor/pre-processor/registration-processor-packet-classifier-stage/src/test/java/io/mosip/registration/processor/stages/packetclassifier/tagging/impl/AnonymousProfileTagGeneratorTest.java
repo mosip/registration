@@ -138,13 +138,22 @@ public class AnonymousProfileTagGeneratorTest {
 		Mockito.verify(syncRegistrationService, Mockito.never()).findByWorkflowInstanceId(anyString());
 	}
 
-	/** A registration_list read failure must not break packet classification. */
+	/**
+	 * A registration_list read failure costs the two supervisor fields, not the
+	 * profile - the tag is still written with the JSON as it was built from the
+	 * packet, exactly as a biometrics fetch failure only drops the biometrics.
+	 */
 	@Test
-	public void classificationContinuesWhenSupervisorLookupFailsTest() throws Exception {
+	public void profileIsStillTaggedWhenSupervisorLookupFailsTest() throws Exception {
 		Mockito.when(syncRegistrationService.findByWorkflowInstanceId(anyString()))
 			.thenThrow(new RuntimeException("registration_list unavailable"));
 
-		assertTrue(generateTags().isEmpty());
+		Map<String, String> tags = generateTags();
+
+		assertEquals(PROFILE_JSON, tags.get(TAG_NAME));
+		assertEquals("SUP001", taggedProfile(tags).getSupervisorId());
+		assertNull(taggedProfile(tags).getSupervisorDecision());
+		assertNull(taggedProfile(tags).getSupervisorComment());
 	}
 
 	@Test
