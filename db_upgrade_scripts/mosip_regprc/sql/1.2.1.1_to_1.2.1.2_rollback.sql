@@ -1,4 +1,4 @@
-\c mosip_regprc
+\c :mosipdbname
 
 DROP INDEX IF EXISTS idx_registration_workflow_instance_id;
 DROP INDEX IF EXISTS idx_registration_sts_resume;

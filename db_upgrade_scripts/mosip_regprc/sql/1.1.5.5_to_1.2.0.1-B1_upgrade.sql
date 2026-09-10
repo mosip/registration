@@ -1,12 +1,12 @@
-\c mosip_regprc
+\c :mosipdbname
 
 REASSIGN OWNED BY sysadmin TO postgres;
 
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc FROM regprcuser;
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc FROM :dbuname;
 
 REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc FROM sysadmin;
 
-GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA regprc TO regprcuser;
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA regprc TO :dbuname;
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA regprc TO postgres;
 
@@ -31,7 +31,7 @@ CREATE TABLE regprc.additional_info_request(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON regprc.additional_info_request
-   TO regprcuser;
+   TO :dbuname;
 
 CREATE TABLE regprc.anonymous_profile(
 	id character varying(39) NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE regprc.anonymous_profile(
 );
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON regprc.anonymous_profile
-   TO regprcuser;
+   TO :dbuname;
 
 CREATE TABLE regprc.reg_verification(
     workflow_instance_id character varying(36) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE regprc.reg_verification(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON regprc.reg_verification
-   TO regprcuser;
+   TO :dbuname;
 
 ALTER TABLE regprc.registration_list RENAME COLUMN id TO workflow_instance_id;
 ALTER TABLE regprc.registration_list RENAME COLUMN reg_type TO process;
@@ -220,7 +220,7 @@ CREATE TABLE regprc.crypto_salt(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON regprc.crypto_salt
-   TO regprcuser;
+   TO :dbuname;
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
