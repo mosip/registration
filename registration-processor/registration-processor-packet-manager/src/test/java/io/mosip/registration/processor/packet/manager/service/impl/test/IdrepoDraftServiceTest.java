@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.mosip.registration.processor.packet.manager.dto.CreateDraftV2RequestDto;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
@@ -746,32 +748,13 @@ public class IdrepoDraftServiceTest {
                 .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
     }
 
-    @Test
-    public void idrepoCreateDraftV2UnknownError001_ThrowsReprocessable() throws Exception {
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoCreateDraftV2UnknownError_ThrowsReprocessable() throws Exception {
         when(registrationProcessorRestClientService.postApi(
                 eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
                 .thenReturn(errorWrapper("IDR-IDC-001", "Unknown error occurred"));
 
-        try {
-            idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
-            fail("Expected IdrepoDraftReprocessableException to be thrown");
-        } catch (IdrepoDraftReprocessableException e) {
-            assertEquals("IDR-IDC-001", e.getErrorCode());
-        }
-    }
-
-    @Test
-    public void idrepoCreateDraftV2UnknownError004_ThrowsReprocessable() throws Exception {
-        when(registrationProcessorRestClientService.postApi(
-                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
-                .thenReturn(errorWrapper("IDR-IDC-004", "Unknown error occurred"));
-
-        try {
-            idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
-            fail("Expected IdrepoDraftReprocessableException to be thrown");
-        } catch (IdrepoDraftReprocessableException e) {
-            assertEquals("IDR-IDC-004", e.getErrorCode());
-        }
+        idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
     }
 
     @Test
@@ -812,8 +795,8 @@ public class IdrepoDraftServiceTest {
                 .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
     }
 
-    @Test
-    public void idrepoUpdateDraftV2UnknownError001_ThrowsReprocessable() throws Exception {
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoUpdateDraftV2UnknownError_ThrowsReprocessable() throws Exception {
         RequestDto requestDto = new RequestDto();
         requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
         IdRequestDto idRequestDto = new IdRequestDto();
@@ -828,36 +811,10 @@ public class IdrepoDraftServiceTest {
 
         try {
             idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, true);
-            fail("Expected IdrepoDraftReprocessableException to be thrown");
-        } catch (IdrepoDraftReprocessableException e) {
-            assertEquals("IDR-IDC-001", e.getErrorCode());
+        } finally {
+            verify(registrationProcessorRestClientService, never())
+                    .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
         }
-        verify(registrationProcessorRestClientService, never())
-                .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
-    }
-
-    @Test
-    public void idrepoUpdateDraftV2UnknownError004_ThrowsReprocessable() throws Exception {
-        RequestDto requestDto = new RequestDto();
-        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
-        IdRequestDto idRequestDto = new IdRequestDto();
-        idRequestDto.setRequest(requestDto);
-        when(registrationProcessorRestClientService.headApi(
-                ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
-        when(registrationProcessorRestClientService.getApi(
-                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class))
-                .thenReturn(idResponseDTO);
-        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-                .thenReturn(errorIdResponse("IDR-IDC-004", "Unknown error occurred"));
-
-        try {
-            idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, true);
-            fail("Expected IdrepoDraftReprocessableException to be thrown");
-        } catch (IdrepoDraftReprocessableException e) {
-            assertEquals("IDR-IDC-004", e.getErrorCode());
-        }
-        verify(registrationProcessorRestClientService, never())
-                .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
     }
 
     @Test
@@ -920,32 +877,13 @@ public class IdrepoDraftServiceTest {
         }
     }
 
-    @Test
-    public void idrepoGetDraftUnknownError001_ThrowsFailed() throws Exception {
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoGetDraftUnknownError_ThrowsFailed() throws Exception {
         when(registrationProcessorRestClientService.getApi(
                 ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "demographics", IdResponseDTO.class))
                 .thenReturn(errorIdResponse("IDR-IDC-001", "Unknown error occurred"));
 
-        try {
-            idrepoDraftService.idrepoGetDraft(ID, "demographics");
-            fail("Expected IdrepoDraftException to be thrown");
-        } catch (IdrepoDraftException e) {
-            assertEquals("IDR-IDC-001", e.getErrorCode());
-        }
-    }
-
-    @Test
-    public void idrepoGetDraftUnknownError004_ThrowsFailed() throws Exception {
-        when(registrationProcessorRestClientService.getApi(
-                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), "type", "demographics", IdResponseDTO.class))
-                .thenReturn(errorIdResponse("IDR-IDC-004", "Unknown error occurred"));
-
-        try {
-            idrepoDraftService.idrepoGetDraft(ID, "demographics");
-            fail("Expected IdrepoDraftException to be thrown");
-        } catch (IdrepoDraftException e) {
-            assertEquals("IDR-IDC-004", e.getErrorCode());
-        }
+        idrepoDraftService.idrepoGetDraft(ID, "demographics");
     }
 
     @Test
@@ -1177,6 +1115,257 @@ public class IdrepoDraftServiceTest {
         } catch (ApisResourceAccessException e) {
             assertNullIdRepoResponse("discard draft", e);
         }
+    }
+
+    @Test
+    public void setReprocessableErrorCodes_NullConfig_ClearsDefaults() {
+        idrepoDraftService.setReprocessableErrorCodes(null);
+
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDS-004"));
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDC-019"));
+    }
+
+    @Test
+    public void setReprocessableErrorCodes_BlankConfig_ClearsDefaults() {
+        idrepoDraftService.setReprocessableErrorCodes("   ");
+
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDS-004"));
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDS-003"));
+    }
+
+    @Test
+    public void setReprocessableErrorCodes_SkipsWhitespaceAndEmptyTokens() {
+        idrepoDraftService.setReprocessableErrorCodes(" IDR-IDS-004 ,  ,\t,IDR-IDC-019, ");
+
+        assertTrue(idrepoDraftService.isReprocessableError("IDR-IDS-004"));
+        assertTrue(idrepoDraftService.isReprocessableError("idr-idc-019"));
+        assertFalse(idrepoDraftService.isReprocessableError(""));
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDS-003"));
+    }
+
+    @Test
+    public void setReprocessableErrorCodes_OverrideReplacesDefaults() {
+        idrepoDraftService.setReprocessableErrorCodes("CUSTOM-ERR-1");
+
+        assertTrue(idrepoDraftService.isReprocessableError("CUSTOM-ERR-1"));
+        assertTrue(idrepoDraftService.isReprocessableError("custom-err-1"));
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDS-004"));
+        assertFalse(idrepoDraftService.isReprocessableError("IDR-IDC-019"));
+    }
+
+    @Test
+    public void idrepoGetDraftEmptyErrors_Succeeds() throws Exception {
+        IdResponseDTO response = new IdResponseDTO();
+        response.setErrors(Collections.emptyList());
+        response.setResponse(idResponseDTO.getResponse());
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class))
+                .thenReturn(response);
+
+        ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID);
+
+        assertEquals(ID, result.getRegistrationId());
+    }
+
+    @Test
+    public void idrepoGetDraftNullErrorEntry_Succeeds() throws Exception {
+        ArrayList<ErrorDTO> errors = new ArrayList<>();
+        errors.add(null);
+        IdResponseDTO response = new IdResponseDTO();
+        response.setErrors(errors);
+        response.setResponse(idResponseDTO.getResponse());
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class))
+                .thenReturn(response);
+
+        ResponseDTO result = idrepoDraftService.idrepoGetDraft(ID);
+
+        assertEquals(ID, result.getRegistrationId());
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoCreateDraftV2NullErrorCode_ThrowsFailed() throws Exception {
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
+                .thenReturn(errorWrapper(null, "unknown"));
+
+        idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoUpdateDraftV2NullErrorCode_ThrowsFailed() throws Exception {
+        IdRequestDto idRequestDto = requestWithIdentity(idResponseDTO.getResponse().getIdentity());
+        stubDraftPresent();
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(errorIdResponse(null, "unknown"));
+
+        idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, true);
+    }
+
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoCreateDraftV2LowercaseUnknownError_ThrowsReprocessable() throws Exception {
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
+                .thenReturn(errorWrapper("idr-idc-004", "Unknown error occurred"));
+
+        idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
+    }
+
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoUpdateDraftV2LowercaseUnknownError_ThrowsReprocessable() throws Exception {
+        IdRequestDto idRequestDto = requestWithIdentity(idResponseDTO.getResponse().getIdentity());
+        stubDraftPresent();
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(errorIdResponse("idr-idc-004", "Unknown error occurred"));
+
+        try {
+            idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, true);
+        } finally {
+            verify(registrationProcessorRestClientService, never())
+                    .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
+        }
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoPublishDraftUnknownError_ThrowsFailedAndDiscards() throws Exception {
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOPUBLISHDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(errorIdResponse("IDR-IDC-001", "Unknown error occurred"));
+        stubDiscardSuccess();
+
+        try {
+            idrepoDraftService.idrepoPublishDraft(ID);
+        } finally {
+            verify(registrationProcessorRestClientService)
+                    .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
+        }
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoDiscardDraftUnknownError_ThrowsFailed() throws Exception {
+        when(registrationProcessorRestClientService.deleteApi(
+                ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(errorIdResponse("IDR-IDC-001", "Unknown error occurred"));
+
+        idrepoDraftService.idrepoDiscardDraft(ID);
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoUpdateDraftUinUnknownError_ThrowsFailed() throws Exception {
+        when(mapper.createObjectNode()).thenReturn(new ObjectMapper().createObjectNode());
+        when(registrationProcessorRestClientService.patchApi(
+                eq(ApiName.IDREPOUPDATEDRAFTUIN), any(), any(), any(), any(), any()))
+                .thenReturn(errorIdResponse("IDR-IDC-001", "Unknown error occurred"));
+
+        idrepoDraftService.idrepoUpdateDraftUin(ID, "1234567890");
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void idrepoDiscardDraftHardFailCode_ThrowsFailed() throws Exception {
+        when(registrationProcessorRestClientService.deleteApi(
+                ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(errorIdResponse("IDR-IDC-005", "Input Data Validation Failed"));
+
+        idrepoDraftService.idrepoDiscardDraft(ID);
+    }
+
+    @Test
+    public void idrepoUpdateDraftV2Merge_ExistingIdentityNull_UsesIncomingIdentity() throws Exception {
+        JSONObject incomingIdentity = new JSONObject();
+        incomingIdentity.put("email", "lost@example.com");
+        IdRequestDto idRequestDto = requestWithIdentity(incomingIdentity);
+        idResponseDTO.getResponse().setIdentity(null);
+        stubDraftPresent();
+        stubIdentityMapper(incomingIdentity);
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(idResponseDTO);
+
+        idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, false);
+
+        JSONObject merged = capturePatchedIdentity();
+        assertEquals("lost@example.com", merged.get("email"));
+        assertFalse(merged.containsKey("UIN"));
+    }
+
+    @Test
+    public void idrepoUpdateDraftV2Merge_IncomingIdentityNull_CopiesExistingUin() throws Exception {
+        JSONObject existingIdentity = new JSONObject();
+        existingIdentity.put("UIN", "9999");
+        existingIdentity.put("fullName", "Bob");
+        idResponseDTO.getResponse().setIdentity(existingIdentity);
+        IdRequestDto idRequestDto = requestWithIdentity(null);
+        stubDraftPresent();
+        stubIdentityMapper(existingIdentity);
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(idResponseDTO);
+
+        idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, false);
+
+        JSONObject merged = capturePatchedIdentity();
+        assertEquals("9999", merged.get("UIN"));
+        assertFalse(merged.containsKey("fullName"));
+        assertFalse(merged.containsKey("email"));
+    }
+
+    @Test
+    public void idrepoUpdateDraftV2Merge_ExistingIdentityWithoutUin_DoesNotStampUin() throws Exception {
+        JSONObject existingIdentity = new JSONObject();
+        existingIdentity.put("fullName", "Bob");
+        JSONObject incomingIdentity = new JSONObject();
+        incomingIdentity.put("email", "lost@example.com");
+        idResponseDTO.getResponse().setIdentity(existingIdentity);
+        IdRequestDto idRequestDto = requestWithIdentity(incomingIdentity);
+        stubDraftPresent();
+        when(mapper.writeValueAsString(any())).thenAnswer(invocation -> {
+            Object arg = invocation.getArgument(0);
+            return arg == existingIdentity ? "existing" : "incoming";
+        });
+        when(mapper.readValue("existing", JSONObject.class)).thenReturn(existingIdentity);
+        when(mapper.readValue("incoming", JSONObject.class)).thenReturn(incomingIdentity);
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(idResponseDTO);
+
+        idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, false);
+
+        JSONObject merged = capturePatchedIdentity();
+        assertEquals("lost@example.com", merged.get("email"));
+        assertFalse(merged.containsKey("UIN"));
+        assertFalse(merged.containsKey("fullName"));
+    }
+
+    private IdRequestDto requestWithIdentity(Object identity) {
+        RequestDto requestDto = new RequestDto();
+        requestDto.setIdentity(identity);
+        IdRequestDto idRequestDto = new IdRequestDto();
+        idRequestDto.setRequest(requestDto);
+        return idRequestDto;
+    }
+
+    private void stubDraftPresent() throws Exception {
+        when(registrationProcessorRestClientService.headApi(
+                ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class))
+                .thenReturn(idResponseDTO);
+    }
+
+    private void stubDiscardSuccess() throws Exception {
+        IdResponseDTO discardResponse = new IdResponseDTO();
+        discardResponse.setErrors(null);
+        when(registrationProcessorRestClientService.deleteApi(
+                ApiName.IDREPODISCARDDRAFT, Lists.newArrayList(ID), "", "", IdResponseDTO.class))
+                .thenReturn(discardResponse);
+    }
+
+    private void stubIdentityMapper(JSONObject identity) throws Exception {
+        when(mapper.writeValueAsString(any())).thenReturn("identity");
+        when(mapper.readValue("identity", JSONObject.class)).thenReturn(identity);
+    }
+
+    private JSONObject capturePatchedIdentity() throws Exception {
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(registrationProcessorRestClientService).patchApi(any(), any(), any(), any(), requestCaptor.capture(), any());
+        return (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
     }
 
     private void assertNullIdRepoResponse(String apiName, ApisResourceAccessException e) {

@@ -911,5 +911,190 @@ public class UtilityTest {
         assertEquals(StaleCheckResult.UNAVAILABLE, result);
     }
 
+    @Test
+    public void testIsLatestPacket_StringTimestamp_EmptyUin_ReturnsNotStale() {
+        StaleCheckResult result = utility.isLatestPacket("", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_NullUin_ReturnsNotStale() {
+        StaleCheckResult result = utility.isLatestPacket(null, "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_EmptyTimestamp_ReturnsUnavailable() {
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "", "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_SameRegId_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("reg123");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+        verify(utility, never()).getPacketCreatedDateTimeFromSyncRegistration(anyString());
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_PacketIsLatest_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("oldRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDateTime.of(2022, 1, 1, 0, 0, 0))
+                .when(utility).getPacketCreatedDateTimeFromSyncRegistration("oldRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_EqualTimestamps_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("otherRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
+                .when(utility).getPacketCreatedDateTimeFromSyncRegistration("otherRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_RidFallback_ReturnsNotStale() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("oldRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("oldRid");
+        doReturn(LocalDateTime.of(2022, 1, 1, 0, 0, 0)).when(utility).getPacketCreatedDateTimeFromRid("oldRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.NOT_STALE, result);
+        verify(utility).getPacketCreatedDateTimeFromRid("oldRid");
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_CannotResolveLastProcessedTime_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("someRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("someRid");
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromRid("someRid");
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_ExceptionFromIdVidMetadata_ReturnsUnavailable() throws Exception {
+        doThrow(new ApisResourceAccessException("network error")).when(utility).getIdVidMetadata(anyString(), any());
+        StaleCheckResult result = utility.isLatestPacket("1234567890", "2024-01-01T00:00:00.000Z", "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_FutureTimestamp_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("otherRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        String future = LocalDateTime.now().plusDays(1)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+        StaleCheckResult result = utility.isLatestPacket("1234567890", future, "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    @Test
+    public void testIsLatestPacket_StringTimestamp_TooOldTimestamp_ReturnsUnavailable() throws Exception {
+        IdVidMetadataResponse meta = new IdVidMetadataResponse();
+        meta.setRid("otherRid");
+        doReturn(meta).when(utility).getIdVidMetadata(anyString(), any());
+        String tooOld = LocalDateTime.now().minusYears(250)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+        StaleCheckResult result = utility.isLatestPacket("1234567890", tooOld, "reg123");
+        assertEquals(StaleCheckResult.UNAVAILABLE, result);
+    }
+
+    // -----------------------------------------------------------------------
+    // parseToLocalDateTime
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testParseToLocalDateTime_ValidIsoFormat() {
+        LocalDateTime result = utility.parseToLocalDateTime("2023-09-15T01:01:01.000Z",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        assertNotNull(result);
+        assertEquals(2023, result.getYear());
+        assertEquals(9, result.getMonthValue());
+        assertEquals(15, result.getDayOfMonth());
+    }
+
+    @Test
+    public void testParseToLocalDateTime_ValidCompactFormat() {
+        LocalDateTime result = utility.parseToLocalDateTime("20230915010101", "yyyyMMddHHmmss");
+        assertNotNull(result);
+        assertEquals(2023, result.getYear());
+        assertEquals(9, result.getMonthValue());
+        assertEquals(15, result.getDayOfMonth());
+    }
+
+    @Test
+    public void testParseToLocalDateTime_FutureDate() {
+        String dateStr = LocalDateTime.now().plusDays(1)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        assertNull(utility.parseToLocalDateTime(dateStr, "yyyyMMddHHmmss"));
+    }
+
+    @Test
+    public void testParseToLocalDateTime_TooOldDate() {
+        String dateStr = LocalDateTime.now().minusYears(250)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        assertNull(utility.parseToLocalDateTime(dateStr, "yyyyMMddHHmmss"));
+    }
+
+    @Test
+    public void testParseToLocalDateTime_InvalidDate() {
+        assertNull(utility.parseToLocalDateTime("abccdefgh", "yyyy-MM-dd'T'HH:mm:ss"));
+    }
+
+    // -----------------------------------------------------------------------
+    // getPacketCreatedDateTimeWithoutPacketManager
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_FromSyncRegistration() {
+        LocalDateTime fromSync = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
+        doReturn(fromSync).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123");
+
+        assertEquals(fromSync, result);
+        verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_FallbackToRid() {
+        LocalDateTime fromRid = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+        doReturn(fromRid).when(utility).getPacketCreatedDateTimeFromRid("reg123");
+
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123");
+
+        assertEquals(fromRid, result);
+        verify(utility).getPacketCreatedDateTimeFromRid("reg123");
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_BothSourcesNull() {
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+        doReturn(null).when(utility).getPacketCreatedDateTimeFromRid("reg123");
+
+        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123"));
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_Exception_ReturnsNull() {
+        doThrow(new RuntimeException("db error")).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+
+        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123"));
+    }
 
 }

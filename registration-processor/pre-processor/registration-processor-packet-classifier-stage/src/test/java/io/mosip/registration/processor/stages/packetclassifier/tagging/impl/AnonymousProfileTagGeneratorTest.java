@@ -145,7 +145,7 @@ public class AnonymousProfileTagGeneratorTest {
 	@Test
 	public void testGenerateTagsReturnsEmptyMapWhenProfileBuildFails() throws Exception {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
-				.thenThrow(new RuntimeException("biometrics failed"));
+				.thenReturn(new BiometricRecord());
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
 				anyString(), anyString())).thenThrow(new RuntimeException("profile failed"));
 
@@ -154,6 +154,80 @@ public class AnonymousProfileTagGeneratorTest {
 
 		assertTrue(tags.isEmpty());
 		verify(priorityBasedPacketManagerService, never()).getFields(any(), any(), any(), any());
+	}
+
+	@Test
+	public void testGenerateTagsReturnsEmptyMapWhenBiometricsFail() throws Exception {
+		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
+				.thenThrow(new RuntimeException("biometrics failed"));
+
+		Map<String, String> tags = anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
+				new HashMap<>(), new HashMap<>(), 0);
+
+		assertTrue(tags.isEmpty());
+		verify(anonymousProfileService, never()).buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString());
+	}
+
+	@Test
+	public void testGenerateTagsReturnsEmptyMapWhenProfileJsonNull() throws Exception {
+		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
+				.thenReturn(new BiometricRecord());
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString())).thenReturn(null);
+
+		assertTrue(anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
+				new HashMap<>(), new HashMap<>(), 0).isEmpty());
+	}
+
+	@Test
+	public void testGenerateTagsReturnsEmptyMapWhenProfileJsonEmpty() throws Exception {
+		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
+				.thenReturn(new BiometricRecord());
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString())).thenReturn("");
+
+		assertTrue(anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
+				new HashMap<>(), new HashMap<>(), 0).isEmpty());
+	}
+
+	@Test
+	public void testGenerateTagsSkipsNullFieldType() throws Exception {
+		BiometricRecord biometricRecord = new BiometricRecord();
+		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
+				.thenReturn(biometricRecord);
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString())).thenReturn(PROFILE_JSON);
+
+		Map<String, FieldDTO> idObjectFieldDTOMap = new HashMap<>();
+		idObjectFieldDTOMap.put("dateOfBirth", new FieldDTO(null, "1998/01/01"));
+		idObjectFieldDTOMap.put("gender", new FieldDTO("simpleType", "[{\"language\":\"eng\",\"value\":\"Female\"}]"));
+
+		Map<String, String> tags = anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
+				idObjectFieldDTOMap, new HashMap<>(), 0);
+
+		assertEquals(PROFILE_JSON, tags.get(TAG_NAME));
+		verify(anonymousProfileService).buildJsonStringFromPacketInfo(eq(biometricRecord), any(), any(),
+				any(), anyString(), anyString());
+	}
+
+	@Test
+	public void testGetRequiredIdObjectFieldNamesSkipsEmptyLocationTokens() throws Exception {
+		JSONObject mappingJSON = new JSONObject();
+		putMapping(mappingJSON, "dob", "dateOfBirth");
+		putMapping(mappingJSON, "gender", "gender");
+		putMapping(mappingJSON, "email", "email");
+		putMapping(mappingJSON, "phone", "phone");
+		putMapping(mappingJSON, "preferredLanguage", "preferredLang");
+		putMapping(mappingJSON, "locationHierarchyForProfiling", "zone, ,postalCode");
+		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(mappingJSON);
+
+		List<String> requiredIdObjectFieldNames = anonymousProfileTagGenerator.getRequiredIdObjectFieldNames();
+
+		Set<String> expected = new HashSet<>(Arrays.asList("dateOfBirth", "gender", "email", "phone",
+				"preferredLang", "zone", "postalCode"));
+		assertEquals(expected, new HashSet<>(requiredIdObjectFieldNames));
+		assertEquals(expected.size(), requiredIdObjectFieldNames.size());
 	}
 
 	private void putMapping(JSONObject mappingJSON, String mappingKey, String actualFieldName) {

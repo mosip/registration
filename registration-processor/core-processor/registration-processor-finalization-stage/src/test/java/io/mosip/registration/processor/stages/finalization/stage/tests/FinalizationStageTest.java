@@ -611,4 +611,66 @@ public class FinalizationStageTest {
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
+
+	@Test
+	public void testProcess_UinMappingMissing_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn(null);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		assertEquals(StatusUtil.FINALIZATION_FAILURE.getCode(), statusCaptor.getValue().getSubStatusCode());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testProcess_UinMappingEmpty_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn("");
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testProcess_UinMappingThrowsIoException_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenThrow(new java.io.IOException("mapping failed"));
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testStaleDiscardThrows_MarksDraftExceptionNotStalePacket() throws Exception {
+		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
+				.thenReturn(StaleCheckResult.STALE);
+		when(idrepoDraftService.idrepoDiscardDraft(anyString()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-005", "discard failed"));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		assertEquals(StatusUtil.FINALIZATION_IDREPO_DRAFT_EXCEPTION.getCode(),
+				statusCaptor.getValue().getSubStatusCode());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
 }

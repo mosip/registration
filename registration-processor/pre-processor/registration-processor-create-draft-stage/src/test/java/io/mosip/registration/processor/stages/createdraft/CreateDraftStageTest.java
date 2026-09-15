@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.createdraft;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -9,14 +10,19 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -28,22 +34,34 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerNonRecoverableException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
+import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.dto.IdRequestDto;
 import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
+import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
@@ -145,6 +163,8 @@ public class CreateDraftStageTest {
         ReflectionTestUtils.setField(createDraftStage, "convertIdSchemaToDouble", true);
         ReflectionTestUtils.setField(createDraftStage, "trimWhitespaces", false);
         ReflectionTestUtils.setField(createDraftStage, "updateInfo", null);
+        ReflectionTestUtils.setField(createDraftStage, "additionalProcessCategoryMapping", new HashMap<String, String>());
+        ReflectionTestUtils.setField(createDraftStage, "objectMapper", new ObjectMapper());
 
         when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any()))
                 .thenReturn("0.1");
@@ -763,6 +783,627 @@ public class CreateDraftStageTest {
     }
 
     // -----------------------------------------------------------------------
+    // Demographic identity parsing
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testNewPacketLoadsDemographicIdentityFieldTypes() throws Exception {
+        messageDTO.setReg_type("NEW");
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("email", "mono@mono.com");
+        fieldMap.put("skipped", null);
+        fieldMap.put("individualBiometrics",
+                "{\"format\":\"cbeff\",\"value\":\"individualBiometrics_bio_CBEFF\",\"version\":1}");
+        fieldMap.put("selectedHandles", "[\"nrcId\",\"email\"]");
+        fieldMap.put("fullName", "[{\"language\":\"eng\",\"value\":\"Bob\"}]");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(fieldMap);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        JSONObject identity = captureNewPacketIdentity();
+        assertEquals("mono@mono.com", identity.get("email"));
+        assertFalse(identity.containsKey("skipped"));
+        assertTrue(identity.get("individualBiometrics") instanceof Map);
+        assertEquals("cbeff", ((Map<?, ?>) identity.get("individualBiometrics")).get("format"));
+        assertTrue(identity.get("selectedHandles") instanceof List);
+        assertEquals("nrcId", ((List<?>) identity.get("selectedHandles")).get(0));
+        assertTrue(identity.get("fullName") instanceof List);
+        assertEquals("Bob", ((Map<?, ?>) ((List<?>) identity.get("fullName")).get(0)).get("value"));
+    }
+
+    @Test
+    public void testNewPacketTrimsWhitespaceOnSimpleTypeValue() throws Exception {
+        messageDTO.setReg_type("NEW");
+        ReflectionTestUtils.setField(createDraftStage, "trimWhitespaces", true);
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("fullName", "[{\"language\":\"eng\",\"value\":\"  Bob  \"}]");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(fieldMap);
+
+        createDraftStage.process(messageDTO);
+
+        JSONObject identity = captureNewPacketIdentity();
+        assertEquals("Bob", ((Map<?, ?>) ((List<?>) identity.get("fullName")).get(0)).get("value"));
+    }
+
+    @Test
+    public void testConvertIdSchemaToDoubleFalse_KeepsSchemaVersionAsString() throws Exception {
+        messageDTO.setReg_type("NEW");
+        ReflectionTestUtils.setField(createDraftStage, "convertIdSchemaToDouble", false);
+
+        createDraftStage.process(messageDTO);
+
+        JSONObject identity = captureNewPacketIdentity();
+        assertEquals("0.1", identity.get(MappingJsonConstants.IDSCHEMA_VERSION));
+    }
+
+    @Test
+    public void testUinFieldStringNull_UsesNewDraftPath() throws Exception {
+        messageDTO.setReg_type("NEW");
+        registrationStatusDto.setRegistrationType("NEW");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn("null");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), isNull(), any(), isNull());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), any());
+    }
+
+    // -----------------------------------------------------------------------
+    // packetCreatedOn
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testNewPacketFetchesPacketCreatedOnWhenInSchema() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
+        when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        assertEquals("2019-01-17T06:29:01.940Z", captureNewPacketIdentity().get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testUpdatePacketFetchesPacketCreatedOnWhenInSchema() throws Exception {
+        messageDTO.setReg_type("UPDATE");
+        registrationStatusDto.setRegistrationType("UPDATE");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
+        when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("UPDATE"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), requestCaptor.capture(), eq(true));
+        JSONObject identity = (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+        assertEquals("2019-01-17T06:29:01.940Z", identity.get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testResUpdateDoesNotFetchPacketCreatedOn() throws Exception {
+        messageDTO.setReg_type("RES_UPDATE");
+        registrationStatusDto.setRegistrationType("RES_UPDATE");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+
+        createDraftStage.process(messageDTO);
+
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+    }
+
+    @Test
+    public void testActivatedDoesNotFetchPacketCreatedOn() throws Exception {
+        messageDTO.setReg_type("ACTIVATED");
+        registrationStatusDto.setRegistrationType("ACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("DEACTIVATED"));
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
+                .thenReturn(idResponseWithStatus("ACTIVATED"));
+
+        createDraftStage.process(messageDTO);
+
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+    }
+
+    @Test
+    public void testDeactivatedDoesNotFetchPacketCreatedOn() throws Exception {
+        messageDTO.setReg_type("DEACTIVATED");
+        registrationStatusDto.setRegistrationType("DEACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("ACTIVATED"));
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
+                .thenReturn(idResponseWithStatus("DEACTIVATED"));
+
+        createDraftStage.process(messageDTO);
+
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+    }
+
+    @Test
+    public void testPacketCreatedOnSkippedWhenMappingMissing() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
+        when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
+
+        createDraftStage.process(messageDTO);
+
+        assertNull(captureNewPacketIdentity().get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testRetrieveCreatedDateThrows_MarksPacketManagerReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenThrow(new PacketManagerException("RPR-PKM-001", "metaInfo failed"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+    }
+
+    @Test
+    public void testGetUInThrowsIoException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenThrow(new IOException("unable to read UIN"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.IO_EXCEPTION.getCode());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+    }
+
+    // -----------------------------------------------------------------------
+    // Documents / biometrics
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testNewPacketAttachesDocumentsAndBiometrics() throws Exception {
+        messageDTO.setReg_type("NEW");
+        stubDocumentAndBiometricMappings();
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("proofOfAddress", "{\"value\":\"POA_Rental\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+        fieldMap.put("individualBiometrics",
+                "{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"}");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(fieldMap);
+
+        Document document = new Document();
+        document.setDocument("document".getBytes());
+        document.setValue("proofOfAddress");
+        when(packetManagerService.getDocument(eq(REG_ID), eq("proofOfAddress"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT))).thenReturn(document);
+        when(packetManagerService.getBiometrics(eq(REG_ID), eq("individualBiometrics"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT))).thenReturn(new BiometricRecord());
+        when(cbeffutil.createXML(any())).thenReturn("cbeff".getBytes());
+        when(utilities.getMappingJsonValue(eq("individualBiometrics"), eq(MappingJsonConstants.IDENTITY)))
+                .thenReturn("individualBiometrics");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), isNull());
+        List<Documents> documents = requestCaptor.getValue().getRequest().getDocuments();
+        assertEquals(2, documents.size());
+        verify(packetManagerService, times(1)).getDocument(eq(REG_ID), eq("proofOfAddress"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(packetManagerService, times(1)).getBiometrics(eq(REG_ID), eq("individualBiometrics"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT));
+    }
+
+    @Test
+    public void testNewPacketSkipsNullDocumentAndUnmappedDocKey() throws Exception {
+        messageDTO.setReg_type("NEW");
+        stubDocumentAndBiometricMappings();
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("proofOfAddress", "{\"value\":\"POA_Rental\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(fieldMap);
+        when(packetManagerService.getDocument(eq(REG_ID), eq("proofOfAddress"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT))).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), isNull());
+        List<Documents> documents = requestCaptor.getValue().getRequest().getDocuments();
+        assertTrue(documents == null || documents.isEmpty());
+        verify(packetManagerService, never()).getBiometrics(anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    public void testNewPacketDocumentFetchThrows_MarksPacketManagerReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        stubDocumentAndBiometricMappings();
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("proofOfAddress", "{\"value\":\"POA_Rental\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(fieldMap);
+        when(packetManagerService.getDocument(eq(REG_ID), eq("proofOfAddress"), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT))).thenThrow(new PacketManagerException("RPR-PKM-001", "doc failed"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+    }
+
+    // -----------------------------------------------------------------------
+    // process() exception catches
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testJsonProcessingException_MarksFailed() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any()))
+                .thenThrow(new JsonProcessingException("invalid json"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertFalse(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
+    }
+
+    @Test
+    public void testPacketManagerNonRecoverableException_MarksFailed() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getFields(anyString(), any(), any(), any()))
+                .thenThrow(new PacketManagerNonRecoverableException("RPR-PKM-004", "non recoverable"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertFalse(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.PACKET_MANAGER_NON_RECOVERABLE_EXCEPTION.getCode());
+    }
+
+    @Test
+    public void testPacketManagerException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getFields(anyString(), any(), any(), any()))
+                .thenThrow(new PacketManagerException("RPR-PKM-001", "recoverable"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
+    }
+
+    @Test
+    public void testIoExceptionFromGetFields_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getFields(anyString(), any(), any(), any())).thenThrow(new IOException("io"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.IO_EXCEPTION.getCode());
+    }
+
+    @Test
+    public void testUnknownException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getFields(anyString(), any(), any(), any()))
+                .thenThrow(new RuntimeException("boom"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
+    }
+
+    // -----------------------------------------------------------------------
+    // HTTP wrapping
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testNewPacketHttpClientErrorException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), any(), any(), any()))
+                .thenThrow(apiExceptionWithCause(new HttpClientErrorException(HttpStatus.BAD_REQUEST)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+    }
+
+    @Test
+    public void testNewPacketHttpServerErrorException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), any(), any(), any()))
+                .thenThrow(apiExceptionWithCause(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+    }
+
+    @Test
+    public void testUpdatePacketHttpClientErrorException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("UPDATE");
+        registrationStatusDto.setRegistrationType("UPDATE");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), any(), any(), eq(true)))
+                .thenThrow(apiExceptionWithCause(new HttpClientErrorException(HttpStatus.BAD_REQUEST)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+    }
+
+    @Test
+    public void testActivatedGetApiHttpClientErrorException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("ACTIVATED");
+        registrationStatusDto.setRegistrationType("ACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class)))
+                .thenThrow(apiExceptionWithCause(new HttpClientErrorException(HttpStatus.BAD_REQUEST)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+        assertLastUpdatedSubStatus(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+    }
+
+    @Test
+    public void testActivatedGetApiHttpServerErrorException_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("ACTIVATED");
+        registrationStatusDto.setRegistrationType("ACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class)))
+                .thenThrow(apiExceptionWithCause(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+    }
+
+    // -----------------------------------------------------------------------
+    // LOST updateInfo
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testLostPacketUpdateInfoPopulatesMappedFields() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        ReflectionTestUtils.setField(createDraftStage, "updateInfo", "phone,email");
+        putIdentityMapping("phone", "phone");
+        putIdentityMapping("email", "email");
+        Map<String, String> fetched = new HashMap<>();
+        fetched.put("phone", "9999999999");
+        fetched.put("email", "lost@example.com");
+        when(packetManagerService.getFields(eq(REG_ID), any(), any(), any())).thenReturn(fetched);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), eq(false));
+        JSONObject identity = (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+        assertEquals("9999999999", identity.get("phone"));
+        assertEquals("lost@example.com", identity.get("email"));
+    }
+
+    @Test
+    public void testLostPacketUpdateInfoSkipsUnmappedKeysAndNullValues() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        ReflectionTestUtils.setField(createDraftStage, "updateInfo", "unknownField,phone,email");
+        putIdentityMapping("phone", "phone");
+        putIdentityMapping("email", "email");
+        Map<String, String> fetched = new HashMap<>();
+        fetched.put("phone", "9999999999");
+        fetched.put("email", null);
+        when(packetManagerService.getFields(eq(REG_ID), any(), any(), any())).thenReturn(fetched);
+
+        createDraftStage.process(messageDTO);
+
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), eq(false));
+        JSONObject identity = (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+        assertEquals("9999999999", identity.get("phone"));
+        assertFalse(identity.containsKey("email"));
+        assertFalse(identity.containsKey("unknownField"));
+    }
+
+    @Test
+    public void testLostPacketUpdateInfoNullFetchedFields_DoesNotFail() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        ReflectionTestUtils.setField(createDraftStage, "updateInfo", "phone");
+        putIdentityMapping("phone", "phone");
+        when(packetManagerService.getFields(eq(REG_ID), any(), any(), any())).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), isNull(), any(), eq(false));
+    }
+
+    @Test
+    public void testLostPacketDoesNotSendDocumentsInDraftRequest() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        stubDocumentAndBiometricMappings();
+        Map<String, String> packetFields = new HashMap<>();
+        packetFields.put("proofOfAddress", "{\"value\":\"POA_Rental\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+        packetFields.put("individualBiometrics",
+                "{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"}");
+        lenient().when(packetManagerService.getFields(anyString(), any(), any(), any())).thenReturn(packetFields);
+        Document document = new Document();
+        document.setDocument("document".getBytes());
+        document.setValue("proofOfAddress");
+        lenient().when(packetManagerService.getDocument(anyString(), anyString(), anyString(), any())).thenReturn(document);
+        lenient().when(packetManagerService.getBiometrics(anyString(), anyString(), anyString(), any()))
+                .thenReturn(new BiometricRecord());
+        lenient().when(cbeffutil.createXML(any())).thenReturn("cbeff".getBytes());
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), eq(false));
+        assertNull(requestCaptor.getValue().getRequest().getDocuments());
+        verify(packetManagerService, never()).getDocument(anyString(), anyString(), anyString(), any());
+        verify(packetManagerService, never()).getBiometrics(anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    public void testLostPacketSendsOnlyConfiguredUpdateInfoFields() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        ReflectionTestUtils.setField(createDraftStage, "updateInfo", "phone,email");
+        putIdentityMapping("phone", "phone");
+        putIdentityMapping("email", "email");
+        putIdentityMapping("fullName", "fullName");
+        putIdentityMapping("dob", "dateOfBirth");
+        Map<String, String> packetFields = new HashMap<>();
+        packetFields.put("phone", "9999999999");
+        packetFields.put("email", "lost@example.com");
+        packetFields.put("fullName", "[{\"language\":\"eng\",\"value\":\"Bob\"}]");
+        packetFields.put("dateOfBirth", "1990/01/01");
+        packetFields.put("addressLine1", "not configured");
+        when(packetManagerService.getFields(eq(REG_ID), any(), any(), eq(ProviderStageName.CREATE_DRAFT)))
+                .thenAnswer(invocation -> {
+                    @SuppressWarnings("unchecked")
+                    List<String> requested = invocation.getArgument(1);
+                    Map<String, String> filtered = new HashMap<>();
+                    for (String field : requested) {
+                        if (packetFields.containsKey(field)) {
+                            filtered.put(field, packetFields.get(field));
+                        }
+                    }
+                    return filtered;
+                });
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<String>> requestedFieldsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(packetManagerService).getFields(eq(REG_ID), requestedFieldsCaptor.capture(), eq("LOST"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        assertEquals(Arrays.asList("phone", "email"), requestedFieldsCaptor.getValue());
+
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), eq(false));
+        JSONObject identity = (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+        assertEquals("9999999999", identity.get("phone"));
+        assertEquals("lost@example.com", identity.get("email"));
+        assertFalse(identity.containsKey("fullName"));
+        assertFalse(identity.containsKey("dateOfBirth"));
+        assertFalse(identity.containsKey("addressLine1"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Custom process mapped to UPDATE
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testCustomTypeMappedToUpdateCreatesDraftWithUin() throws Exception {
+        messageDTO.setReg_type("CRVS_UPDATE");
+        registrationStatusDto.setRegistrationType("CRVS_UPDATE");
+        Map<String, String> mapping = new HashMap<>();
+        mapping.put("CRVS_UPDATE", "UPDATE");
+        ReflectionTestUtils.setField(createDraftStage, "additionalProcessCategoryMapping", mapping);
+        when(utilities.getInternalProcess(any(), eq("CRVS_UPDATE"))).thenReturn("UPDATE");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), any(), eq(true));
+    }
+
+    // -----------------------------------------------------------------------
+    // GET-by-UIN null response (not IdrepoDraftService)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testActivatedGetApiNullResponse_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("ACTIVATED");
+        registrationStatusDto.setRegistrationType("ACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        IdResponseDTO empty = new IdResponseDTO();
+        empty.setResponse(null);
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class))).thenReturn(empty);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertFalse(result.getIsValid());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+        assertLastUpdatedSubStatus(StatusUtil.UIN_REACTIVATION_FAILED.getCode());
+    }
+
+    @Test
+    public void testDeactivatedGetApiNullResponse_ProceedsToUpdate() throws Exception {
+        messageDTO.setReg_type("DEACTIVATED");
+        registrationStatusDto.setRegistrationType("DEACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        IdResponseDTO empty = new IdResponseDTO();
+        empty.setResponse(null);
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class))).thenReturn(empty);
+        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
+                .thenReturn(idResponseWithStatus("DEACTIVATED"));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), any(), eq(true));
+        assertLastUpdatedSubStatus(StatusUtil.UIN_DEACTIVATION_SUCCESS.getCode());
+    }
+
+    // -----------------------------------------------------------------------
     // Audit / module id on success
     // -----------------------------------------------------------------------
 
@@ -791,6 +1432,36 @@ public class CreateDraftStageTest {
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
+
+    private JSONObject captureNewPacketIdentity() throws Exception {
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), isNull());
+        return (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void putIdentityMapping(String mappingKey, String actualFieldName) {
+        LinkedHashMap<String, Object> inner = new LinkedHashMap<>();
+        inner.put(MappingJsonConstants.VALUE, actualFieldName);
+        identityMappingJson.put(mappingKey, inner);
+    }
+
+    private void stubDocumentAndBiometricMappings() throws IOException {
+        putIdentityMapping(MappingJsonConstants.INDIVIDUAL_BIOMETRICS, "individualBiometrics");
+        LinkedHashMap<String, Object> poa = new LinkedHashMap<>();
+        poa.put(MappingJsonConstants.VALUE, "proofOfAddress");
+        LinkedHashMap<String, Object> documents = new LinkedHashMap<>();
+        documents.put("proofOfAddress", poa);
+        documentMappingJson = new JSONObject(documents);
+        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT))
+                .thenReturn(documentMappingJson);
+        when(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY))
+                .thenReturn(identityMappingJson);
+    }
+
+    private static ApisResourceAccessException apiExceptionWithCause(Exception cause) {
+        return new ApisResourceAccessException(cause.getMessage(), cause);
+    }
 
     private static JSONObject buildSchemaVersionMappingJson() {
         LinkedHashMap<String, Object> schemaVersion = new LinkedHashMap<>();

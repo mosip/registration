@@ -434,4 +434,28 @@ public class BiometricExtractionStageTest {
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
+
+	@Test
+	public void testBiometricExtractionNullErrorCode_DiscardsAndMarksFailed() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn("FAILED");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode(null);
+		errorDTO.setMessage("unknown");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+
+		verify(idrepoDraftService, atLeastOnce()).idrepoDiscardDraft(anyString());
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
 }

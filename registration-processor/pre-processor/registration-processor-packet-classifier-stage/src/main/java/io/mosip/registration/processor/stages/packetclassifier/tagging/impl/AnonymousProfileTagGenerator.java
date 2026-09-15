@@ -116,15 +116,9 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
                 }
             }
 
-            BiometricRecord biometricRecord = null;
-            try {
-                biometricRecord = priorityBasedPacketManagerService.getBiometrics(
-                        registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
-                        process, ProviderStageName.CLASSIFICATION);
-            } catch (Exception e) {
-                regProcLogger.warn("AnonymousProfileTagGenerator: biometrics fetch failed for {}: {}",
-                        registrationId, e.getMessage());
-            }
+            BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
+                    registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
+                    process, ProviderStageName.CLASSIFICATION);
 
             String anonymousProfileJson = anonymousProfileService.buildJsonStringFromPacketInfo(
                     biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,
