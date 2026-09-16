@@ -4,17 +4,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +51,7 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -56,11 +62,12 @@ import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.PropertiesUtil;
-import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartner;
 import io.mosip.registration.processor.credentialrequestor.dto.CredentialPartnersList;
 import io.mosip.registration.processor.credentialrequestor.stage.CredentialRequestorStage;
 import io.mosip.registration.processor.credentialrequestor.util.CredentialPartnerUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -115,6 +122,9 @@ public class CredentialRequestorStageTest {
 
 	@Mock
 	private Utilities utitilites;
+
+	@Mock
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@InjectMocks
 	private CredentialRequestorStage stage = new CredentialRequestorStage() {
@@ -249,22 +259,11 @@ public class CredentialRequestorStageTest {
 		JSONObject jsonObject = new JSONObject(map1);
 		Mockito.when(utitilites.idrepoRetrieveIdentityByRid(any())).thenReturn(jsonObject);
 
-		CredentialPartner partner1 = new CredentialPartner();
-		partner1.setId("digitalcardPartner");
-		partner1.setPartnerId("mpartner-default-digitalcard");
-		partner1.setCredentialType("PDFCard");
-		partner1.setTemplate("RPR_UIN_CARD_TEMPLATE");
-		partner1.setAppIdBasedCredentialIdSuffix(".pdf");
+		Map<String, String> metaInfo = new HashMap<>();
+		metaInfo.put(JsonConstant.METADATA, "[]");
+		when(packetManagerService.getMetaInfo(any(), any(), any())).thenReturn(metaInfo);
 
-		CredentialPartner partner2 = new CredentialPartner();
-		partner2.setId("opencrvsPartner");
-		partner2.setPartnerId("opencrvs-partner");
-		partner2.setCredentialType("opencrvs");
-		partner2.setTemplate("RPR_UIN_CARD_TEMPLATE");
-
-		CredentialPartnersList partnersList = new CredentialPartnersList();
-		partnersList.setPartners(Lists.newArrayList(partner1, partner2));
-		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(partnersList);
+		when(credentialPartnerUtil.getAllCredentialPartners()).thenReturn(loadCredentialPartners());
 
 
 
@@ -468,6 +467,75 @@ public class CredentialRequestorStageTest {
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testPartnerNotInDefaultListIsSkipped() throws Exception {
+		stubSuccessfulCredentialResponse();
+
+		MessageDTO result = processPacket("OPENCRVS_NEW");
+
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+		verify(restClientService, times(1)).postApi(eq(ApiName.CREDENTIALREQUESTV2), any(MediaType.class), any(), any(),
+				any(), any(), any());
+		verify(restClientService, times(1)).postApi(eq(ApiName.CREDENTIALREQUEST), any(), any(), any(), any(),
+				any(MediaType.class));
+	}
+
+	@Test
+	public void testPartnerProcessMismatchIsSkipped() throws Exception {
+		stubSuccessfulCredentialResponse();
+
+		MessageDTO result = processPacket(RegistrationType.NEW.name());
+
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+		verify(restClientService, times(1)).postApi(eq(ApiName.CREDENTIALREQUESTV2), any(MediaType.class), any(), any(),
+				any(), any(), any());
+		verify(restClientService, never()).postApi(eq(ApiName.CREDENTIALREQUEST), any(), any(), any(), any(),
+				any(MediaType.class));
+	}
+
+	@Test
+	public void testPartnerProcessMatchIsIncluded() throws Exception {
+		stubSuccessfulCredentialResponse();
+
+		MessageDTO result = processPacket("OPENCRVS_NEW");
+
+		assertTrue(result.getIsValid());
+		assertFalse(result.getInternalError());
+		verify(restClientService, times(1)).postApi(eq(ApiName.CREDENTIALREQUESTV2), any(MediaType.class), any(), any(),
+				any(), any(), any());
+		verify(restClientService, times(1)).postApi(eq(ApiName.CREDENTIALREQUEST), any(), any(), any(), any(),
+				any(MediaType.class));
+	}
+
+	private MessageDTO processPacket(String registrationType) {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+		dto.setReg_type(registrationType);
+		return stage.process(dto);
+	}
+
+	private void stubSuccessfulCredentialResponse() throws Exception {
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
+		credentialResponseDto.setRequestId("879664323421");
+		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class)).thenReturn(credentialResponseDto);
+		responseWrapper.setResponse(credentialResponseDto);
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenReturn(responseWrapper);
+		Mockito.when(restClientService.postApi((ApiName) any(), any(MediaType.class), any(), any(), any(), any(), any()))
+				.thenReturn(responseWrapper);
+	}
+
+	private CredentialPartnersList loadCredentialPartners() throws IOException {
+		try (InputStream inputStream = getClass().getClassLoader()
+				.getResourceAsStream("registration-processor-credential-partners.json")) {
+			String partnersJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+			return JsonUtil.readValueWithUnknownProperties(partnersJson, CredentialPartnersList.class);
+		}
 	}
 
 }

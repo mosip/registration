@@ -45,6 +45,7 @@ import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -257,17 +258,31 @@ public class FinalizationStageTest {
 	}
 
 	@Test
-	public void testFinalizationAPIException() throws Exception {
+	public void testFinalizationAPIException_MarksReprocess() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenThrow(ApisResourceAccessException.class);
+
 		MessageDTO result = finalizationStage.process(messageDTO);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode(), updatedStatus.getSubStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				updatedStatus.getLatestTransactionStatusCode());
 		assertTrue(result.getInternalError());
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
@@ -285,7 +300,7 @@ public class FinalizationStageTest {
 	}
 	
 	@Test
-	public void testStaleReprocess_UnavailableTriggersReprocess() throws Exception {
+	public void testStaleCheck_UnavailableTriggersReprocess() throws Exception {
 		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_REPROCESS))
 				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
 		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
@@ -485,11 +500,176 @@ public class FinalizationStageTest {
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
 		when(idrepoDraftService.idrepoPublishDraft(anyString()))
-				.thenThrow(new IdrepoDraftException("IDR-IDC-001", "publish failed"));
+				.thenThrow(new IdrepoDraftException("IDR-VID-002", "Failed to generate VID"));
 
 		MessageDTO result = finalizationStage.process(messageDTO);
 
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		assertEquals(RegistrationStatusCode.FAILED.name(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_IDREPO_DRAFT_EXCEPTION.getCode(), updatedStatus.getSubStatusCode());
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testGetDraftException_MarksFailed() throws Exception {
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics")))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-007", "No Record(s) found"));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertEquals(RegistrationStatusCode.FAILED.name(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_IDREPO_DRAFT_EXCEPTION.getCode(), updatedStatus.getSubStatusCode());
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testGetDraftNullResponse_MarksReprocess() throws Exception {
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics")))
+				.thenThrow(new ApisResourceAccessException(
+						PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getCode(),
+						String.format(PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getMessage(), "get draft")));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode(), updatedStatus.getSubStatusCode());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testPublishDraftNullResponse_MarksReprocess() throws Exception {
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+		when(idrepoDraftService.idrepoPublishDraft(anyString()))
+				.thenThrow(new ApisResourceAccessException(
+						PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getCode(),
+						String.format(PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getMessage(),
+								"publish draft")));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+		assertEquals(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode(), updatedStatus.getSubStatusCode());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testGetDraftReprocessableException_MarksReprocess() throws Exception {
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+		when(idrepoDraftService.idrepoGetDraft(anyString(), eq("demographics")))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "Key manager failed"));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+		assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+				updatedStatus.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.FINALIZATION_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode(),
+				updatedStatus.getSubStatusCode());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testProcess_UinMappingMissing_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn(null);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		assertEquals(StatusUtil.FINALIZATION_FAILURE.getCode(), statusCaptor.getValue().getSubStatusCode());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testProcess_UinMappingEmpty_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn("");
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testProcess_UinMappingThrowsIoException_MarksFailedAndSkipsPublish() throws Exception {
+		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenThrow(new java.io.IOException("mapping failed"));
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FINALIZATION_FAILED))
+				.thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
+		assertFalse(result.getIsValid());
+		assertFalse(result.getInternalError());
+	}
+
+	@Test
+	public void testStaleDiscardThrows_MarksDraftExceptionNotStalePacket() throws Exception {
+		when(utility.isLatestPacket(anyString(), any(LocalDateTime.class), anyString()))
+				.thenReturn(StaleCheckResult.STALE);
+		when(idrepoDraftService.idrepoDiscardDraft(anyString()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-005", "discard failed"));
+
+		MessageDTO result = finalizationStage.process(dto);
+
+		ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor
+				.forClass(InternalRegistrationStatusDto.class);
+		verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+		assertEquals(StatusUtil.FINALIZATION_IDREPO_DRAFT_EXCEPTION.getCode(),
+				statusCaptor.getValue().getSubStatusCode());
+		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}

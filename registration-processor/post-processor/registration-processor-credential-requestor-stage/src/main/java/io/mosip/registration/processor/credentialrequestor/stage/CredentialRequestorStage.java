@@ -225,8 +225,6 @@ public class CredentialRequestorStage extends MosipVerticleAPIManager {
 						.filter(issuer -> defaultPartners.contains(issuer.getId()))
 						.filter(issuer -> (issuer.getProcess() == null) || (issuer.getProcess().contains(object.getReg_type())))
 						.collect(Collectors.toList());
-				filteredPartners.addAll(credentialPartnerUtil.getCredentialPartners(
-						regId, registrationStatusDto.getRegistrationType(), jsonObject));
 				for (CredentialPartner key : filteredPartners) {
 					CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId, registrationStatusDto.getRegistrationType(), key);
 					LocalDateTime localdatetime = LocalDateTime.parse(

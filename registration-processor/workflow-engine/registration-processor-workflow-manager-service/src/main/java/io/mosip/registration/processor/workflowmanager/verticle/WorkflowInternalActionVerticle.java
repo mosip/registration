@@ -84,7 +84,7 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 	private static final String USER = "MOSIP_SYSTEM";
 
 	// Tag name must match the value configured in AnonymousProfileTagGenerator.
-	@Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:anonymous}")
+	@Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:ANONYMOUS}")
 	private String anonymousProfileTagKey;
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowInternalActionVerticle.class);

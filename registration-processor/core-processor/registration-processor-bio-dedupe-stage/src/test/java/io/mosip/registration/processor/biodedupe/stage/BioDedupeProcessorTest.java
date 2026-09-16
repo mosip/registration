@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -69,6 +70,7 @@ import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
@@ -522,7 +524,51 @@ public class BioDedupeProcessorTest {
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
+        Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft("reg1234");
+	}
+
+	@Test
+	public void testLostPacketNoMatch_DiscardThrows_StillRejectsWithoutInternalError() throws Exception {
+		registrationStatusDto.setRegistrationId("reg1234");
+		registrationStatusDto.setRegistrationType("LOST");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(new HashSet<>());
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
+				.thenReturn(processedMatchedResult);
+		Mockito.when(idrepoDraftService.idrepoDiscardDraft(anyString()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-005", "discard failed"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(messageDto.getIsValid());
+		assertFalse(messageDto.getInternalError());
 		Mockito.verify(idrepoDraftService, Mockito.times(1)).idrepoDiscardDraft("reg1234");
+	}
+
+	@Test
+	public void testLostPacketSingleMatch_GetUinByRidThrows_NeverStampsUin() throws Exception {
+		registrationStatusDto.setRegistrationId("reg1234");
+		registrationStatusDto.setRegistrationType("LOST");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Set<String> matchedRidList = new HashSet<>();
+		matchedRidList.add("27847657360002520190320095010");
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(matchedRidList);
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
+				.thenReturn(processedMatchedResult);
+		Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+		Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY))
+				.thenThrow(new ApisResourceAccessException("idrepo unavailable"));
+		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getInternalError());
+		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoUpdateDraftUin(any(), any());
 	}
 
 	/**
@@ -1069,5 +1115,71 @@ public class BioDedupeProcessorTest {
         assertTrue(result.getIsValid());
     }
 
+    @Test
+    public void testLostPacketSingleMatch_StampUinFails_ReprocessableException_SetsReprocess() throws Exception {
+        registrationStatusDto.setRegistrationId("reg1234");
+        registrationStatusDto.setRegistrationType("LOST");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+        Set<String> matchedRidList = new HashSet<>();
+        matchedRidList.add("27847657360002520190320095010");
+        ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+        processedMatchedResult.setMatchedResults(matchedRidList);
+        Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+        Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+        Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESS))
+                .thenReturn(RegistrationTransactionStatusCode.REPROCESS.toString());
+        Mockito.when(idrepoDraftService.idrepoUpdateDraftUin(any(), any()))
+                .thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "Key manager failed"));
+
+        MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+        ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
+        Mockito.verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+        InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+        Mockito.verify(idrepoDraftService).idrepoUpdateDraftUin("reg1234", "1234567890");
+        assertEquals(RegistrationStatusCode.PROCESSING.name(), updatedStatus.getStatusCode());
+        assertEquals(RegistrationTransactionStatusCode.REPROCESS.toString(),
+                updatedStatus.getLatestTransactionStatusCode());
+        assertEquals(StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESSABLE.getCode(),
+                updatedStatus.getSubStatusCode());
+        assertTrue(result.getInternalError());
+        assertTrue(result.getIsValid());
+    }
+
+    @Test
+    public void testLostPacketSingleMatch_StampUinFails_DraftException_MarksFailed() throws Exception {
+        registrationStatusDto.setRegistrationId("reg1234");
+        registrationStatusDto.setRegistrationType("LOST");
+        Mockito.when(registrationStatusService.getRegistrationStatus(any(), any(), any(), any())).thenReturn(registrationStatusDto);
+        Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+        Set<String> matchedRidList = new HashSet<>();
+        matchedRidList.add("27847657360002520190320095010");
+        ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+        processedMatchedResult.setMatchedResults(matchedRidList);
+        Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+        Mockito.when(utilities.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+        Mockito.when(idRepoService.getUinByRid("27847657360002520190320095010", IDENTITY)).thenReturn("1234567890");
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED))
+                .thenReturn(RegistrationTransactionStatusCode.FAILED.toString());
+        Mockito.when(idrepoDraftService.idrepoUpdateDraftUin(any(), any()))
+                .thenThrow(new IdrepoDraftException("IDR-IDC-017", "UIN not found"));
+
+        MessageDTO result = bioDedupeProcessor.process(dto, stageName);
+
+        ArgumentCaptor<InternalRegistrationStatusDto> statusCaptor = ArgumentCaptor.forClass(InternalRegistrationStatusDto.class);
+        Mockito.verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), any(), any());
+        InternalRegistrationStatusDto updatedStatus = statusCaptor.getValue();
+
+        assertEquals(RegistrationStatusCode.FAILED.name(), updatedStatus.getStatusCode());
+        assertEquals(RegistrationTransactionStatusCode.FAILED.toString(),
+                updatedStatus.getLatestTransactionStatusCode());
+        assertEquals(StatusUtil.BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_FAILED.getCode(),
+                updatedStatus.getSubStatusCode());
+        assertTrue(result.getInternalError());
+        assertFalse(result.getIsValid());
+    }
 
 }

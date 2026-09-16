@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -133,6 +136,7 @@ public class PacketClassificationProcessorTest {
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put(IDSchemaVersionLabel, "0.1");
 		Mockito.when(priorityBasedPacketManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		Mockito.when(priorityBasedPacketManagerService.getMetaInfo(any(), any(), any())).thenReturn(new HashMap<>());
 
 		Map<String, String> fieldTypeMap = new HashMap<>();
 		fieldTypeMap.put("gender", "simpleType");
@@ -157,6 +161,8 @@ public class PacketClassificationProcessorTest {
 		MessageDTO object = packetClassificationProcessor.process(messageDTO, stageName);
 		assertTrue(object.getIsValid());
 		assertFalse(object.getInternalError());
+		verify(priorityBasedPacketManagerService, times(1)).getFields(any(), any(), any(), any());
+		verify(idSchemaUtil, never()).getDefaultFields(anyDouble());
 	}
 	
 	@Test(expected = IOException.class)

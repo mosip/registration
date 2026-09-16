@@ -75,7 +75,6 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 	/** stage properties prefix */
 	private static final String STAGE_PROPERTY_PREFIX = "mosip.regproc.biometric.extraction.";
 	private static final String USER = "MOSIP_SYSTEM";
-	private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
 	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -369,10 +368,16 @@ public class BiometricExtractionStage extends MosipVerticleAPIManager{
 		}
 		List<String> segments=List.of(registrationId);
 		IdResponseDTO response= (IdResponseDTO) registrationProcessorRestClientService.putApi(ApiName.IDREPOEXTRACTBIOMETRICS, segments, queryParmeter.toString(), queryValue.toString(), null, IdResponseDTO.class, null);
+		if (response == null) {
+			String message = String.format(PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getMessage(),
+					"extract biometrics");
+			regProcLogger.error(message + " id=" + registrationId);
+			throw new ApisResourceAccessException(PlatformErrorMessages.RPR_CDS_IDREPO_NULL_RESPONSE.getCode(), message);
+		}
 		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
 			ErrorDTO error = response.getErrors().get(0);
 			regProcLogger.error("Error occured while updating draft for id : " + registrationId, error.toString());
-			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+			if (idrepoDraftService.isReprocessableError(error.getErrorCode())) {
 				throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
 			} else {
 				idrepoDraftService.idrepoDiscardDraft(registrationId);

@@ -821,7 +821,7 @@ public class BioDedupeProcessor {
 			object.setInternalError(Boolean.TRUE);
 			description.setCode(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_BDS_LOST_DRAFT_UIN_STAMP_FAILED.getMessage());
-		} catch (ApisResourceAccessException e) {
+		} catch (IdrepoDraftReprocessableException | ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "Failed to stamp UIN on LOST draft (reprocessable): " + e.getMessage());
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());

@@ -1485,6 +1485,8 @@ public enum PlatformErrorMessages {
 			"Unable to complete stale packet check"),
 	RPR_CDS_DRAFT_UPDATE_FAILED(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "005",
 			"Draft update failed"),
+	RPR_CDS_IDREPO_NULL_RESPONSE(PlatformConstants.RPR_CREATE_DRAFT_STAGE + "006",
+			"Null response received from ID Repository %s API"),
 	;
 
 

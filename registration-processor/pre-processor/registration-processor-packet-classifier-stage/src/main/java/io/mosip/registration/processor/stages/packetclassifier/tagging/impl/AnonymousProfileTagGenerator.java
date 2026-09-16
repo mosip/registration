@@ -1,9 +1,11 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +17,11 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
 import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenerator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -36,8 +41,17 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
     private static final Logger regProcLogger =
             RegProcessorLogger.getLogger(AnonymousProfileTagGenerator.class);
 
-    @Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:anonymous}")
+    private static final String VALUE_LABEL = "value";
+
+    @Value("${mosip.regproc.packet.classifier.tagging.anonymous-profile.tag-name:ANONYMOUS}")
     private String tagName;
+
+    /**
+     * Identity mapping JSON keys required to build the anonymous profile.
+     * Add more keys in configuration if the anonymous profile is extended later.
+     */
+    @Value("#{T(java.util.Arrays).asList('${mosip.regproc.packet.classifier.tagging.anonymous-profile.mapping-field-names:dob,gender,email,phone,preferredLanguage,locationHierarchyForProfiling}')}")
+    private List<String> mappingFieldNames;
 
     @Autowired
     private AnonymousProfileService anonymousProfileService;
@@ -45,13 +59,42 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
     @Autowired
     private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
+    @Autowired
+    private Utilities utility;
+
     /**
-     * No additional fields required — the processor already fetches the full
-     * default-schema field set and passes it via idObjectFieldDTOMap.
+     * Resolves configured identity mapping keys to actual packet field names,
+     * same approach as {@link IDObjectFieldsTagGenerator}.
      */
     @Override
     public List<String> getRequiredIdObjectFieldNames() throws BaseCheckedException {
-        return Collections.emptyList();
+        try {
+            org.json.simple.JSONObject identityMappingJson =
+                    utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+            Map<String, String> requiredIDObjectFieldNamesMap = new HashMap<>();
+            for (String field : mappingFieldNames) {
+                String actualFieldName = JsonUtil.getJSONValue(
+                        JsonUtil.getJSONObject(identityMappingJson, field),
+                        VALUE_LABEL);
+                if (actualFieldName == null)
+                    throw new BaseCheckedException(
+                            PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getCode(),
+                            PlatformErrorMessages.RPR_PCM_FIELD_NAME_NOT_AVAILABLE_IN_MAPPING_JSON.getMessage());
+                // locationHierarchyForProfiling maps to comma-separated actual field names
+                // (e.g. zone,postalCode). Other keys map to a single field; split is a no-op.
+                for (String resolvedName : actualFieldName.split(",")) {
+                    String trimmedName = resolvedName.trim();
+                    if (!trimmedName.isEmpty()) {
+                        requiredIDObjectFieldNamesMap.put(trimmedName, field);
+                    }
+                }
+            }
+            return requiredIDObjectFieldNamesMap.keySet().stream().collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new BaseCheckedException(
+                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getCode(),
+                    PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getMessage(), e);
+        }
     }
 
     /**
@@ -64,7 +107,6 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
             String process, Map<String, FieldDTO> idObjectFieldDTOMap,
             Map<String, String> metaInfoMap, int iteration) throws BaseCheckedException {
         try {
-            // Reconstruct plain field maps from the DTO map provided by the processor
             Map<String, String> allFieldMap = new HashMap<>();
             Map<String, String> fieldTypeMap = new HashMap<>();
             for (Map.Entry<String, FieldDTO> entry : idObjectFieldDTOMap.entrySet()) {
@@ -74,16 +116,9 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
                 }
             }
 
-            // Biometrics are fetched here; failure is non-fatal
-            BiometricRecord biometricRecord = null;
-            try {
-                biometricRecord = priorityBasedPacketManagerService.getBiometrics(
-                        registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
-                        process, ProviderStageName.CLASSIFICATION);
-            } catch (Exception e) {
-                regProcLogger.warn("AnonymousProfileTagGenerator: biometrics fetch failed for {}: {}",
-                        registrationId, e.getMessage());
-            }
+            BiometricRecord biometricRecord = priorityBasedPacketManagerService.getBiometrics(
+                    registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
+                    process, ProviderStageName.CLASSIFICATION);
 
             String anonymousProfileJson = anonymousProfileService.buildJsonStringFromPacketInfo(
                     biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,

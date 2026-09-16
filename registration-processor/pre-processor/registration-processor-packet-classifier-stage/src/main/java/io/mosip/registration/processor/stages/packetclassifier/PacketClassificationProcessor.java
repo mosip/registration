@@ -344,28 +344,11 @@ public class PacketClassificationProcessor {
 				}
 			}, executor);
 
-			// First call: get tag-generator required fields (includes schema version label)
 			Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
 				requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
 			String schemaVersionStr = identityFieldValueMap.get(idSchemaVersionLabel);
-			// Merge tag-generator fields + full schema default fields, then fetch the delta
-			// in ONE combined call — avoids a separate getFields for the anonymous profile.
-			List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.parseDouble(schemaVersionStr));
-			final Map<String, String> fetchedFields = identityFieldValueMap;
-			List<String> extraFields = defaultFields.stream()
-					.filter(f -> !fetchedFields.containsKey(f))
-					.collect(Collectors.toList());
-			if (!extraFields.isEmpty()) {
-				Map<String, String> extraFieldMap = priorityBasedPacketManagerService.getFields(
-						registrationId, extraFields, process, ProviderStageName.CLASSIFICATION);
-				Map<String, String> merged = new HashMap<>(identityFieldValueMap);
-				merged.putAll(extraFieldMap);
-				identityFieldValueMap = merged;
-			}
 
 			Map<String, String> fieldTypeMap = getFieldTypeMap(schemaVersionStr);
-			// idObjectFieldDTOMap now contains both tag-generator fields and schema default
-			// fields, so AnonymousProfileTagGenerator can reconstruct allFieldMap from it.
 			Map<String, FieldDTO> idObjectFieldDTOMap = getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
 
 			Map<String, String> metaInfoMap;

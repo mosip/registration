@@ -38,4 +38,14 @@ public class ApisResourceAccessException extends BaseCheckedException {
 	public ApisResourceAccessException(String message, Throwable cause) {
 		super(PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), message, cause);
 	}
+
+	/**
+	 * Instantiates a new apis resource access exception.
+	 *
+	 * @param errorCode    the error code
+	 * @param errorMessage the error message
+	 */
+	public ApisResourceAccessException(String errorCode, String errorMessage) {
+		super(errorCode, errorMessage);
+	}
 }

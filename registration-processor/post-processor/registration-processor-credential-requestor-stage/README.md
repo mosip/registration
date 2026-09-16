@@ -83,20 +83,13 @@ Once the partner profile is configured, the System Integrator (SI) needs to make
 
 mosip.registration.processor.credential.partner-profiles: Specify the file name for the partner profiles. By default its → registration-processor-credential-partners.json. If a country wants to change the file name only then this configuration need to be updated otherwise use default configuration.
 
-mosip.registration.processor.credential.default.partner-ids: Specify default partner IDs for which credentials will be created automatically.
+mosip.registration.processor.credential.default.partner-ids: Specify default partner IDs for which credentials will be created automatically. The ID must also exist in the partner profile JSON.
 
-mosip.registration.processor.credential.conditional.partner-id-map: Define conditions for conditional partners. Credentials for these partners will be requested only if the conditions are met. Use MVEL expressions for conditions.
-
-mosip.registration.processor.credential.conditional.no-match-partner-ids: Specify a partner ID to be used when no conditions are met for conditional partners.
-
-### Conditional Partner Requests
-The stage will create credentials for default partner IDs by default.
-
-For conditional partners, credentials will be requested only if they match a particular MVEL expression.
-
-MVEL expressions can be written on any identity field as well as meta info field.
-
-If there is no condition match for conditional partners, SI can configure a no-match partner, which will be used when no conditional partner match is found.
+### Partner selection
+A partner is issued a credential only if all of the following are true:
+- The partner is listed in the partner profile JSON (`registration-processor-credential-partners.json`)
+- The partner `id` is present in `mosip.registration.processor.credential.default.partner-ids`
+- The partner `process` matches the packet process, or `process` is null (applies to all processes)
 
 ### Configuration File Locations
 Credential Requestor Stage Configuration:

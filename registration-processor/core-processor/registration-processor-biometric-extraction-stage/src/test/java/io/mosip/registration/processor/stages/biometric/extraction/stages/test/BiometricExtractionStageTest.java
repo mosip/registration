@@ -53,6 +53,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.dto.IdResponseDTO;
 import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -190,6 +191,8 @@ public class BiometricExtractionStageTest {
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 		
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
+		when(idrepoDraftService.isReprocessableError(anyString())).thenAnswer(invocation ->
+				new IdrepoDraftService().isReprocessableError(invocation.getArgument(0)));
 		ResponseWrapper<ExtractorsDto> responseWrapper1=new ResponseWrapper<>();
 		ExtractorProviderDto extractorProviderDto=new ExtractorProviderDto();
 		extractorProviderDto.setProvider("mock");
@@ -270,22 +273,23 @@ public class BiometricExtractionStageTest {
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn("FAILED");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDR-IDC-005");
+		errorDTO.setMessage("Input Data Validation Failed");
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
-		List<io.mosip.registration.processor.core.common.rest.dto.ErrorDTO> errorList=new ArrayList<>();
-		io.mosip.registration.processor.core.common.rest.dto.ErrorDTO dto=new io.mosip.registration.processor.core.common.rest.dto.ErrorDTO();
-		dto.setErrorCode("aa");
-		dto.setMessage("bb");
-		errorList.add(dto);
 		idResponseDTO.setId("mosip.id.read");
 		idResponseDTO.setResponse(null);
-		idResponseDTO.setErrors(errorList);
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
 		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO.setVersion("1.0");
 		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
-		.thenReturn(idResponseDTO);
-		
+				.thenReturn(idResponseDTO);
 
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
+
+		verify(idrepoDraftService, atLeastOnce()).idrepoDiscardDraft(anyString());
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	} 
@@ -297,13 +301,34 @@ public class BiometricExtractionStageTest {
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn("REPROCESS");
 		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
-		.thenThrow(ApisResourceAccessException.class);
-		
+				.thenThrow(ApisResourceAccessException.class);
 
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		assertTrue(result.getInternalError());
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testExtractBiometricsNullResponse_MarksReprocess() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION))
+				.thenReturn("REPROCESS");
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+				.thenReturn(null);
+
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
 	} 
 	
 	@Test
@@ -353,26 +378,52 @@ public class BiometricExtractionStageTest {
 		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
 				.thenReturn(idResponseDTO1);
 		MessageDTO result = biometricExtractionStage.process(messageDTO);
+		verify(idrepoDraftService, never()).idrepoDiscardDraft(anyString());
+		assertTrue(result.getInternalError());
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testExtractTemplateFailure_MarksReprocessAndDoesNotDiscard() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION))
+				.thenReturn("REPROCESS");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setMessage("Failed to extract template from bio extractor service");
+		errorDTO.setErrorCode("IDR-IDS-009");
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		idResponseDTO1.setErrors(Lists.newArrayList(errorDTO));
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+				.thenReturn(idResponseDTO1);
+
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+
+		verify(idrepoDraftService, never()).idrepoDiscardDraft(anyString());
 		assertTrue(result.getInternalError());
 		assertTrue(result.getIsValid());
 	}
 	@Test
-	public void testBiometricExtractionDraftExceptionAndDiscardDreaft() throws Exception {
+	public void testBiometricExtractionDraftExceptionAndDiscardDraft() throws Exception {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		messageDTO.setReg_type(RegistrationType.NEW.name());
 		messageDTO.setWorkflowInstanceId("123er");
 		messageDTO.setIteration(1);
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
-		IdResponseDTO idResponseDTO=new IdResponseDTO();
-		List<io.mosip.registration.processor.core.common.rest.dto.ErrorDTO> errorList=new ArrayList<>();
-		io.mosip.registration.processor.core.common.rest.dto.ErrorDTO dto=new io.mosip.registration.processor.core.common.rest.dto.ErrorDTO();
-		dto.setErrorCode("aa");
-		dto.setMessage("bb");
-		errorList.add(dto);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn("FAILED");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDR-IDC-001");
+		errorDTO.setMessage("Unknown error occurred");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		idResponseDTO.setId("mosip.id.read");
 		idResponseDTO.setResponse(null);
-		idResponseDTO.setErrors(errorList);
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
 		idResponseDTO.setVersion("1.0");
 		List<String> segment=new ArrayList<>();
 		segment.add(messageDTO.getRid());
@@ -380,6 +431,30 @@ public class BiometricExtractionStageTest {
  		MessageDTO result = biometricExtractionStage.process(messageDTO);
 		verify(idrepoDraftService,atLeastOnce()).idrepoDiscardDraft(anyString());
 
+		assertTrue(result.getInternalError());
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testBiometricExtractionNullErrorCode_DiscardsAndMarksFailed() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW.name());
+		messageDTO.setWorkflowInstanceId("123er");
+		messageDTO.setIteration(1);
+		when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION))
+				.thenReturn("FAILED");
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode(null);
+		errorDTO.setMessage("unknown");
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		when(registrationProcessorRestClientService.putApi(any(), any(), anyString(), anyString(), any(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+		MessageDTO result = biometricExtractionStage.process(messageDTO);
+
+		verify(idrepoDraftService, atLeastOnce()).idrepoDiscardDraft(anyString());
 		assertTrue(result.getInternalError());
 		assertFalse(result.getIsValid());
 	}
