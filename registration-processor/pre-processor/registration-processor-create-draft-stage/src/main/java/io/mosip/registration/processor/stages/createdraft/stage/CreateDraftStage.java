@@ -927,8 +927,23 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
         idResponseDto = getIdRepoDataByUIN(uin, id, description);
 
-        if (idResponseDto.getResponse() != null
-                && idResponseDto.getResponse().getStatus().equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
+        if (!isIdResponseNotNull(idResponseDto)) {
+            statusComment = idResponseDto != null && idResponseDto.getErrors() != null
+                    ? idResponseDto.getErrors().get(0).getMessage()
+                    : NULL_IDREPO_RESPONSE;
+            description.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+            description.setStatusComment(trimExceptionMessage
+                    .trimExceptionMessage(StatusUtil.UIN_DEACTIVATION_FAILED.getMessage() + statusComment));
+            description.setSubStatusCode(StatusUtil.UIN_DEACTIVATION_FAILED.getCode());
+            description.setMessage(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getMessage());
+            description.setCode(PlatformErrorMessages.UIN_DEACTIVATION_FAILED.getCode());
+            description.setTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+            object.setIsValid(Boolean.FALSE);
+            return idResponseDto;
+        }
+
+        if (idResponseDto.getResponse().getStatus()
+                .equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
             description.setStatusCode(RegistrationStatusCode.FAILED.toString());
             description.setStatusComment(StatusUtil.UIN_ALREADY_DEACTIVATED.getMessage());
             description.setSubStatusCode(StatusUtil.UIN_ALREADY_DEACTIVATED.getCode());

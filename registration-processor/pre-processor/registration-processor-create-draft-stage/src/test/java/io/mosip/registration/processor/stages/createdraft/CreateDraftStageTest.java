@@ -1385,7 +1385,7 @@ public class CreateDraftStageTest {
     }
 
     @Test
-    public void testDeactivatedGetApiNullResponse_ProceedsToUpdate() throws Exception {
+    public void testDeactivatedGetApiNullResponse_MarksReprocess() throws Exception {
         messageDTO.setReg_type("DEACTIVATED");
         registrationStatusDto.setRegistrationType("DEACTIVATED");
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
@@ -1393,14 +1393,29 @@ public class CreateDraftStageTest {
         empty.setResponse(null);
         when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
                 eq(IdResponseDTO.class))).thenReturn(empty);
-        when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
-                .thenReturn(idResponseWithStatus("DEACTIVATED"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
-        assertTrue(result.getIsValid());
-        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), any(), eq(true));
-        assertLastUpdatedSubStatus(StatusUtil.UIN_DEACTIVATION_SUCCESS.getCode());
+        assertFalse(result.getIsValid());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+        assertLastUpdatedSubStatus(StatusUtil.UIN_DEACTIVATION_FAILED.getCode());
+        assertLastUpdatedTransactionStatus(RegistrationTransactionStatusCode.REPROCESS.toString());
+    }
+
+    @Test
+    public void testDeactivatedGetApiNullDto_MarksReprocess() throws Exception {
+        messageDTO.setReg_type("DEACTIVATED");
+        registrationStatusDto.setRegistrationType("DEACTIVATED");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
+                eq(IdResponseDTO.class))).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertFalse(result.getIsValid());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+        assertLastUpdatedSubStatus(StatusUtil.UIN_DEACTIVATION_FAILED.getCode());
+        assertLastUpdatedTransactionStatus(RegistrationTransactionStatusCode.REPROCESS.toString());
     }
 
     // -----------------------------------------------------------------------
