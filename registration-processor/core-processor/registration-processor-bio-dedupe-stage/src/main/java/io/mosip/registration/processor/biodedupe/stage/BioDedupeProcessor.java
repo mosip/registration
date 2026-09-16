@@ -635,13 +635,7 @@ public class BioDedupeProcessor {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(),
 					BioDedupeConstants.NO_MATCH_FOUND_FOR_LOST + registrationId);
-			// Discard the draft since this LOST packet has no biometric match.
-			try {
-				idrepoDraftService.idrepoDiscardDraft(registrationId);
-			} catch (IdrepoDraftException | IdrepoDraftReprocessableException | ApisResourceAccessException e) {
-				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						registrationId, "Failed to discard draft on LOST no-match (non-fatal): " + e.getMessage());
-			}
+			// Draft discard is handled by WorkflowInternalActionVerticle.processCompleteAsRejected()
 
 		} else if (matchedRegIds.size() == 1) {
 
