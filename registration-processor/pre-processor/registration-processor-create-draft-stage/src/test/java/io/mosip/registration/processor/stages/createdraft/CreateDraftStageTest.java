@@ -735,9 +735,10 @@ public class CreateDraftStageTest {
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
-        // LOST path does not run handleStaleCheck — draft update still proceeds
+        // LOST path does not run handleStaleCheck or retrieve packetCreatedOn — draft update still proceeds
         assertTrue(result.getIsValid());
         verify(utility, never()).isLatestPacket(nullable(String.class), nullable(String.class), anyString());
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
         verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), isNull(), any(), eq(false));
     }
 
@@ -852,6 +853,8 @@ public class CreateDraftStageTest {
 
     // -----------------------------------------------------------------------
     // packetCreatedOn
+    // Always fetched for stale check. Stored in demographic identity only for
+    // NEW/UPDATE when the ID schema default fields include PACKET_CREATED_ON.
     // -----------------------------------------------------------------------
 
     @Test
@@ -868,6 +871,7 @@ public class CreateDraftStageTest {
         assertTrue(result.getIsValid());
         verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
                 eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         assertEquals("2019-01-17T06:29:01.940Z", captureNewPacketIdentity().get("packetCreatedOn"));
     }
 
@@ -887,57 +891,123 @@ public class CreateDraftStageTest {
         assertTrue(result.getIsValid());
         verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("UPDATE"),
                 eq(ProviderStageName.CREATE_DRAFT));
-        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
-        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), requestCaptor.capture(), eq(true));
-        JSONObject identity = (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+        verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        JSONObject identity = captureUpdatePacketIdentity();
         assertEquals("2019-01-17T06:29:01.940Z", identity.get("packetCreatedOn"));
     }
 
     @Test
-    public void testResUpdateDoesNotFetchPacketCreatedOn() throws Exception {
+    public void testNewPacketFetchesPacketCreatedOnWhenNotInSchema_DoesNotAddToIdentity() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("fullName", "dateOfBirth"));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureNewPacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testUpdatePacketFetchesPacketCreatedOnWhenNotInSchema_DoesNotAddToIdentity() throws Exception {
+        messageDTO.setReg_type("UPDATE");
+        registrationStatusDto.setRegistrationType("UPDATE");
+        when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
+        when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("fullName", "dateOfBirth"));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("UPDATE"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureUpdatePacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testResUpdateFetchesPacketCreatedOnForStaleCheck_DoesNotAddToIdentityEvenWhenInSchema() throws Exception {
         messageDTO.setReg_type("RES_UPDATE");
         registrationStatusDto.setRegistrationType("RES_UPDATE");
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
 
-        createDraftStage.process(messageDTO);
+        MessageDTO result = createDraftStage.process(messageDTO);
 
-        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("RES_UPDATE"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureUpdatePacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
     }
 
     @Test
-    public void testActivatedDoesNotFetchPacketCreatedOn() throws Exception {
+    public void testActivatedFetchesPacketCreatedOnForStaleCheck_DoesNotAddToIdentityEvenWhenInSchema() throws Exception {
         messageDTO.setReg_type("ACTIVATED");
         registrationStatusDto.setRegistrationType("ACTIVATED");
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
         when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
                 eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("DEACTIVATED"));
         when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
                 .thenReturn(idResponseWithStatus("ACTIVATED"));
 
-        createDraftStage.process(messageDTO);
+        MessageDTO result = createDraftStage.process(messageDTO);
 
-        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("ACTIVATED"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureUpdatePacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
     }
 
     @Test
-    public void testDeactivatedDoesNotFetchPacketCreatedOn() throws Exception {
+    public void testDeactivatedFetchesPacketCreatedOnForStaleCheck_DoesNotAddToIdentityEvenWhenInSchema() throws Exception {
         messageDTO.setReg_type("DEACTIVATED");
         registrationStatusDto.setRegistrationType("DEACTIVATED");
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn("2019-01-17T06:29:01.940Z");
         when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
                 eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("ACTIVATED"));
         when(idrepoDraftService.idrepoUpdateDraftV2(anyString(), eq(EXISTING_UIN), any(), eq(true)))
                 .thenReturn(idResponseWithStatus("DEACTIVATED"));
 
-        createDraftStage.process(messageDTO);
+        MessageDTO result = createDraftStage.process(messageDTO);
 
-        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+        assertTrue(result.getIsValid());
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("DEACTIVATED"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureUpdatePacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
     }
 
     @Test
@@ -951,14 +1021,36 @@ public class CreateDraftStageTest {
 
         createDraftStage.process(messageDTO);
 
-        assertNull(captureNewPacketIdentity().get("packetCreatedOn"));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
+        JSONObject identity = captureNewPacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
+    }
+
+    @Test
+    public void testPacketCreatedOnSkippedWhenValueMissingEvenIfInSchema() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(idSchemaUtil.getDefaultFields(anyDouble()))
+                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+                .thenReturn(null);
+
+        createDraftStage.process(messageDTO);
+
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
+                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility).isLatestPacket(isNull(), isNull(String.class), eq(REG_ID));
+        verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
+        JSONObject identity = captureNewPacketIdentity();
+        assertFalse(identity.containsKey("packetCreatedOn"));
+        assertNull(identity.get("packetCreatedOn"));
     }
 
     @Test
     public void testRetrieveCreatedDateThrows_MarksPacketManagerReprocess() throws Exception {
         messageDTO.setReg_type("NEW");
-        when(idSchemaUtil.getDefaultFields(anyDouble()))
-                .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
         when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
                 .thenThrow(new PacketManagerException("RPR-PKM-001", "metaInfo failed"));
 
@@ -1451,6 +1543,12 @@ public class CreateDraftStageTest {
     private JSONObject captureNewPacketIdentity() throws Exception {
         ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
         verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), isNull(), requestCaptor.capture(), isNull());
+        return (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
+    }
+
+    private JSONObject captureUpdatePacketIdentity() throws Exception {
+        ArgumentCaptor<IdRequestDto> requestCaptor = ArgumentCaptor.forClass(IdRequestDto.class);
+        verify(idrepoDraftService).idrepoUpdateDraftV2(eq(REG_ID), eq(EXISTING_UIN), requestCaptor.capture(), eq(true));
         return (JSONObject) requestCaptor.getValue().getRequest().getIdentity();
     }
 
