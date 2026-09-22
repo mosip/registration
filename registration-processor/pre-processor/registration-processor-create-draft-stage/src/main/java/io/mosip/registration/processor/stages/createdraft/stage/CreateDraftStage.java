@@ -237,28 +237,14 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
                 final String regTypeForCreatedOn = registrationStatusDto.getRegistrationType();
-                CompletableFuture<String> createdOnFuture = null;
-
-                // Start retrieveCreatedDateFromPacket in parallel if schema contains the packetCreatedOn and packet type NEW or UPDATE.
-                if (defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)) {
-                    if (RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type()) ||
-                            RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type())) {
-                        createdOnFuture = CompletableFuture.supplyAsync(() -> {
-                            try {
-                                return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.CREATE_DRAFT);
-                            } catch (Exception e) {
-                                throw new CompletionException(e);
-                            }
-                        }, uinExecutor);
+                // Always retrieve packetCreatedOn — it is required for the stale-packet check.
+                CompletableFuture<String> createdOnFuture = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.CREATE_DRAFT);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
                     }
-                } else {
-                    regProcLogger.info(
-                            LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(),
-                            registrationId,
-                            "packetCreatedOn not found in packet idSchemaVersion " + schemaVersion
-                                    + ". Skipping retrieveCreatedDateFromPacket.");
-                }
+                }, uinExecutor);
 
                 Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
                         defaultFields, registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
@@ -268,9 +254,7 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 String packetCreatedOn = null;
                 try {
                     uinField = uinFuture.join();
-                    if (createdOnFuture != null) {
-                        packetCreatedOn = createdOnFuture.join();
-                    }
+                    packetCreatedOn = createdOnFuture.join();
                 } catch (CompletionException e) {
                     Throwable cause = e.getCause();
                     while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
@@ -289,7 +273,19 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
 
                 loadDemographicIdentity(fieldMap, demographicIdentity);
 
-                updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object, packetCreatedOn);
+                // Store packetCreatedOn in demographic identity only for NEW/UPDATE when the ID schema includes the field.
+                if (defaultFields.contains(MappingJsonConstants.PACKET_CREATED_ON)
+                        && (RegistrationType.NEW.toString().equalsIgnoreCase(object.getReg_type())
+                                || RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type()))) {
+                    updatePacketCreatedOnInDemographicIdentity(registrationId, registrationStatusDto, demographicIdentity, object, packetCreatedOn);
+                } else {
+                    regProcLogger.info(
+                            LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(),
+                            registrationId,
+                            "Skipping update of packetCreatedOn in demographic identity. packet type : "
+                                    + object.getReg_type() + ", idSchemaVersion : " + schemaVersion);
+                }
 
                 if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
@@ -1226,7 +1222,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                                                             InternalRegistrationStatusDto registrationStatusDto,
                                                             Map<String, Object> demographicIdentity, MessageDTO object,
                                                             String packetCreatedOn) throws IOException {
-        // packetCreatedOn is only fetched for NEW and UPDATE — null means not applicable
         if (packetCreatedOn == null) {
             regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
                     "Unable to find the packetCreatedOn from packet for registrationType: {}. Skipping update of packetCreatedOn. ", object.getReg_type());
