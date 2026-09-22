@@ -42,8 +42,10 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Document;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.entity.AnonymousProfileEntity;
 import io.mosip.registration.processor.status.entity.AnonymousProfilePKEntity;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.AnonymousProfileService;
@@ -62,6 +64,16 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Autowired
 	private RegistrationUtility registrationUtility;
+
+	/**
+	 * Reads the supervisor decision from registration_list. The DAO is used rather
+	 * than SyncRegistrationService because SyncRegistrationServiceImpl already
+	 * injects AnonymousProfileService - going through the service would make the
+	 * bean graph circular. SyncRegistrationServiceImpl.findByWorkflowInstanceId is
+	 * a straight passthrough to this DAO, so behaviour is identical.
+	 */
+	@Autowired
+	private SyncRegistrationDao syncRegistrationDao;
 	
 	/**
 	 * The mandatory languages that should be used when dealing with field type that
@@ -117,7 +129,8 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 
 	@Override
 	public String buildJsonStringFromPacketInfo(BiometricRecord biometricRecord, Map<String, String> fieldMap,
-			Map<String, String> fieldTypeMap, Map<String, String> metaInfoMap, String statusCode, String processStage)
+			Map<String, String> fieldTypeMap, Map<String, String> metaInfoMap, String statusCode, String processStage,
+			String workflowInstanceId)
 			throws JSONException, IOException, BaseCheckedException {
 
 		regProcLogger.info("buildJsonStringFromPacketInfo method called");
@@ -213,10 +226,41 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		anonymousProfileDTO.setAssisted(assisted);
 		// Same value as in assisted[], labelled separately so reports can group by supervisor.
 		anonymousProfileDTO.setSupervisorId(supervisorId);
+		setSupervisorDecision(anonymousProfileDTO, workflowInstanceId);
 		getExceptionAndBiometricInfo(biometricRecord, anonymousProfileDTO);
 
 		regProcLogger.info("buildJsonStringFromPacketInfo method call ended");
 		return JsonUtil.objectMapperObjectToJson(anonymousProfileDTO);
+	}
+
+	/**
+	 * Populates supervisorDecision and supervisorComment from registration_list.
+	 *
+	 * <p>Best-effort by contract: a null workflowInstanceId, a missing record or a
+	 * failed read leaves both fields null and the profile is still built. A missing
+	 * record is the normal case at classification time - the supervisor decision has
+	 * not synced yet - so it is logged at debug, not warn.
+	 */
+	private void setSupervisorDecision(AnonymousProfileDTO anonymousProfileDTO, String workflowInstanceId) {
+		// null, empty or blank: nothing to look the record up by, so skip the query
+		if (StringUtils.isBlank(workflowInstanceId)) {
+			return;
+		}
+		try {
+			SyncRegistrationEntity regEntity = syncRegistrationDao.findByWorkflowInstanceId(workflowInstanceId);
+			if (regEntity == null) {
+				regProcLogger.debug(
+						"buildJsonStringFromPacketInfo: no registration_list record for workflowInstanceId {}; supervisor decision and comment left null",
+						workflowInstanceId);
+				return;
+			}
+			anonymousProfileDTO.setSupervisorDecision(regEntity.getSupervisorStatus());
+			anonymousProfileDTO.setSupervisorComment(regEntity.getSupervisorComment());
+		} catch (Exception e) {
+			regProcLogger.warn(
+					"buildJsonStringFromPacketInfo: supervisor decision lookup failed for workflowInstanceId {}; profile built without it. Error: {}",
+					workflowInstanceId, e.getMessage());
+		}
 	}
 
 	private String getLanguageBasedValueForSimpleType(String fieldValue, String language) throws JSONException {

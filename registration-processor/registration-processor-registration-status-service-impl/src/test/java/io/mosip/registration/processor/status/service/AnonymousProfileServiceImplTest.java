@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,9 +40,13 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.registration.processor.core.anonymous.dto.AnonymousProfileDTO;
 import io.mosip.registration.processor.core.packet.dto.Document;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.entity.AnonymousProfileEntity;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.repositary.BaseRegProcRepository;
 import io.mosip.registration.processor.status.service.impl.AnonymousProfileServiceImpl;
@@ -65,6 +70,11 @@ public class AnonymousProfileServiceImplTest {
 
 	@Mock
 	private RegistrationUtility registrationUtility;
+
+	@Mock
+	private SyncRegistrationDao syncRegistrationDao;
+
+	private static final String WORKFLOW_INSTANCE_ID = "8e34c5d5-2ba1-4d69-9e60-31b0a1d1c1d0";
 
 	Map<String, String> fieldTypeMap = new HashedMap();
 	Map<String, String> fieldMap = new HashedMap();
@@ -228,13 +238,15 @@ public class AnonymousProfileServiceImplTest {
 				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
 				.thenReturn(new FieldValue("officerId", "110024"));
 		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord, fieldMap,
-				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
+				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage", null));
 	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void buildJsonStringFromPacketInfoVariousScenarioTest() throws JSONException, IOException, BaseCheckedException {
 
 		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", true);
+		// no registration_list record yet - the normal case at classification time
+		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(null);
 		fieldMap.put("email", "satish@gmail.com");
 		fieldMap.put("gender",
 				"[ {\"language\" : \"eng\",\"value\" : null}, {\"language\" : \"ara\",\"value\" : \"أنثى\"} ]");
@@ -285,7 +297,152 @@ public class AnonymousProfileServiceImplTest {
 				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
 				.thenReturn(new FieldValue("supervisorId", "110024"));
 		assertEquals(json, anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord1, fieldMap,
-				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage"));
+				fieldTypeMap, metaInfoMap, "PROCESSED", "packetValidatorStage", WORKFLOW_INSTANCE_ID));
+	}
+
+	/**
+	 * Mirrors the stubbing of buildJsonStringFromPacketInfoVariousScenarioTest so the
+	 * supervisor tests below differ from it in exactly one respect: what the
+	 * registration_list lookup returns.
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void stubPacketWithSupervisorId() throws IOException {
+		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", true);
+		fieldMap.put("email", "satish@gmail.com");
+		fieldMap.put("gender",
+				"[ {\"language\" : \"eng\",\"value\" : null}, {\"language\" : \"ara\",\"value\" : \"أنثى\"} ]");
+		metaInfoMap.put("operationsData",
+				"[{\"label\" : \"supervisorId\",\"value\" : \"110024\"},{\"label\" : \"supervisorBiometricFileName\",\"value\" : \"null\"}]");
+
+		Document doc1 = new Document();
+		doc1.setDocumentType("CIN");
+		Document doc2 = new Document();
+		doc2.setDocumentType("RNC");
+
+		org.json.simple.JSONObject mappingJsonObject = new JSONObject();
+		LinkedHashMap identity = new LinkedHashMap();
+		LinkedHashMap IDSchemaVersion = new LinkedHashMap();
+		IDSchemaVersion.put("value", "IDSchemaVersion");
+		LinkedHashMap address = new LinkedHashMap();
+		address.put("value",
+				"permanentAddressLine1,permanentAddressLine2,permanentAddressLine3,permanentRegion,permanentProvince,permanentCity,permanentZone,permanentPostalcode");
+		LinkedHashMap phone = new LinkedHashMap();
+		phone.put("value", "phone");
+		LinkedHashMap email = new LinkedHashMap();
+		email.put("value", "email");
+		LinkedHashMap dateOfBirth = new LinkedHashMap();
+		dateOfBirth.put("value", "dateOfBirth");
+		LinkedHashMap gender = new LinkedHashMap();
+		gender.put("value", "gender");
+		LinkedHashMap locationHierarchyForProfiling = new LinkedHashMap();
+		locationHierarchyForProfiling.put("value", "zone,postalCode");
+		LinkedHashMap preferredLang = new LinkedHashMap();
+		preferredLang.put("value", "preferredLang");
+
+		identity.put("IDSchemaVersion", IDSchemaVersion);
+		identity.put("address", address);
+		identity.put("phone", phone);
+		identity.put("email", email);
+		identity.put("dob", dateOfBirth);
+		identity.put("gender", gender);
+		identity.put("preferredLanguage", preferredLang);
+		identity.put("locationHierarchyForProfiling", locationHierarchyForProfiling);
+		mappingJsonObject.put("identity", identity);
+		String mappingJsonString = "{\"identity\":{\"IDSchemaVersion\":{\"value\":\"IDSchemaVersion\"}}}";
+
+		Mockito.when(anonymousProfileRepository.save(Mockito.any(AnonymousProfileEntity.class)))
+				.thenReturn(new AnonymousProfileEntity());
+		Mockito.when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(mappingJsonString);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class)))
+				.thenReturn(new FieldValue("registrationType", "NEW")).thenReturn(mappingJsonObject).thenReturn(doc1)
+				.thenReturn(doc2).thenReturn(new FieldValue("centerId", "1003"))
+				.thenReturn(new FieldValue("supervisorId", "110024"));
+	}
+
+	private AnonymousProfileDTO buildProfile() throws Exception {
+		return JsonUtil.readValueWithUnknownProperties(
+				anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord1, fieldMap, fieldTypeMap,
+						metaInfoMap, "PROCESSED", "packetValidatorStage", WORKFLOW_INSTANCE_ID),
+				AnonymousProfileDTO.class);
+	}
+
+	/**
+	 * The decision and comment are not in the packet - they are taken on the
+	 * registration client and reach registration_list on sync - so the service reads
+	 * them from there by workflowInstanceId.
+	 */
+	@Test
+	public void supervisorDecisionAndCommentAreReadFromRegistrationListTest() throws Exception {
+		stubPacketWithSupervisorId();
+		SyncRegistrationEntity regEntity = new SyncRegistrationEntity();
+		regEntity.setSupervisorStatus("APPROVED");
+		regEntity.setSupervisorComment("Verified by supervisor");
+		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(regEntity);
+
+		AnonymousProfileDTO profile = buildProfile();
+
+		assertEquals("APPROVED", profile.getSupervisorDecision());
+		assertEquals("Verified by supervisor", profile.getSupervisorComment());
+		// the packet-sourced field must not be disturbed by the enrichment
+		assertEquals("110024", profile.getSupervisorId());
+	}
+
+	@Test
+	public void rejectedDecisionIsCarriedThroughTest() throws Exception {
+		stubPacketWithSupervisorId();
+		SyncRegistrationEntity regEntity = new SyncRegistrationEntity();
+		regEntity.setSupervisorStatus("REJECTED");
+		regEntity.setSupervisorComment("Poor biometric quality");
+		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(regEntity);
+
+		AnonymousProfileDTO profile = buildProfile();
+
+		assertEquals("REJECTED", profile.getSupervisorDecision());
+		assertEquals("Poor biometric quality", profile.getSupervisorComment());
+	}
+
+	/**
+	 * A registration_list read failure costs the two supervisor fields, not the
+	 * profile - exactly as a biometrics fetch failure only drops the biometrics.
+	 */
+	@Test
+	public void profileIsStillBuiltWhenSupervisorLookupFailsTest() throws Exception {
+		stubPacketWithSupervisorId();
+		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID))
+				.thenThrow(new RuntimeException("registration_list unavailable"));
+
+		AnonymousProfileDTO profile = buildProfile();
+
+		assertEquals("110024", profile.getSupervisorId());
+		assertNull(profile.getSupervisorDecision());
+		assertNull(profile.getSupervisorComment());
+	}
+
+	/** A null workflowInstanceId must not trigger a lookup at all. */
+	@Test
+	public void noLookupWhenWorkflowInstanceIdIsNullTest() throws Exception {
+		assertNoLookupFor(null);
+	}
+
+	/** Nor a blank one - there is nothing to look the record up by. */
+	@Test
+	public void noLookupWhenWorkflowInstanceIdIsBlankTest() throws Exception {
+		assertNoLookupFor("   ");
+	}
+
+	private void assertNoLookupFor(String workflowInstanceId) throws Exception {
+		stubPacketWithSupervisorId();
+
+		AnonymousProfileDTO profile = JsonUtil.readValueWithUnknownProperties(
+				anonymousProfileService.buildJsonStringFromPacketInfo(biometricRecord1, fieldMap, fieldTypeMap,
+						metaInfoMap, "PROCESSED", "packetValidatorStage", workflowInstanceId),
+				AnonymousProfileDTO.class);
+
+		// the profile is still complete - only the two supervisor fields are absent
+		assertEquals("110024", profile.getSupervisorId());
+		assertNull(profile.getSupervisorDecision());
+		assertNull(profile.getSupervisorComment());
+		Mockito.verify(syncRegistrationDao, Mockito.never()).findByWorkflowInstanceId(anyString());
 	}
 
 }
