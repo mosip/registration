@@ -222,13 +222,15 @@ public class CredentialPartnerUtil {
         if (StringUtils.hasText(workflowInstanceId)) {
             SyncRegistrationEntity syncRegistrationEntity = syncRegistrationService.findByWorkflowInstanceId(workflowInstanceId);
             if (syncRegistrationEntity != null && StringUtils.hasText(syncRegistrationEntity.getPacketMetaData())) {
+                regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        regId, "CredentialPartnerUtil::resolveMetadataForContext()::reading metaData from registration_list.packet_meta_data");
                 return syncRegistrationEntity.getPacketMetaData();
             }
         }
 
         // Fallback when registration_list has no stored metaInfo, including archived rows and RES_REPRINT packets.
         regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                regId, "CredentialPartnerUtil::resolveMetadataForContext()::registration_list metaInfo unavailable, reading from Packet Manager");
+                regId, "CredentialPartnerUtil::resolveMetadataForContext()::reading metaData from Packet Manager getMetaInfo");
         Map<String, String> metaInfo = packetManagerService.getMetaInfo(regId, registrationType,
                 ProviderStageName.CREDENTIAL_REQUESTOR);
         if (MapUtils.isNotEmpty(metaInfo)) {
