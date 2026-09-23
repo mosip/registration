@@ -47,6 +47,7 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
@@ -80,7 +81,11 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 /**
  * Create Draft Stage – introduces a new stage placed after the Quality
@@ -167,6 +172,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
     @Autowired
     private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
+    @Autowired
+    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
+
     /** The utilities. */
     @Autowired
     private Utilities utilities;
@@ -209,6 +217,12 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.CREATE_DRAFT.toString());
             registrationStatusDto.setRegistrationStageName(getStageName());
 
+            // One metaInfo read is shared by registration_list storage and the packet created-date lookup.
+            Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,
+                    registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
+            // Same workflow_instance_id row is updated again when this stage is reprocessed.
+            storePacketMetaInfo(registrationId, object.getWorkflowInstanceId(), metaInfo);
+
             if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
                 if (idrepoDraftService.idrepoHasDraft(registrationId)) {
                     regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
@@ -236,25 +250,17 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                 String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
                 List<String> defaultFields = idSchemaUtil.getDefaultFields(Double.valueOf(schemaVersion));
 
-                final String regTypeForCreatedOn = registrationStatusDto.getRegistrationType();
-                // Always retrieve packetCreatedOn — it is required for the stale-packet check.
-                CompletableFuture<String> createdOnFuture = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return utility.retrieveCreatedDateFromPacket(registrationId, regTypeForCreatedOn, ProviderStageName.CREATE_DRAFT);
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-                }, uinExecutor);
-
                 Map<String, String> fieldMap = packetManagerService.getFields(registrationId,
                         defaultFields, registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
 
-                // Resolve both futures before closing the executor
+                // Created date comes from the metaInfo already loaded above. A null map loads it from Packet Manager.
+                String packetCreatedOn = utility.retrieveCreatedDateFromPacket(registrationId,
+                        registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT, metaInfo);
+
+                // Resolve the UIN future before closing the executor
                 String uinField;
-                String packetCreatedOn = null;
                 try {
                     uinField = uinFuture.join();
-                    packetCreatedOn = createdOnFuture.join();
                 } catch (CompletionException e) {
                     Throwable cause = e.getCause();
                     while (cause instanceof CompletionException && cause.getCause() != null) cause = cause.getCause();
@@ -492,6 +498,42 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         }
 
         return object;
+    }
+
+    /**
+     * Stores packet metaInfo on the registration_list row so post-ABIS stages can read
+     * metaData, operationsData, and capturedRegisteredDevices from the database instead of
+     * calling Packet Manager. A reprocess overwrites the same workflow_instance_id row.
+     * {@code metaInfo} is the map already returned by PacketManagerService.getMetaInfo.
+     */
+    private void storePacketMetaInfo(String registrationId, String workflowInstanceId, Map<String, String> metaInfo)
+            throws IOException {
+        if (metaInfo == null || metaInfo.isEmpty()) {
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketMetaInfo()::metaInfo is empty");
+            return;
+        }
+
+        SyncRegistrationEntity syncRegistrationEntity = syncRegistrationService.findByWorkflowInstanceId(workflowInstanceId);
+        if (syncRegistrationEntity == null) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketMetaInfo()::registration_list row not found for workflowInstanceId "
+                            + workflowInstanceId);
+            return;
+        }
+
+        syncRegistrationEntity.setPacketMetaData(jsonOrNull(metaInfo.get(JsonConstant.METADATA)));
+        syncRegistrationEntity.setPacketOperationsData(jsonOrNull(metaInfo.get(JsonConstant.OPERATIONSDATA)));
+        syncRegistrationEntity.setPacketCapturedDevices(jsonOrNull(metaInfo.get(JsonConstant.CAPTUREDREGISTEREDDEVICES)));
+        syncRegistrationService.update(syncRegistrationEntity);
+    }
+
+    private String jsonOrNull(String value) throws IOException {
+        if (StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+        objectMapper.readTree(value);
+        return value;
     }
 
     private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {

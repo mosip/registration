@@ -942,9 +942,26 @@ public class Utility {
 	 */
 	public String retrieveCreatedDateFromPacket(String rid, String process, ProviderStageName stageName)
 			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		return retrieveCreatedDateFromPacket(rid, process, stageName, null);
+	}
 
-		Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, stageName);
-		String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
+	/**
+	 * Retrieves the packet creation date. When {@code metaInfo} is null, loads it from Packet Manager.
+	 * When {@code metaInfo} is already available, uses that map and does not call Packet Manager again.
+	 *
+	 * @param rid registration id
+	 * @param process packet process
+	 * @param stageName stage used only when Packet Manager must be called
+	 * @param metaInfo packet metaInfo fields, or null to load them
+	 * @return creation date, or null when it is missing
+	 */
+	public String retrieveCreatedDateFromPacket(String rid, String process, ProviderStageName stageName,
+			Map<String, String> metaInfo)
+			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		if (metaInfo == null) {
+			metaInfo = packetManagerService.getMetaInfo(rid, process, stageName);
+		}
+		String packetCreatedDateTime = metaInfo == null ? null : metaInfo.get(JsonConstant.CREATIONDATE);
 
 		if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
 			return packetCreatedDateTime;

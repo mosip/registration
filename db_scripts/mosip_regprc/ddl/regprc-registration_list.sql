@@ -26,6 +26,9 @@ CREATE TABLE regprc.registration_list(
 	packet_id character varying,
 	ref_id character varying(512),
 	source	character varying,
+	packet_meta_data jsonb,
+	packet_operations_data jsonb,
+	packet_captured_devices jsonb,
 	CONSTRAINT pk_reglist_id PRIMARY KEY (workflow_instance_id)
 );
 
@@ -49,6 +52,9 @@ COMMENT ON COLUMN regprc.registration_list.upd_by IS 'Updated By : ID or name of
 COMMENT ON COLUMN regprc.registration_list.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN regprc.registration_list.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN regprc.registration_list.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+COMMENT ON COLUMN regprc.registration_list.packet_meta_data IS 'Packet metaData: JSON array of label/value pairs from packet manager metaInfo metaData, stored so post-ABIS stages can read it without calling Packet Manager.';
+COMMENT ON COLUMN regprc.registration_list.packet_operations_data IS 'Packet operationsData: JSON array of label/value pairs from packet manager metaInfo operationsData.';
+COMMENT ON COLUMN regprc.registration_list.packet_captured_devices IS 'Packet capturedRegisteredDevices: JSON array of registered capture devices from packet manager metaInfo.';
 
 
 --PERFORMANCE INDEXES--

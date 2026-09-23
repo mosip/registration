@@ -618,6 +618,33 @@ public class UtilityTest {
         assertNull(result);
     }
 
+    @Test
+    public void testRetrieveCreatedDateFromPacket_usesSuppliedMetaInfo()
+            throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+        String rid = "10049100271000420250319064824";
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put("creationDate", "2025-05-28T10:53:13.973Z");
+
+        String result = utility.retrieveCreatedDateFromPacket(rid, "NEW", ProviderStageName.CREATE_DRAFT, metaInfo);
+
+        assertEquals("2025-05-28T10:53:13.973Z", result);
+        verify(packetManagerService, never()).getMetaInfo(anyString(), anyString(), any(ProviderStageName.class));
+    }
+
+    @Test
+    public void testRetrieveCreatedDateFromPacket_nullMetaInfoLoadsFromPacketManager()
+            throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+        String rid = "10049100271000420250319064824";
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put("creationDate", "2025-05-28T10:53:13.973Z");
+        when(packetManagerService.getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR)).thenReturn(metaInfo);
+
+        String result = utility.retrieveCreatedDateFromPacket(rid, "NEW", ProviderStageName.UIN_GENERATOR, null);
+
+        assertEquals("2025-05-28T10:53:13.973Z", result);
+        verify(packetManagerService, times(1)).getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR);
+    }
+
     @Test(expected = BiometricClassificationException.class)
     public void testAllBiometricHaveException_nullList_throwsException() throws BiometricClassificationException {
         utility.allBiometricHaveException(null, null);

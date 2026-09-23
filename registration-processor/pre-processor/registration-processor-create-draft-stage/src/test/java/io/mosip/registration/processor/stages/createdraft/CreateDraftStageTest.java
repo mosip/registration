@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -75,7 +77,11 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 /**
  * Unit tests for {@link CreateDraftStage}, aligned with {@code UinGeneratorStageTest}
@@ -111,6 +117,9 @@ public class CreateDraftStageTest {
 
     @Mock
     private PriorityBasedPacketManagerService packetManagerService;
+
+    @Mock
+    private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
     @Mock
     private IdSchemaUtil idSchemaUtil;
@@ -738,7 +747,7 @@ public class CreateDraftStageTest {
         // LOST path does not run handleStaleCheck or retrieve packetCreatedOn — draft update still proceeds
         assertTrue(result.getIsValid());
         verify(utility, never()).isLatestPacket(nullable(String.class), nullable(String.class), anyString());
-        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class));
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), any());
         verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), isNull(), any(), eq(false));
     }
 
@@ -862,15 +871,15 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
         when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         assertEquals("2019-01-17T06:29:01.940Z", captureNewPacketIdentity().get("packetCreatedOn"));
     }
@@ -882,15 +891,15 @@ public class CreateDraftStageTest {
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
         when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn("packetCreatedOn");
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("UPDATE"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         JSONObject identity = captureUpdatePacketIdentity();
         assertEquals("2019-01-17T06:29:01.940Z", identity.get("packetCreatedOn"));
@@ -900,14 +909,14 @@ public class CreateDraftStageTest {
     public void testNewPacketFetchesPacketCreatedOnWhenNotInSchema_DoesNotAddToIdentity() throws Exception {
         messageDTO.setReg_type("NEW");
         when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("fullName", "dateOfBirth"));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureNewPacketIdentity();
@@ -921,14 +930,14 @@ public class CreateDraftStageTest {
         registrationStatusDto.setRegistrationType("UPDATE");
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(Arrays.asList("fullName", "dateOfBirth"));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("UPDATE"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureUpdatePacketIdentity();
@@ -943,14 +952,14 @@ public class CreateDraftStageTest {
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("RES_UPDATE"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureUpdatePacketIdentity();
@@ -965,7 +974,7 @@ public class CreateDraftStageTest {
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
         when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
                 eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("DEACTIVATED"));
@@ -975,8 +984,8 @@ public class CreateDraftStageTest {
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("ACTIVATED"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureUpdatePacketIdentity();
@@ -991,7 +1000,7 @@ public class CreateDraftStageTest {
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(EXISTING_UIN);
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
         when(registrationProcessorRestClientService.getApi(eq(ApiName.IDREPOGETIDBYUIN), any(), anyString(), anyString(),
                 eq(IdResponseDTO.class))).thenReturn(idResponseWithStatus("ACTIVATED"));
@@ -1001,8 +1010,8 @@ public class CreateDraftStageTest {
         MessageDTO result = createDraftStage.process(messageDTO);
 
         assertTrue(result.getIsValid());
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("DEACTIVATED"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(eq(EXISTING_UIN), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureUpdatePacketIdentity();
@@ -1015,14 +1024,14 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn("2019-01-17T06:29:01.940Z");
         when(utility.getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON)).thenReturn(null);
 
         createDraftStage.process(messageDTO);
 
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(isNull(), eq("2019-01-17T06:29:01.940Z"), eq(REG_ID));
         JSONObject identity = captureNewPacketIdentity();
         assertFalse(identity.containsKey("packetCreatedOn"));
@@ -1034,13 +1043,13 @@ public class CreateDraftStageTest {
         messageDTO.setReg_type("NEW");
         when(idSchemaUtil.getDefaultFields(anyDouble()))
                 .thenReturn(Arrays.asList(MappingJsonConstants.PACKET_CREATED_ON));
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), nullable(Map.class)))
                 .thenReturn(null);
 
         createDraftStage.process(messageDTO);
 
-        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), eq("NEW"),
-                eq(ProviderStageName.CREATE_DRAFT));
+        verify(utility, times(1)).retrieveCreatedDateFromPacket(eq(REG_ID), anyString(),
+                eq(ProviderStageName.CREATE_DRAFT), nullable(Map.class));
         verify(utility).isLatestPacket(isNull(), isNull(String.class), eq(REG_ID));
         verify(utility, never()).getMappedFieldName(MappingJsonConstants.PACKET_CREATED_ON);
         JSONObject identity = captureNewPacketIdentity();
@@ -1051,7 +1060,7 @@ public class CreateDraftStageTest {
     @Test
     public void testRetrieveCreatedDateThrows_MarksPacketManagerReprocess() throws Exception {
         messageDTO.setReg_type("NEW");
-        when(utility.retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class)))
+        when(packetManagerService.getMetaInfo(anyString(), anyString(), any(ProviderStageName.class)))
                 .thenThrow(new PacketManagerException("RPR-PKM-001", "metaInfo failed"));
 
         MessageDTO result = createDraftStage.process(messageDTO);
@@ -1534,6 +1543,158 @@ public class CreateDraftStageTest {
 
         verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(),
                 eq(PlatformErrorMessages.IDREPO_DRAFT_EXCEPTION.getCode()), anyString());
+    }
+
+    // -----------------------------------------------------------------------
+    // registration_list packet metaInfo
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testStorePacketMetaInfoWritesJsonColumnsAndReusesMetaInfoForCreatedDate() throws Exception {
+        messageDTO.setReg_type("NEW");
+        String metaData = "[{\"label\":\"centerId\",\"value\":\"10001\"}]";
+        String operationsData = "[{\"label\":\"officerId\",\"value\":\"officer\"}]";
+        String capturedDevices = "[{\"deviceCode\":\"DEV-1\"}]";
+        Map<String, String> metaInfo = packetMetaInfo(metaData, operationsData, capturedDevices);
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+
+        SyncRegistrationEntity entity = registrationListRow("MOSIP", LocalDateTime.of(2024, 1, 2, 3, 4));
+        when(syncRegistrationService.findByWorkflowInstanceId("wf-001")).thenReturn(entity);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        ArgumentCaptor<SyncRegistrationEntity> saved = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+        verify(syncRegistrationService).findByWorkflowInstanceId("wf-001");
+        verify(syncRegistrationService).update(saved.capture());
+        assertEquals(metaData, saved.getValue().getPacketMetaData());
+        assertEquals(operationsData, saved.getValue().getPacketOperationsData());
+        assertEquals(capturedDevices, saved.getValue().getPacketCapturedDevices());
+        assertEquals("MOSIP", saved.getValue().getUpdatedBy());
+        assertEquals(LocalDateTime.of(2024, 1, 2, 3, 4), saved.getValue().getUpdateDateTime());
+        verify(packetManagerService, times(1)).getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT);
+        verify(utility).retrieveCreatedDateFromPacket(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT, metaInfo);
+    }
+
+    @Test
+    public void testStorePacketMetaInfoOverwritesSameRowOnReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        SyncRegistrationEntity entity = registrationListRow("MOSIP", LocalDateTime.of(2024, 1, 2, 3, 4));
+        entity.setPacketMetaData("[{\"label\":\"centerId\",\"value\":\"old\"}]");
+        entity.setPacketOperationsData("[{\"label\":\"officerId\",\"value\":\"old\"}]");
+        entity.setPacketCapturedDevices("[{\"deviceCode\":\"OLD\"}]");
+        when(syncRegistrationService.findByWorkflowInstanceId("wf-001")).thenReturn(entity);
+
+        String metaData = "[{\"label\":\"centerId\",\"value\":\"10001\"}]";
+        String operationsData = "[{\"label\":\"officerId\",\"value\":\"officer\"}]";
+        String capturedDevices = "[{\"deviceCode\":\"DEV-1\"}]";
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT))
+                .thenReturn(packetMetaInfo(metaData, operationsData, capturedDevices));
+
+        createDraftStage.process(messageDTO);
+
+        ArgumentCaptor<SyncRegistrationEntity> saved = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+        verify(syncRegistrationService, times(1)).update(saved.capture());
+        assertEquals(entity, saved.getValue());
+        assertEquals(metaData, saved.getValue().getPacketMetaData());
+        assertEquals(operationsData, saved.getValue().getPacketOperationsData());
+        assertEquals(capturedDevices, saved.getValue().getPacketCapturedDevices());
+        assertEquals("MOSIP", saved.getValue().getUpdatedBy());
+        assertEquals(LocalDateTime.of(2024, 1, 2, 3, 4), saved.getValue().getUpdateDateTime());
+    }
+
+    @Test
+    public void testStorePacketMetaInfoStoresNullForEmptyAndLiteralNull() throws Exception {
+        messageDTO.setReg_type("NEW");
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.METADATA, "null");
+        metaInfo.put(JsonConstant.OPERATIONSDATA, "");
+        metaInfo.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "NULL");
+        metaInfo.put(JsonConstant.CREATIONDATE, "2025-05-28T10:53:13.973Z");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+        when(syncRegistrationService.findByWorkflowInstanceId("wf-001"))
+                .thenReturn(registrationListRow("MOSIP", LocalDateTime.of(2024, 1, 2, 3, 4)));
+
+        createDraftStage.process(messageDTO);
+
+        ArgumentCaptor<SyncRegistrationEntity> saved = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+        verify(syncRegistrationService).update(saved.capture());
+        assertNull(saved.getValue().getPacketMetaData());
+        assertNull(saved.getValue().getPacketOperationsData());
+        assertNull(saved.getValue().getPacketCapturedDevices());
+    }
+
+    @Test
+    public void testStorePacketMetaInfoSkipsUpdateWhenMetaInfoMissing() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        verify(syncRegistrationService, never()).findByWorkflowInstanceId(anyString());
+        verify(syncRegistrationService, never()).update(any());
+    }
+
+    @Test
+    public void testStorePacketMetaInfoSkipsUpdateWhenMetaInfoEmpty() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT))
+                .thenReturn(new HashMap<>());
+
+        createDraftStage.process(messageDTO);
+
+        verify(syncRegistrationService, never()).findByWorkflowInstanceId(anyString());
+        verify(syncRegistrationService, never()).update(any());
+    }
+
+    @Test
+    public void testStorePacketMetaInfoSkipsUpdateWhenRegistrationListRowMissing() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT))
+                .thenReturn(packetMetaInfo("[{\"label\":\"centerId\",\"value\":\"10001\"}]", "[]", "[]"));
+        when(syncRegistrationService.findByWorkflowInstanceId("wf-001")).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        verify(syncRegistrationService, never()).update(any());
+        verify(idrepoDraftService, times(1)).idrepoUpdateDraftV2(eq(REG_ID), isNull(), any(), isNull());
+    }
+
+    @Test
+    public void testStorePacketMetaInfoInvalidJsonMarksReprocess() throws Exception {
+        messageDTO.setReg_type("NEW");
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.METADATA, "{not-json");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+        when(syncRegistrationService.findByWorkflowInstanceId("wf-001"))
+                .thenReturn(registrationListRow("MOSIP", LocalDateTime.of(2024, 1, 2, 3, 4)));
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getInternalError());
+        assertLastUpdatedSubStatus(StatusUtil.IO_EXCEPTION.getCode());
+        verify(syncRegistrationService, never()).update(any());
+        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+    }
+
+    private static Map<String, String> packetMetaInfo(String metaData, String operationsData, String capturedDevices) {
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.METADATA, metaData);
+        metaInfo.put(JsonConstant.OPERATIONSDATA, operationsData);
+        metaInfo.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, capturedDevices);
+        metaInfo.put(JsonConstant.CREATIONDATE, "2025-05-28T10:53:13.973Z");
+        return metaInfo;
+    }
+
+    private static SyncRegistrationEntity registrationListRow(String updatedBy, LocalDateTime updateDateTime) {
+        SyncRegistrationEntity entity = new SyncRegistrationEntity();
+        entity.setUpdatedBy(updatedBy);
+        entity.setUpdateDateTime(updateDateTime);
+        return entity;
     }
 
     // -----------------------------------------------------------------------
