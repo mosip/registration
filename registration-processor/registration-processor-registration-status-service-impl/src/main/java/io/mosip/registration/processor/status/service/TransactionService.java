@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.mosip.registration.processor.status.dto.RegistrationTransactionDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
+import io.mosip.registration.processor.status.entity.TrackerEntity;
 import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.RegTransactionAppException;
 import io.mosip.registration.processor.status.exception.TransactionsUnavailableException;
@@ -40,4 +41,7 @@ public interface TransactionService<U> {
 	
 	public List<RegistrationTransactionDto> getTransactionByRegId(String regId) throws TransactionsUnavailableException, RegTransactionAppException;
 
+	public TrackerEntity isTransactionExist(String regId, String transactionId, String latestTrnFlowId);
+
+	public TrackerEntity updateTransactionComplete(String transactionId, String StatusCode) throws TransactionsUnavailableException;
 }

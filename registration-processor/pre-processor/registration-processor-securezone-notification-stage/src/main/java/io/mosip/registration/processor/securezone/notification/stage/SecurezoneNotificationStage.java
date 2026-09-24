@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.status.utilities.RegistrationUtility;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,6 +240,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 				registrationStatusDto.setStatusComment(StatusUtil.NOTIFICATION_RECEIVED_TO_SECUREZONE.getMessage());
 				registrationStatusDto.setSubStatusCode(StatusUtil.NOTIFICATION_RECEIVED_TO_SECUREZONE.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setLatestTransactionFlowId(RegistrationUtility.generateId());
+				messageDTO.setTransactionFlowId(registrationStatusDto.getLatestTransactionFlowId());
 
 				isTransactionSuccessful = true;
 				description.setMessage(PlatformSuccessMessages.RPR_SEZ_SECUREZONE_NOTIFICATION.getMessage() + " -- "

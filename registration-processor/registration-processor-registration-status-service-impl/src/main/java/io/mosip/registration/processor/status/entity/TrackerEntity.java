@@ -1,57 +1,28 @@
 package io.mosip.registration.processor.status.entity;
 
-import java.time.LocalDateTime;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 /**	
  * The Class TransactionEntity.
  */
 @Entity
-@Table(name = "registration_transaction", schema = "regprc")
-public class TransactionEntity extends BaseTransactionEntity {
+@Table(name = "registration_tracker", schema = "regprc")
+public class TrackerEntity extends BaseTrackerEntity {
 
 	/** The registration id. */
 	@Column(name = "reg_id")
 	private String registrationId;
 
-	/** The trntypecode. */
-	@Column(name = "trn_type_code")
-	private String trntypecode;
-
 	/** The remarks. */
-	@Column(name = "remarks")
-	private String remarks;
-
-	/** The parentid. */
-	@Column(name = "parent_regtrn_id")
-	private String parentid;
+	@Column(name = "transaction_flow_id")
+	private String transactionFlowId;
 
 	/** The status code. */
 	@Column(name = "status_code")
 	private String statusCode;
-	
-	/** The sub status code. */
-	@Column(name = "sub_status_code")
-	private String subStatusCode;
-
-	/** The lang code. */
-	@Column(name = "lang_code")
-	private String langCode = "eng";
-
-	/** The status comment. */
-	@Column(name = "status_comment")
-	private String statusComment;
-
-	/** The reference id. */
-	@Column(name = "ref_id")
-	private String referenceId;
-
-	/** The reference id type. */
-	@Column(name = "ref_id_type")
-	private String referenceIdType;
 
 	/**  is deleted?. */
 	@Column(name = "is_deleted", length = 32)
@@ -76,15 +47,10 @@ public class TransactionEntity extends BaseTransactionEntity {
 	/** The update date time. */
 	@Column(name = "upd_dtimes")
 	private LocalDateTime updateDateTime;
-
-	/** The reference id. */
-	@Column(name = "transaction_flow_id")
-	private String transactionFlowId;
-
 	/**
 	 * Instantiates a new transaction entity.
 	 */
-	public TransactionEntity() {
+	public TrackerEntity() {
 		super();
 	}
 
@@ -93,20 +59,13 @@ public class TransactionEntity extends BaseTransactionEntity {
 	 *
 	 * @param transactionId            the transaction id
 	 * @param registrationId            the registration id
-	 * @param parentid            the parentid
-	 * @param trntypecode            the trntypecode
 	 * @param statusCode            the status code
-	 * @param statusComment the status comment
 	 */
-	public TransactionEntity(String transactionId, String registrationId, String parentid, String trntypecode,
-			String subStatusCode,String statusCode, String statusComment) {
-		id = transactionId;
+	public TrackerEntity(String transactionId, String registrationId, String transactionFlowId, String statusCode) {
 		this.registrationId = registrationId;
-		this.parentid = parentid;
-		this.trntypecode = trntypecode;
+		this.transactionId = transactionId;
+		this.transactionFlowId = transactionFlowId;
 		this.statusCode = statusCode;
-		this.statusComment = statusComment;
-		this.subStatusCode=subStatusCode;
 	}
 
 	/**
@@ -116,6 +75,14 @@ public class TransactionEntity extends BaseTransactionEntity {
 	 */
 	public String getRegistrationId() {
 		return registrationId;
+	}
+
+	public String getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
 	}
 
 	/**
@@ -128,69 +95,12 @@ public class TransactionEntity extends BaseTransactionEntity {
 		this.registrationId = registrationId;
 	}
 
-	/**
-	 * Get parent id from transaction table.
-	 * 
-	 * @return the parentid
-	 */
-	public String getParentid() {
-		return parentid;
-	}
-
-	/**
-	 * Set parent id to transaction table.
-	 * 
-	 * @param parentid
-	 *            the parentid to set
-	 */
-	public void setParentid(String parentid) {
-		this.parentid = parentid;
-	}
-
 	public String getTransactionFlowId() {
 		return transactionFlowId;
 	}
 
 	public void setTransactionFlowId(String transactionFlowId) {
 		this.transactionFlowId = transactionFlowId;
-	}
-
-	/**
-	 * Get trn_type_code from transaction table.
-	 * 
-	 * @return the trntypecode
-	 */
-	public String getTrntypecode() {
-		return trntypecode;
-	}
-
-	/**
-	 * Set trn_type_code to transaction table.
-	 * 
-	 * @param trntypecode
-	 *            the trntypecode to set
-	 */
-	public void setTrntypecode(String trntypecode) {
-		this.trntypecode = trntypecode;
-	}
-
-	/**
-	 * Get remarks from transaction table.
-	 * 
-	 * @return the remarks
-	 */
-	public String getRemarks() {
-		return remarks;
-	}
-
-	/**
-	 * Set remarks to transaction table.
-	 * 
-	 * @param remarks
-	 *            the remarks to set
-	 */
-	public void setRemarks(String remarks) {
-		this.remarks = remarks;
 	}
 
 	/**
@@ -212,102 +122,6 @@ public class TransactionEntity extends BaseTransactionEntity {
 		this.statusCode = statusCode;
 	}
 	
-	/**
-	 * Get sub Status Code from transaction table.
-	 * @return
-	 * 		the subStatusCode
-	 */
-	public String getSubStatusCode() {
-		return subStatusCode;
-	}
-
-	/**
-	 * Set sub status Code to transaction table.
-	 * @param subStatusCode
-	 * 						the subStatusCode to set
-	 */
-	public void setSubStatusCode(String subStatusCode) {
-		this.subStatusCode = subStatusCode;
-	}
-
-	/**
-	 * Get lang_Code from transaction table.
-	 * 
-	 * @return the langCode
-	 */
-	public String getLangCode() {
-		return langCode;
-	}
-
-	/**
-	 * Set lang Code to transaction table.
-	 * 
-	 * @param langCode
-	 *            the langCode to set
-	 */
-	public void setLangCode(String langCode) {
-		this.langCode = langCode;
-	}
-
-	/**
-	 * Get referenceId from transaction table.
-	 * 
-	 * @return the referenceId
-	 */
-	public String getReferenceId() {
-		return referenceId;
-	}
-
-	/**
-	 * Set referenceId to transaction table.
-	 * 
-	 * @param referenceId
-	 *            the referenceId to set
-	 */
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
-
-	/**
-	 * Get referenceIdType from transaction table.
-	 * 
-	 * @return the referenceIdType
-	 */
-	public String getReferenceIdType() {
-		return referenceIdType;
-	}
-
-	/**
-	 * Set referenceIdType to transaction table.
-	 * 
-	 * @param referenceIdType
-	 *            the referenceIdType to set
-	 */
-	public void setReferenceIdType(String referenceIdType) {
-		this.referenceIdType = referenceIdType;
-	}
-
-	/**
-	 * Get status Comment from transaction table.
-	 * 
-	 * @return the statusComment
-	 */
-	public String getStatusComment() {
-		return statusComment;
-	}
-
-	/**
-	 * Set status comment to transaction table.
-	 * 
-	 * @param statusComment
-	 *            the statusComment to set
-	 */
-	public void setStatusComment(String statusComment) {
-		this.statusComment = statusComment;
-	}
-
-	
-
 	/**
 	 * Gets the checks if is deleted.
 	 *

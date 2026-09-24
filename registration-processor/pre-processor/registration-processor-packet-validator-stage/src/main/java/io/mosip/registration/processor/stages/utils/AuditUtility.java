@@ -70,7 +70,7 @@ public class AuditUtility {
 	 * 
 	 *
 	 */
-	@Async
+	//@Async
 	public void saveAuditDetails(String registrationId, String process) {
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

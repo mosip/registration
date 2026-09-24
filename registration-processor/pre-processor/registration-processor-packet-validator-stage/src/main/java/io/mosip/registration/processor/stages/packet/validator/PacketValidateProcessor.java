@@ -207,7 +207,6 @@ public class PacketValidateProcessor {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					String finalRegistrationId = registrationId;
-					Runnable r = () -> {
 						try {
 							auditUtility.saveAuditDetails(finalRegistrationId,
 									finalRegistrationStatusDto.getRegistrationType());
@@ -217,10 +216,7 @@ public class PacketValidateProcessor {
 									description.getCode() + " Inside Runnable ", "");
 
 						}
-					};
-					ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-					es.submit(r);
-					es.shutdown();
+
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 					object.setIsValid(Boolean.TRUE);

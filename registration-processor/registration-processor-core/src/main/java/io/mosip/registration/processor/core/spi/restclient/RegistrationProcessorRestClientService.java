@@ -171,6 +171,23 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 			T requestedData, Class<?> responseType,MediaType mediaType) throws ApisResourceAccessException;
 	
 	/**
+	 * Put api.
+	 *
+	 * @param apiName the api name
+	 * @param pathsegments the pathsegments
+	 * @param queryParam the query param
+	 * @param queryParamValue the query param value
+	 * @param requestedData the requested data
+	 * @param responseType the response type
+	 * @param mediaType the media type
+	 * @return the t
+	 * @throws ApisResourceAccessException the apis resource access exception
+	 */
+	public T putApi(ApiName apiName, List<String> pathsegments, List<String> queryParam, List<String> queryParamValue,
+					T requestedData, Class<?> responseType,MediaType mediaType) throws ApisResourceAccessException;
+
+
+	/**
 	 * Post api.
 	 *
 	 * @param url the url
