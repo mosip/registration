@@ -26,6 +26,8 @@ import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
+import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.json.simple.JSONObject;
@@ -62,6 +64,9 @@ public class Utility {
 
 	@Autowired
 	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
+
+	@Autowired
+	private RegistrationStatusDao registrationStatusDao;
 
 	@Autowired
 	private IdRepoService idRepoService;
@@ -1172,20 +1177,39 @@ public class Utility {
 		}
 	}
 
-	public LocalDateTime getPacketCreatedDateTimeWithoutPacketManager(String rid) {
+	/**
+	 * Reads {@code regprc.registration.pkt_cr_dtimes} using {@link RegistrationStatusDao#find},
+	 * the same lookup as {@code getRegistrationStatus}.
+	 *
+	 * @return the stored packet creation time, or null when the row or the column is empty
+	 */
+	public LocalDateTime getPacketCreatedDateTimeFromRegistration(String rid, String workflowInstanceId) {
+		RegistrationStatusEntity registration = registrationStatusDao.find(rid, null, null, workflowInstanceId);
+		return registration == null ? null : registration.getPacketCreatedDateTime();
+	}
+
+	public LocalDateTime getPacketCreatedDateTimeWithoutPacketManager(String rid, String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"getPacketCreatedDateTimeWithoutPacketManager :: entry");
 		try {
-			// Step 1 : Try from packetId (yyyyMMddHHmmss)
-			LocalDateTime packetCreatedDateTime = getPacketCreatedDateTimeFromSyncRegistration(rid);
+			// Step 1 : Try pkt_cr_dtimes from registration table.
+			LocalDateTime packetCreatedDateTime = getPacketCreatedDateTimeFromRegistration(rid, workflowInstanceId);
+			if (packetCreatedDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from registration.pkt_cr_dtimes. date : {}", packetCreatedDateTime);
+				return packetCreatedDateTime;
+			}
+
+			// Step 2 : Try from packetId (yyyyMMddHHmmss)
+			packetCreatedDateTime = getPacketCreatedDateTimeFromSyncRegistration(rid);
 			if (packetCreatedDateTime != null) {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from packetId. date : {}", packetCreatedDateTime);
 				return packetCreatedDateTime;
 			}
 
-			//  Step 2 : Try from RID directly (yyyyMMddHHmmss)
+			// Step 3 : Try from RID directly (yyyyMMddHHmmss)
 			packetCreatedDateTime = getPacketCreatedDateTimeFromRid(rid);
 			if (packetCreatedDateTime != null) {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,

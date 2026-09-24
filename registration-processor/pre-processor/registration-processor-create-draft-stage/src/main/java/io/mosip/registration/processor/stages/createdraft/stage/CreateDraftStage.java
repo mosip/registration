@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.stages.createdraft.stage;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -222,6 +224,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
             // Same workflow_instance_id row is updated again when this stage is reprocessed.
             storePacketMetaInfo(registrationId, object.getWorkflowInstanceId(), metaInfo);
+            // pkt_cr_dtimes is stored in the Packet Validator stage. Stages are customizable and that stage can be removed, so recheck here and store the value when it is missing.
+            storePacketCreatedDateTimeIfAbsent(registrationId, registrationStatusDto, metaInfo);
 
             if ((RegistrationType.LOST.toString()).equalsIgnoreCase(object.getReg_type())) {
                 if (idrepoDraftService.idrepoHasDraft(registrationId)) {
@@ -526,6 +530,39 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
         syncRegistrationEntity.setPacketOperationsData(jsonOrNull(metaInfo.get(JsonConstant.OPERATIONSDATA)));
         syncRegistrationEntity.setPacketCapturedDevices(jsonOrNull(metaInfo.get(JsonConstant.CAPTUREDREGISTEREDDEVICES)));
         syncRegistrationService.update(syncRegistrationEntity);
+    }
+
+    /**
+     * pkt_cr_dtimes is stored in the Packet Validator stage. Stages are customizable and that
+     * stage can be removed, so this rechecks the registration status and, when the column is
+     * missing, stores the packet creationDate.
+     */
+    private void storePacketCreatedDateTimeIfAbsent(String registrationId,
+            InternalRegistrationStatusDto registrationStatusDto, Map<String, String> metaInfo) {
+        if (registrationStatusDto.getPacketCreateDateTime() != null) {
+            return;
+        }
+        if (metaInfo == null || metaInfo.isEmpty()) {
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketCreatedDateTimeIfAbsent()::metaInfo is empty");
+            return;
+        }
+        String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
+        if (StringUtils.isEmpty(packetCreatedDateTime)) {
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketCreatedDateTimeIfAbsent()::creationDate is empty");
+            return;
+        }
+        try {
+            LocalDateTime dateTime = DateUtils2.parseToLocalDateTime(packetCreatedDateTime);
+            registrationStatusDto.setPacketCreateDateTime(dateTime);
+            regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketCreatedDateTimeIfAbsent()::stored pkt_cr_dtimes " + dateTime);
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId, "CreateDraftStage::storePacketCreatedDateTimeIfAbsent()::unable to parse creationDate "
+                            + packetCreatedDateTime);
+        }
     }
 
     private String jsonOrNull(String value) throws IOException {

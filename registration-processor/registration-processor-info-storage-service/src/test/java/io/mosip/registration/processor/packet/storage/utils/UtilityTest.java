@@ -21,6 +21,8 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.core.exception.BiometricClassificationException;
 import io.mosip.registration.processor.core.exception.PacketDateComputationException;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.apache.commons.io.IOUtils;
@@ -77,6 +79,9 @@ public class UtilityTest {
 
     @Mock
     private SyncRegistrationRepository syncRegistrationRepository;
+
+    @Mock
+    private RegistrationStatusDao registrationStatusDao;
 
     @Mock
     private Logger regProcLogger;
@@ -1087,11 +1092,58 @@ public class UtilityTest {
     // -----------------------------------------------------------------------
 
     @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_FromRegistrationColumn() {
+        LocalDateTime fromRegistration = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
+        RegistrationStatusEntity entity = new RegistrationStatusEntity();
+        entity.setPacketCreatedDateTime(fromRegistration);
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenReturn(entity);
+
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
+
+        assertEquals(fromRegistration, result);
+        verify(registrationStatusDao).find("reg123", null, null, "wf-001");
+        verify(utility, never()).getPacketCreatedDateTimeFromSyncRegistration(anyString());
+        verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeFromRegistration_MissingRow_ReturnsNull() {
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenReturn(null);
+
+        assertNull(utility.getPacketCreatedDateTimeFromRegistration("reg123", "wf-001"));
+        verify(registrationStatusDao).find("reg123", null, null, "wf-001");
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeFromRegistration_NullColumn_ReturnsNull() {
+        RegistrationStatusEntity entity = new RegistrationStatusEntity();
+        entity.setPacketCreatedDateTime(null);
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenReturn(entity);
+
+        assertNull(utility.getPacketCreatedDateTimeFromRegistration("reg123", "wf-001"));
+        verify(registrationStatusDao).find("reg123", null, null, "wf-001");
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_NullColumnFallsBackToPacketId() {
+        LocalDateTime fromSync = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
+        RegistrationStatusEntity entity = new RegistrationStatusEntity();
+        entity.setPacketCreatedDateTime(null);
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenReturn(entity);
+        doReturn(fromSync).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
+
+        assertEquals(fromSync, result);
+        verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
+    }
+
+    @Test
     public void testGetPacketCreatedDateTimeWithoutPacketManager_FromSyncRegistration() {
         LocalDateTime fromSync = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
         doReturn(fromSync).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
 
-        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123");
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
 
         assertEquals(fromSync, result);
         verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
@@ -1103,7 +1155,7 @@ public class UtilityTest {
         doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
         doReturn(fromRid).when(utility).getPacketCreatedDateTimeFromRid("reg123");
 
-        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123");
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
 
         assertEquals(fromRid, result);
         verify(utility).getPacketCreatedDateTimeFromRid("reg123");
@@ -1114,14 +1166,14 @@ public class UtilityTest {
         doReturn(null).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
         doReturn(null).when(utility).getPacketCreatedDateTimeFromRid("reg123");
 
-        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123"));
+        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001"));
     }
 
     @Test
     public void testGetPacketCreatedDateTimeWithoutPacketManager_Exception_ReturnsNull() {
         doThrow(new RuntimeException("db error")).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
 
-        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123"));
+        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001"));
     }
 
 }

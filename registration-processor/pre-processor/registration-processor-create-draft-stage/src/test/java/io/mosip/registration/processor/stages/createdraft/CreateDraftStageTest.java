@@ -43,6 +43,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -1679,6 +1680,89 @@ public class CreateDraftStageTest {
         assertLastUpdatedSubStatus(StatusUtil.IO_EXCEPTION.getCode());
         verify(syncRegistrationService, never()).update(any());
         verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeWhenColumnEmpty() throws Exception {
+        messageDTO.setReg_type("NEW");
+        String creationDate = "2023-10-17T03:01:09.893";
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.CREATIONDATE, creationDate);
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertEquals(DateUtils2.parseToLocalDateTime(creationDate), registrationStatusDto.getPacketCreateDateTime());
+        verify(registrationStatusService).updateRegistrationStatus(statusCaptor.capture(), nullable(String.class), anyString());
+        assertEquals(DateUtils2.parseToLocalDateTime(creationDate), statusCaptor.getValue().getPacketCreateDateTime());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeLeavesExistingValue() throws Exception {
+        messageDTO.setReg_type("NEW");
+        LocalDateTime existing = LocalDateTime.of(2020, 1, 2, 3, 4, 5);
+        registrationStatusDto.setPacketCreateDateTime(existing);
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.CREATIONDATE, "2023-10-17T03:01:09.893");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+
+        createDraftStage.process(messageDTO);
+
+        assertEquals(existing, registrationStatusDto.getPacketCreateDateTime());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeSkipsWhenCreationDateEmpty() throws Exception {
+        messageDTO.setReg_type("NEW");
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.CREATIONDATE, "");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        assertNull(registrationStatusDto.getPacketCreateDateTime());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeSkipsWhenMetaInfoNull() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(null);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        assertNull(registrationStatusDto.getPacketCreateDateTime());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeSkipsWhenMetaInfoEmpty() throws Exception {
+        messageDTO.setReg_type("NEW");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT))
+                .thenReturn(new HashMap<>());
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        assertNull(registrationStatusDto.getPacketCreateDateTime());
+    }
+
+    @Test
+    public void testStorePacketCreatedDateTimeSkipsWhenCreationDateUnparseable() throws Exception {
+        messageDTO.setReg_type("NEW");
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put(JsonConstant.CREATIONDATE, "not-a-date");
+        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+
+        MessageDTO result = createDraftStage.process(messageDTO);
+
+        assertTrue(result.getIsValid());
+        assertFalse(result.getInternalError());
+        assertNull(registrationStatusDto.getPacketCreateDateTime());
     }
 
     private static Map<String, String> packetMetaInfo(String metaData, String operationsData, String capturedDevices) {

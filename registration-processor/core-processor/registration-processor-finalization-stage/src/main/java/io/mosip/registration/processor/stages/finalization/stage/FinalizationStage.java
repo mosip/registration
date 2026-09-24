@@ -189,7 +189,8 @@ public class FinalizationStage extends MosipVerticleAPIManager{
 					return object;
 				}
 
-				LocalDateTime currentPacketCreatedDateTime = utility.getPacketCreatedDateTimeWithoutPacketManager(registrationId);
+				LocalDateTime currentPacketCreatedDateTime = utility.getPacketCreatedDateTimeWithoutPacketManager(
+						registrationId, object.getWorkflowInstanceId());
 				if (!handleStaleCheck(registrationId, uin, currentPacketCreatedDateTime, object, description)) {
 					return object;
 				}
