@@ -198,6 +198,37 @@ public class CredentialPartnerUtilTest {
 	}
 
 	@Test
+	public void getCredentialPartners_fallsBackWhenStoredMetaDataBlank() throws Exception {
+		preparePartnerFilter("digitalcardPartner", "centerId == '10001'", "NEW");
+		SyncRegistrationEntity entity = new SyncRegistrationEntity();
+		entity.setPacketMetaData("  ");
+		when(syncRegistrationService.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(entity);
+		when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREDENTIAL_REQUESTOR))
+				.thenReturn(metaInfo(CENTER_METADATA));
+
+		List<CredentialPartner> partners = credentialPartnerUtil.getCredentialPartners(
+				REG_ID, "NEW", WORKFLOW_INSTANCE_ID, new JSONObject());
+
+		assertEquals(1, partners.size());
+		assertEquals("digitalcardPartner", partners.get(0).getId());
+		verify(packetManagerService, times(1)).getMetaInfo(REG_ID, "NEW", ProviderStageName.CREDENTIAL_REQUESTOR);
+	}
+
+	@Test
+	public void getCredentialPartners_packetManagerMetaInfoEmpty_skipsMetadataAndReturnsNoPartners() throws Exception {
+		preparePartnerFilter("digitalcardPartner", "false", "NEW");
+		when(syncRegistrationService.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(null);
+		when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREDENTIAL_REQUESTOR))
+				.thenReturn(Collections.emptyMap());
+
+		List<CredentialPartner> partners = credentialPartnerUtil.getCredentialPartners(
+				REG_ID, "NEW", WORKFLOW_INSTANCE_ID, new JSONObject());
+
+		assertTrue(partners.isEmpty());
+		verify(packetManagerService, times(1)).getMetaInfo(REG_ID, "NEW", ProviderStageName.CREDENTIAL_REQUESTOR);
+	}
+
+	@Test
 	public void getCredentialPartners_emptyExpressions_skipsMetadataLookup() throws Exception {
 		ReflectionTestUtils.setField(credentialPartnerUtil, "credentialPartnerExpression", new HashMap<String, String>());
 

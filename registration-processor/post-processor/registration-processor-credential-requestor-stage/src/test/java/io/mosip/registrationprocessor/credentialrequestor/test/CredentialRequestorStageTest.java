@@ -4,6 +4,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -292,8 +294,7 @@ public class CredentialRequestorStageTest {
 
 
 	@Test
-	public void testPrintStageSuccess()
-			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
+	public void testPrintStageSuccess() throws Exception {
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 
@@ -312,6 +313,8 @@ public class CredentialRequestorStageTest {
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 		assertFalse(result.getInternalError());
+		verify(credentialPartnerUtil).getCredentialPartners(eq("1234567890987654321"), eq("NEW"),
+				eq("33e1fb7f-8202-41dc-82a1-49e821364eb2"), any());
 	}
 	
 

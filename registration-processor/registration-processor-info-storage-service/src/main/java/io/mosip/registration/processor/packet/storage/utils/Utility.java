@@ -1178,6 +1178,25 @@ public class Utility {
 	}
 
 	/**
+	 * Returns null when {@code value} is blank or the literal text {@code "null"} (ignoring case and
+	 * surrounding spaces). Any other text is returned unchanged.
+	 * <p>
+	 * Use this before writing a JSONB column so an empty string is not sent to the database and the
+	 * text {@code "null"} is stored as SQL NULL. This method does not parse JSON. The database validates
+	 * the text when the JSONB column is written.
+	 * </p>
+	 *
+	 * @param value text to store, possibly null
+	 * @return {@code null} when the value should be stored as SQL NULL, otherwise the original text
+	 */
+	public String nullIfBlank(String value) {
+		if (StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value.trim())) {
+			return null;
+		}
+		return value;
+	}
+
+	/**
 	 * Reads {@code regprc.registration.pkt_cr_dtimes} using {@link RegistrationStatusDao#find},
 	 * the same lookup as {@code getRegistrationStatus}.
 	 *

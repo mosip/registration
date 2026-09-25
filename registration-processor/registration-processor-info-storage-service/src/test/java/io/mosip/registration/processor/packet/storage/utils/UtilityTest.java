@@ -650,6 +650,17 @@ public class UtilityTest {
         verify(packetManagerService, times(1)).getMetaInfo(rid, "NEW", ProviderStageName.UIN_GENERATOR);
     }
 
+    @Test
+    public void testRetrieveCreatedDateFromPacket_suppliedMetaInfoWithoutCreationDate_returnsNull()
+            throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+        String rid = "10049100271000420250319064824";
+        Map<String, String> metaInfo = new HashMap<>();
+        metaInfo.put("metaData", "[]");
+
+        assertNull(utility.retrieveCreatedDateFromPacket(rid, "NEW", ProviderStageName.CREATE_DRAFT, metaInfo));
+        verify(packetManagerService, never()).getMetaInfo(anyString(), anyString(), any(ProviderStageName.class));
+    }
+
     @Test(expected = BiometricClassificationException.class)
     public void testAllBiometricHaveException_nullList_throwsException() throws BiometricClassificationException {
         utility.allBiometricHaveException(null, null);
@@ -1087,6 +1098,20 @@ public class UtilityTest {
         assertNull(utility.parseToLocalDateTime("abccdefgh", "yyyy-MM-dd'T'HH:mm:ss"));
     }
 
+    @Test
+    public void testNullIfBlank_blankOrNullLiteral_returnsNull() {
+        assertNull(utility.nullIfBlank(null));
+        assertNull(utility.nullIfBlank(""));
+        assertNull(utility.nullIfBlank("null"));
+        assertNull(utility.nullIfBlank(" NULL "));
+    }
+
+    @Test
+    public void testNullIfBlank_otherText_returnsOriginal() {
+        String json = "[{\"label\":\"centerId\",\"value\":\"10001\"}]";
+        assertEquals(json, utility.nullIfBlank(json));
+    }
+
     // -----------------------------------------------------------------------
     // getPacketCreatedDateTimeWithoutPacketManager
     // -----------------------------------------------------------------------
@@ -1135,6 +1160,20 @@ public class UtilityTest {
         LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
 
         assertEquals(fromSync, result);
+        verify(registrationStatusDao).find("reg123", null, null, "wf-001");
+        verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_MissingRowFallsBackToPacketId() {
+        LocalDateTime fromSync = LocalDateTime.of(2024, 3, 19, 6, 48, 24);
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenReturn(null);
+        doReturn(fromSync).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
+
+        LocalDateTime result = utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001");
+
+        assertEquals(fromSync, result);
+        verify(registrationStatusDao).find("reg123", null, null, "wf-001");
         verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
     }
 
@@ -1174,6 +1213,15 @@ public class UtilityTest {
         doThrow(new RuntimeException("db error")).when(utility).getPacketCreatedDateTimeFromSyncRegistration("reg123");
 
         assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001"));
+    }
+
+    @Test
+    public void testGetPacketCreatedDateTimeWithoutPacketManager_RegistrationLookupFailure_ReturnsNull() {
+        when(registrationStatusDao.find("reg123", null, null, "wf-001")).thenThrow(new RuntimeException("db error"));
+
+        assertNull(utility.getPacketCreatedDateTimeWithoutPacketManager("reg123", "wf-001"));
+        verify(utility, never()).getPacketCreatedDateTimeFromSyncRegistration(anyString());
+        verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
     }
 
 }

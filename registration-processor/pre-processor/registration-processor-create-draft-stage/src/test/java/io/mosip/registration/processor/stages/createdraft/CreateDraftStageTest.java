@@ -158,6 +158,7 @@ public class CreateDraftStageTest {
                 .thenReturn(registrationStatusDto);
 
         when(utility.getUIn(anyString(), anyString(), any(ProviderStageName.class))).thenReturn(null);
+        when(utility.nullIfBlank(nullable(String.class))).thenCallRealMethod();
         when(utility.isLatestPacket(nullable(String.class), nullable(String.class), anyString()))
                 .thenReturn(StaleCheckResult.NOT_STALE);
         when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(false);
@@ -1666,20 +1667,22 @@ public class CreateDraftStageTest {
     }
 
     @Test
-    public void testStorePacketMetaInfoInvalidJsonMarksReprocess() throws Exception {
-        messageDTO.setReg_type("NEW");
-        Map<String, String> metaInfo = new HashMap<>();
-        metaInfo.put(JsonConstant.METADATA, "{not-json");
-        when(packetManagerService.getMetaInfo(REG_ID, "NEW", ProviderStageName.CREATE_DRAFT)).thenReturn(metaInfo);
+    public void testStorePacketMetaInfoForLostPacket() throws Exception {
+        messageDTO.setReg_type("LOST");
+        registrationStatusDto.setRegistrationType("LOST");
+        String metaData = "[{\"label\":\"centerId\",\"value\":\"10001\"}]";
+        when(packetManagerService.getMetaInfo(REG_ID, "LOST", ProviderStageName.CREATE_DRAFT))
+                .thenReturn(packetMetaInfo(metaData, "[]", "[]"));
         when(syncRegistrationService.findByWorkflowInstanceId("wf-001"))
                 .thenReturn(registrationListRow("MOSIP", LocalDateTime.of(2024, 1, 2, 3, 4)));
 
         MessageDTO result = createDraftStage.process(messageDTO);
 
-        assertTrue(result.getInternalError());
-        assertLastUpdatedSubStatus(StatusUtil.IO_EXCEPTION.getCode());
-        verify(syncRegistrationService, never()).update(any());
-        verify(idrepoDraftService, never()).idrepoUpdateDraftV2(anyString(), any(), any(), any());
+        assertTrue(result.getIsValid());
+        ArgumentCaptor<SyncRegistrationEntity> saved = ArgumentCaptor.forClass(SyncRegistrationEntity.class);
+        verify(syncRegistrationService).update(saved.capture());
+        assertEquals(metaData, saved.getValue().getPacketMetaData());
+        verify(utility, never()).retrieveCreatedDateFromPacket(anyString(), anyString(), any(ProviderStageName.class), any());
     }
 
     @Test

@@ -219,7 +219,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.CREATE_DRAFT.toString());
             registrationStatusDto.setRegistrationStageName(getStageName());
 
-            // One metaInfo read is shared by registration_list storage and the packet created-date lookup.
             Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId,
                     registrationStatusDto.getRegistrationType(), ProviderStageName.CREATE_DRAFT);
             // Same workflow_instance_id row is updated again when this stage is reprocessed.
@@ -508,10 +507,8 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
      * Stores packet metaInfo on the registration_list row so post-ABIS stages can read
      * metaData, operationsData, and capturedRegisteredDevices from the database instead of
      * calling Packet Manager. A reprocess overwrites the same workflow_instance_id row.
-     * {@code metaInfo} is the map already returned by PacketManagerService.getMetaInfo.
      */
-    private void storePacketMetaInfo(String registrationId, String workflowInstanceId, Map<String, String> metaInfo)
-            throws IOException {
+    private void storePacketMetaInfo(String registrationId, String workflowInstanceId, Map<String, String> metaInfo) {
         if (metaInfo == null || metaInfo.isEmpty()) {
             regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                     registrationId, "CreateDraftStage::storePacketMetaInfo()::metaInfo is empty");
@@ -526,9 +523,9 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
             return;
         }
 
-        syncRegistrationEntity.setPacketMetaData(jsonOrNull(metaInfo.get(JsonConstant.METADATA)));
-        syncRegistrationEntity.setPacketOperationsData(jsonOrNull(metaInfo.get(JsonConstant.OPERATIONSDATA)));
-        syncRegistrationEntity.setPacketCapturedDevices(jsonOrNull(metaInfo.get(JsonConstant.CAPTUREDREGISTEREDDEVICES)));
+        syncRegistrationEntity.setPacketMetaData(utility.nullIfBlank(metaInfo.get(JsonConstant.METADATA)));
+        syncRegistrationEntity.setPacketOperationsData(utility.nullIfBlank(metaInfo.get(JsonConstant.OPERATIONSDATA)));
+        syncRegistrationEntity.setPacketCapturedDevices(utility.nullIfBlank(metaInfo.get(JsonConstant.CAPTUREDREGISTEREDDEVICES)));
         syncRegistrationService.update(syncRegistrationEntity);
     }
 
@@ -563,14 +560,6 @@ public class CreateDraftStage extends MosipVerticleAPIManager {
                     registrationId, "CreateDraftStage::storePacketCreatedDateTimeIfAbsent()::unable to parse creationDate "
                             + packetCreatedDateTime);
         }
-    }
-
-    private String jsonOrNull(String value) throws IOException {
-        if (StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value.trim())) {
-            return null;
-        }
-        objectMapper.readTree(value);
-        return value;
     }
 
     private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {

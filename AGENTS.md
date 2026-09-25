@@ -86,7 +86,7 @@ Since the Create Draft stage was introduced (Group 2, before ABIS), **post-ABIS 
 
 When writing or modifying code in any stage that runs **after ABIS Handler/Middleware/Bio Dedupe** (Manual Adjudication, Biometric Extraction, Finalization, Credential Requestor, and anything downstream), do not introduce new Packet Manager calls for identity/documents/biometrics — use the ID Repo draft APIs instead. Packet Manager access remains correct for stages **before or at ABIS** (Group 1, 2, 3 up through Bio Dedupe/handler prep). See [docs/create-draft-stage-flow.md](docs/create-draft-stage-flow.md) for the full API list and rationale.
 
-When a post-ABIS stage needs the packet created on date, read `regprc.registration.pkt_cr_dtimes` rather than calling Packet Manager `getMetaInfo`. Packet Validator stores that column, and Create Draft stores it when the column is still empty. `Utility.getPacketCreatedDateTimeFromRegistration` loads it through `RegistrationStatusDao.find`.
+When a post-ABIS stage needs the packet created on date, read `regprc.registration.pkt_cr_dtimes` rather than calling Packet Manager `getMetaInfo`. Packet Validator stores that column, and Create Draft stores it when the column is still empty.
 
 ### Key Technologies
 
