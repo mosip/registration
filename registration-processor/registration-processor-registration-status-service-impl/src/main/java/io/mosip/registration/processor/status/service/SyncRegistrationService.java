@@ -109,6 +109,14 @@ public interface SyncRegistrationService<T, U> {
 	 */
 	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
+	/**
+	 * Update an existing registration_list row.
+	 *
+	 * @param syncEntity the sync registration entity
+	 * @return the updated entity
+	 */
+	public SyncRegistrationEntity update(SyncRegistrationEntity syncEntity);
+
 	public List<SyncResponseDto> syncV2(List<SyncRegistrationDto> request, String referenceId, String timeStamp);
 
 	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList);

@@ -26,6 +26,8 @@ import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
+import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.SyncRegistrationRepository;
 import org.json.simple.JSONObject;
@@ -62,6 +64,9 @@ public class Utility {
 
 	@Autowired
 	SyncRegistrationRepository<SyncRegistrationEntity, String> syncRegistrationRepository;
+
+	@Autowired
+	private RegistrationStatusDao registrationStatusDao;
 
 	@Autowired
 	private IdRepoService idRepoService;
@@ -942,9 +947,26 @@ public class Utility {
 	 */
 	public String retrieveCreatedDateFromPacket(String rid, String process, ProviderStageName stageName)
 			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		return retrieveCreatedDateFromPacket(rid, process, stageName, null);
+	}
 
-		Map<String, String> metaInfo = packetManagerService.getMetaInfo(rid, process, stageName);
-		String packetCreatedDateTime = metaInfo.get(JsonConstant.CREATIONDATE);
+	/**
+	 * Retrieves the packet creation date. When {@code metaInfo} is null, loads it from Packet Manager.
+	 * When {@code metaInfo} is already available, uses that map and does not call Packet Manager again.
+	 *
+	 * @param rid registration id
+	 * @param process packet process
+	 * @param stageName stage used only when Packet Manager must be called
+	 * @param metaInfo packet metaInfo fields, or null to load them
+	 * @return creation date, or null when it is missing
+	 */
+	public String retrieveCreatedDateFromPacket(String rid, String process, ProviderStageName stageName,
+			Map<String, String> metaInfo)
+			throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+		if (metaInfo == null) {
+			metaInfo = packetManagerService.getMetaInfo(rid, process, stageName);
+		}
+		String packetCreatedDateTime = metaInfo == null ? null : metaInfo.get(JsonConstant.CREATIONDATE);
 
 		if (packetCreatedDateTime != null && !packetCreatedDateTime.isEmpty()) {
 			return packetCreatedDateTime;
@@ -1155,20 +1177,58 @@ public class Utility {
 		}
 	}
 
-	public LocalDateTime getPacketCreatedDateTimeWithoutPacketManager(String rid) {
+	/**
+	 * Returns null when {@code value} is blank or the literal text {@code "null"} (ignoring case and
+	 * surrounding spaces). Any other text is returned unchanged.
+	 * <p>
+	 * Use this before writing a JSONB column so an empty string is not sent to the database and the
+	 * text {@code "null"} is stored as SQL NULL. This method does not parse JSON. The database validates
+	 * the text when the JSONB column is written.
+	 * </p>
+	 *
+	 * @param value text to store, possibly null
+	 * @return {@code null} when the value should be stored as SQL NULL, otherwise the original text
+	 */
+	public String nullIfBlank(String value) {
+		if (StringUtils.isEmpty(value) || "null".equalsIgnoreCase(value.trim())) {
+			return null;
+		}
+		return value;
+	}
+
+	/**
+	 * Reads {@code regprc.registration.pkt_cr_dtimes} using {@link RegistrationStatusDao#find},
+	 * the same lookup as {@code getRegistrationStatus}.
+	 *
+	 * @return the stored packet creation time, or null when the row or the column is empty
+	 */
+	public LocalDateTime getPacketCreatedDateTimeFromRegistration(String rid, String workflowInstanceId) {
+		RegistrationStatusEntity registration = registrationStatusDao.find(rid, null, null, workflowInstanceId);
+		return registration == null ? null : registration.getPacketCreatedDateTime();
+	}
+
+	public LocalDateTime getPacketCreatedDateTimeWithoutPacketManager(String rid, String workflowInstanceId) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 				LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"getPacketCreatedDateTimeWithoutPacketManager :: entry");
 		try {
-			// Step 1 : Try from packetId (yyyyMMddHHmmss)
-			LocalDateTime packetCreatedDateTime = getPacketCreatedDateTimeFromSyncRegistration(rid);
+			// Step 1 : Try pkt_cr_dtimes from registration table.
+			LocalDateTime packetCreatedDateTime = getPacketCreatedDateTimeFromRegistration(rid, workflowInstanceId);
+			if (packetCreatedDateTime != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from registration.pkt_cr_dtimes. date : {}", packetCreatedDateTime);
+				return packetCreatedDateTime;
+			}
+
+			// Step 2 : Try from packetId (yyyyMMddHHmmss)
+			packetCreatedDateTime = getPacketCreatedDateTimeFromSyncRegistration(rid);
 			if (packetCreatedDateTime != null) {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 						"getPacketCreatedDateTimeWithoutPacketManager :: Successfully resolved packet creation date from packetId. date : {}", packetCreatedDateTime);
 				return packetCreatedDateTime;
 			}
 
-			//  Step 2 : Try from RID directly (yyyyMMddHHmmss)
+			// Step 3 : Try from RID directly (yyyyMMddHHmmss)
 			packetCreatedDateTime = getPacketCreatedDateTimeFromRid(rid);
 			if (packetCreatedDateTime != null) {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,

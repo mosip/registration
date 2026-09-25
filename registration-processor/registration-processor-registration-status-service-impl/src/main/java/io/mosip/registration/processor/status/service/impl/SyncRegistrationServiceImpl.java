@@ -929,6 +929,11 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	}
 
 	@Override
+	public SyncRegistrationEntity update(SyncRegistrationEntity syncEntity) {
+		return syncRegistrationDao.update(syncEntity);
+	}
+
+	@Override
 	public List<SyncRegistrationEntity> getByPacketIds(List<String> packetIdList) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::getByPacketIds()::entry");

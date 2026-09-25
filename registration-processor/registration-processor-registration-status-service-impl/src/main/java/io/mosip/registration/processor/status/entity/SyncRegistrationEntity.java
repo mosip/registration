@@ -7,6 +7,9 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -115,6 +118,21 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 
 	@Column(name = "location_code")
 	private String locationCode;
+
+	/** Packet metaInfo metaData, stored as JSON. */
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "packet_meta_data")
+	private String packetMetaData;
+
+	/** Packet metaInfo operationsData, stored as JSON. */
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "packet_operations_data")
+	private String packetOperationsData;
+
+	/** Packet metaInfo capturedRegisteredDevices, stored as JSON. */
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "packet_captured_devices")
+	private String packetCapturedDevices;
 
 	/**
 	 * Instantiates a new sync registration entity.
@@ -504,5 +522,29 @@ public class SyncRegistrationEntity extends BaseSyncRegistrationEntity {
 
 	public void setReferenceId(String referenceId) {
 		this.referenceId = referenceId;
+	}
+
+	public String getPacketMetaData() {
+		return packetMetaData;
+	}
+
+	public void setPacketMetaData(String packetMetaData) {
+		this.packetMetaData = packetMetaData;
+	}
+
+	public String getPacketOperationsData() {
+		return packetOperationsData;
+	}
+
+	public void setPacketOperationsData(String packetOperationsData) {
+		this.packetOperationsData = packetOperationsData;
+	}
+
+	public String getPacketCapturedDevices() {
+		return packetCapturedDevices;
+	}
+
+	public void setPacketCapturedDevices(String packetCapturedDevices) {
+		this.packetCapturedDevices = packetCapturedDevices;
 	}
 }

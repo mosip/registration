@@ -187,7 +187,7 @@ public class FinalizationStageTest {
 
 		when(utility.getMappedFieldName(MappingJsonConstants.UIN)).thenReturn("UIN");
 		LocalDateTime packetCreatedDateTime = LocalDateTime.of(2024, 1, 1, 10, 0, 0);
-		when(utility.getPacketCreatedDateTimeWithoutPacketManager(anyString())).thenReturn(packetCreatedDateTime);
+		when(utility.getPacketCreatedDateTimeWithoutPacketManager(anyString(), any())).thenReturn(packetCreatedDateTime);
 
 		when(idrepoDraftService.idrepoHasDraft(anyString())).thenReturn(true);
 		when(idrepoDraftService.idrepoDiscardDraft(anyString())).thenReturn(true);
@@ -222,7 +222,7 @@ public class FinalizationStageTest {
 		MessageDTO result = finalizationStage.process(messageDTO);
 
 		verify(utility).getMappedFieldName(MappingJsonConstants.UIN);
-		verify(utility).getPacketCreatedDateTimeWithoutPacketManager("27847657360002520181210094052");
+		verify(utility).getPacketCreatedDateTimeWithoutPacketManager("27847657360002520181210094052", "123er");
 		verify(utility).isLatestPacket(eq("9876543210"), any(LocalDateTime.class), eq("27847657360002520181210094052"));
 		verify(idrepoDraftService).idrepoPublishDraft("27847657360002520181210094052");
 		assertFalse(result.getInternalError());
@@ -426,7 +426,7 @@ public class FinalizationStageTest {
 
 		verify(idrepoDraftService, never()).idrepoPublishDraft(anyString());
 		verify(utility, never()).isLatestPacket(anyString(), any(LocalDateTime.class), anyString());
-		verify(utility, never()).getPacketCreatedDateTimeWithoutPacketManager(anyString());
+		verify(utility, never()).getPacketCreatedDateTimeWithoutPacketManager(anyString(), any());
 		assertEquals(RegistrationStatusCode.FAILED.toString(), updatedStatus.getStatusCode());
 		assertEquals(StatusUtil.FINALIZATION_FAILURE.getCode(), updatedStatus.getSubStatusCode());
 		assertFalse(result.getInternalError());
