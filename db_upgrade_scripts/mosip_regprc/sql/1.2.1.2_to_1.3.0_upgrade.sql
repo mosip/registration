@@ -1,6 +1,6 @@
 -- Below scripts are required to upgrade from 1.3.0-beta.1 to 1.3.0
 
-\c mosip_regprc
+\c :mosipdbname
 
 -- UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
 
