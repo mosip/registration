@@ -757,6 +757,15 @@ public class IdrepoDraftServiceTest {
         idrepoDraftService.idrepoCreateDraftV2(ID, null, true);
     }
 
+    @Test(expected = IdrepoDraftReprocessableException.class)
+    public void idrepoCreateDraftV2DraftExistsForUin_ThrowsReprocessable() throws Exception {
+        when(registrationProcessorRestClientService.postApi(
+                eq(ApiName.IDREPOCREATEDRAFT), any(), any(), any(), any(), eq(ResponseWrapper.class)))
+                .thenReturn(errorWrapper("IDR-IDC-022", "A draft already exists for this UIN with another registration id"));
+
+        idrepoDraftService.idrepoCreateDraftV2(ID, "1234567890", false);
+    }
+
     @Test
     public void idrepoCreateDraftV2ValidationError_ThrowsFailed() throws Exception {
         when(registrationProcessorRestClientService.postApi(

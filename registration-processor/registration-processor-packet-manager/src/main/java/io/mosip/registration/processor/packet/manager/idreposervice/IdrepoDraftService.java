@@ -42,11 +42,12 @@ public class IdrepoDraftService {
     static final String NO_RECORD_FOUND_ERROR = "IDR-IDC-007";
     private static final String ID_REPO_KEY_MANAGER_ERROR = "IDR-IDS-003";
     /** Retryable ID Repo codes for draft v2 APIs only. HTTP 5xx/timeouts stay ApisResourceAccessException.
-     *  IDR-IDC-001 and IDR-IDC-004 are retryable only on create/update draft v2 (not this list).
+     *  IDR-IDC-001, IDR-IDC-004 and IDR-IDC-022 are retryable only on create/update draft v2 (not this list).
      *  IDR-IDC-007 is success only on discard. */
     static final String DEFAULT_REPROCESSABLE_ERROR_CODES =
             "IDR-IDS-004,IDR-IDS-009,IDR-IDC-019,IDR-IDC-020,IDR-IDC-021,IDR-IDS-003";
-    private static final Set<String> ADDITIONAL_CREATE_OR_UPDATE_REPROCESSABLE_ERROR_CODES = Set.of("IDR-IDC-001", "IDR-IDC-004");
+    /** IDR-IDC-022: another packet for the same UIN still holds its draft. Retry after it is published or discarded. */
+    private static final Set<String> ADDITIONAL_CREATE_OR_UPDATE_REPROCESSABLE_ERROR_CODES = Set.of("IDR-IDC-001", "IDR-IDC-004", "IDR-IDC-022");
 
     @Autowired
     private ObjectMapper mapper;
@@ -335,7 +336,7 @@ public class IdrepoDraftService {
     }
 
     /**
-     * Create/update draft v2 only: {@code IDR-IDC-001} and {@code IDR-IDC-004} are retryable.
+     * Create/update draft v2 only: {@code IDR-IDC-001}, {@code IDR-IDC-004} and {@code IDR-IDC-022} are retryable.
      * Other v2 APIs treat them as FAILED via {@link #throwFailedOrReprocessable}.
      */
     private void throwCreateOrUpdateDraftError(ErrorDTO error)
