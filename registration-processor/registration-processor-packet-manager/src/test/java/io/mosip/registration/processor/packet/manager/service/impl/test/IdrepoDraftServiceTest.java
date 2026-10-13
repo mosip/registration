@@ -804,6 +804,30 @@ public class IdrepoDraftServiceTest {
                 .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
     }
 
+    @Test
+    public void idrepoUpdateDraftV2DraftExistsForUin_ThrowsReprocessableAndDoesNotDiscard() throws Exception {
+        RequestDto requestDto = new RequestDto();
+        requestDto.setIdentity(idResponseDTO.getResponse().getIdentity());
+        IdRequestDto idRequestDto = new IdRequestDto();
+        idRequestDto.setRequest(requestDto);
+        when(registrationProcessorRestClientService.headApi(
+                ApiName.IDREPOHASDRAFT, Lists.newArrayList(ID), null, null)).thenReturn(200);
+        when(registrationProcessorRestClientService.getApi(
+                ApiName.IDREPOGETDRAFT, Lists.newArrayList(ID), Lists.emptyList(), null, IdResponseDTO.class))
+                .thenReturn(idResponseDTO);
+        when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+                .thenReturn(errorIdResponse("IDR-IDC-022", "A draft already exists for this UIN with another registration id"));
+
+        try {
+            idrepoDraftService.idrepoUpdateDraftV2(ID, null, idRequestDto, true);
+            fail("Expected IdrepoDraftReprocessableException to be thrown");
+        } catch (IdrepoDraftReprocessableException e) {
+            assertEquals("IDR-IDC-022", e.getErrorCode());
+        }
+        verify(registrationProcessorRestClientService, never())
+                .deleteApi(eq(ApiName.IDREPODISCARDDRAFT), any(), any(), any(), any());
+    }
+
     @Test(expected = IdrepoDraftReprocessableException.class)
     public void idrepoUpdateDraftV2UnknownError_ThrowsReprocessable() throws Exception {
         RequestDto requestDto = new RequestDto();
