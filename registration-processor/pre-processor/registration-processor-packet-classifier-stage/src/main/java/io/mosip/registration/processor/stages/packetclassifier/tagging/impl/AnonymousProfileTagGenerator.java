@@ -120,10 +120,12 @@ public class AnonymousProfileTagGenerator implements TagGenerator {
                     registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
                     process, ProviderStageName.CLASSIFICATION);
 
+            // workflowInstanceId lets the service add the supervisor decision and
+            // comment, which live in registration_list rather than the packet.
             String anonymousProfileJson = anonymousProfileService.buildJsonStringFromPacketInfo(
                     biometricRecord, allFieldMap, fieldTypeMap, metaInfoMap,
                     RegistrationStatusCode.PROCESSING.toString(),
-                    ModuleName.PACKET_CLASSIFIER.toString());
+                    ModuleName.PACKET_CLASSIFIER.toString(), workflowInstanceId);
 
             if (anonymousProfileJson != null && !anonymousProfileJson.isEmpty()) {
                 Map<String, String> tags = new HashMap<>();
