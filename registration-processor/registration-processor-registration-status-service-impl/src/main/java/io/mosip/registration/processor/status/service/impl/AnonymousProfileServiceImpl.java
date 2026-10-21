@@ -237,9 +237,9 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 	 * Populates supervisorDecision and supervisorComment from registration_list.
 	 *
 	 * <p>Best-effort by contract: a null workflowInstanceId, a missing record or a
-	 * failed read leaves both fields null and the profile is still built. A missing
-	 * record is the normal case at classification time - the supervisor decision has
-	 * not synced yet - so it is logged at debug, not warn.
+	 * failed read leaves both fields null and the profile is still built. The packet
+	 * receiver rejects packets that have not been synced, so the record normally
+	 * exists by now; a missing one is unexpected and logged at warn for review.
 	 */
 	private void setSupervisorDecision(AnonymousProfileDTO anonymousProfileDTO, String workflowInstanceId) {
 		// null, empty or blank: nothing to look the record up by, so skip the query
@@ -249,7 +249,7 @@ public class AnonymousProfileServiceImpl implements AnonymousProfileService {
 		try {
 			SyncRegistrationEntity regEntity = syncRegistrationDao.findByWorkflowInstanceId(workflowInstanceId);
 			if (regEntity == null) {
-				regProcLogger.debug(
+				regProcLogger.warn(
 						"buildJsonStringFromPacketInfo: no registration_list record for workflowInstanceId {}; supervisor decision and comment left null",
 						workflowInstanceId);
 				return;

@@ -31,11 +31,12 @@ public interface AnonymousProfileService {
 	 * looked up by {@code workflowInstanceId} - the same unique key
 	 * {@code SupervisorApprovalStatusTagGenerator} uses.
 	 *
-	 * <p>That lookup is best-effort enrichment. A blank {@code workflowInstanceId},
-	 * a missing registration_list record (the normal case at classification time,
-	 * before the supervisor decision has synced) or a failed read leaves both
-	 * fields null; the profile is still built and returned in full. Supervisor
-	 * reporting must never cost the profile itself.
+	 * <p>The packet receiver rejects a packet that has not been synced, so the
+	 * record - and with it the supervisor decision - already exists when the
+	 * profile is built. The lookup is still best-effort: a blank
+	 * {@code workflowInstanceId}, a missing registration_list record or a failed
+	 * read leaves both fields null; the profile is still built and returned in
+	 * full. Supervisor reporting must never cost the profile itself.
 	 *
 	 * @param workflowInstanceId key used to look up the supervisor decision; may be
 	 *                           null or blank, in which case no lookup is attempted

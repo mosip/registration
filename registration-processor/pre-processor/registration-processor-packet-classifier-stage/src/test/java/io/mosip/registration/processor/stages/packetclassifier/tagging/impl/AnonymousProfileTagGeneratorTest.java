@@ -236,7 +236,7 @@ public class AnonymousProfileTagGeneratorTest {
 	 * enrichment itself is covered by AnonymousProfileServiceImplTest.
 	 */
 	@Test
-	public void testGenerateTagsPassesWorkflowInstanceIdToService() throws Exception {
+	public void should_passWorkflowInstanceIdToService_when_generatingTags() throws Exception {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
 				.thenReturn(new BiometricRecord());
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),

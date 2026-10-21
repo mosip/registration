@@ -245,7 +245,7 @@ public class AnonymousProfileServiceImplTest {
 	public void buildJsonStringFromPacketInfoVariousScenarioTest() throws JSONException, IOException, BaseCheckedException {
 
 		ReflectionTestUtils.setField(anonymousProfileService, "isPreferredLangEnabled", true);
-		// no registration_list record yet - the normal case at classification time
+		// no registration_list record - supervisor decision and comment stay null
 		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID)).thenReturn(null);
 		fieldMap.put("email", "satish@gmail.com");
 		fieldMap.put("gender",
@@ -372,7 +372,7 @@ public class AnonymousProfileServiceImplTest {
 	 * them from there by workflowInstanceId.
 	 */
 	@Test
-	public void supervisorDecisionAndCommentAreReadFromRegistrationListTest() throws Exception {
+	public void should_populateSupervisorDecisionAndComment_when_registrationListRecordExists() throws Exception {
 		stubPacketWithSupervisorId();
 		SyncRegistrationEntity regEntity = new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
@@ -388,7 +388,7 @@ public class AnonymousProfileServiceImplTest {
 	}
 
 	@Test
-	public void rejectedDecisionIsCarriedThroughTest() throws Exception {
+	public void should_carryRejectedDecisionAndComment_when_supervisorRejected() throws Exception {
 		stubPacketWithSupervisorId();
 		SyncRegistrationEntity regEntity = new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("REJECTED");
@@ -406,7 +406,7 @@ public class AnonymousProfileServiceImplTest {
 	 * profile - exactly as a biometrics fetch failure only drops the biometrics.
 	 */
 	@Test
-	public void profileIsStillBuiltWhenSupervisorLookupFailsTest() throws Exception {
+	public void should_buildProfileWithoutSupervisorDecision_when_lookupFails() throws Exception {
 		stubPacketWithSupervisorId();
 		Mockito.when(syncRegistrationDao.findByWorkflowInstanceId(WORKFLOW_INSTANCE_ID))
 				.thenThrow(new RuntimeException("registration_list unavailable"));
@@ -420,13 +420,13 @@ public class AnonymousProfileServiceImplTest {
 
 	/** A null workflowInstanceId must not trigger a lookup at all. */
 	@Test
-	public void noLookupWhenWorkflowInstanceIdIsNullTest() throws Exception {
+	public void should_skipSupervisorLookup_when_workflowInstanceIdIsNull() throws Exception {
 		assertNoLookupFor(null);
 	}
 
 	/** Nor a blank one - there is nothing to look the record up by. */
 	@Test
-	public void noLookupWhenWorkflowInstanceIdIsBlankTest() throws Exception {
+	public void should_skipSupervisorLookup_when_workflowInstanceIdIsBlank() throws Exception {
 		assertNoLookupFor("   ");
 	}
 
