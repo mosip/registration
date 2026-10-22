@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -156,7 +157,18 @@ public class ABISHandlerUtilTest {
     }
 
     @Test
-    public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void testLostPacketIgnoresInprogressMatch() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+        // both processed matches belong to the same resident (same uin)
+        when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
+
+        ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId, "LOST", 1, "", ProviderStageName.BIO_DEDUPE);
+        // the in-progress packet of the same resident must not count as a second match
+        assertEquals(1, processedMatchedResults.getMatchedResults().size());
+        assertFalse(processedMatchedResults.getMatchedResults().contains("10002100820001420210108085100"));
+    }
+
+    @Test
+    public void testReturnAllInprogress()throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
         ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
         // expected not to pick processedMatchedIds list i.e 1 records..

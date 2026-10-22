@@ -191,7 +191,10 @@ public class ABISHandlerUtil {
 								.collect(Collectors.toList());
 						List<String> matchedProcessedRegIds = matchedRegistrationStatusEntities.stream()
 								.map(RegistrationStatusEntity::getRegId).collect(Collectors.toList());
-						uniqueRIDs.addAll(processingRegIds);
+						// A LOST packet is not a duplicate of another in-flight packet of the same
+						// resident. Only matches that already have a UIN can resolve a LOST packet.
+						if (!SyncTypeDto.LOST.toString().equalsIgnoreCase(registrationType))
+							uniqueRIDs.addAll(processingRegIds);
 						ProcessedMatchedResult processedRegIds = getProcessedMatchedResult(matchedProcessedRegIds, registrationId,
 								registrationType,
 								stageName);
