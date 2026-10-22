@@ -193,7 +193,9 @@ public class ABISHandlerUtil {
 								.map(RegistrationStatusEntity::getRegId).collect(Collectors.toList());
 						// A LOST packet is not a duplicate of another in-flight packet of the same
 						// resident. Only matches that already have a UIN can resolve a LOST packet.
-						if (!SyncTypeDto.LOST.toString().equalsIgnoreCase(registrationType))
+						if (SyncTypeDto.LOST.toString().equalsIgnoreCase(registrationType))
+							matchedProcessedRegIds.removeAll(processingRegIds);
+						else
 							uniqueRIDs.addAll(processingRegIds);
 						ProcessedMatchedResult processedRegIds = getProcessedMatchedResult(matchedProcessedRegIds, registrationId,
 								registrationType,

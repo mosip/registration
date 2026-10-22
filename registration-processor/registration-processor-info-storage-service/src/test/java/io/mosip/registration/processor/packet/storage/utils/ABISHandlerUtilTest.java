@@ -157,9 +157,11 @@ public class ABISHandlerUtilTest {
     }
 
     @Test
-    public void testLostPacketIgnoresInprogressMatch() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void should_ignoreInProgressMatch_when_packetIsLost() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
         // both processed matches belong to the same resident (same uin)
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
+        // the in-progress packet resolves to a different uin, it must still not be counted
+        when(idRepoService.getUinByRid("10002100820001420210108085100", new String())).thenReturn("555555555");
 
         ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId, "LOST", 1, "", ProviderStageName.BIO_DEDUPE);
         // the in-progress packet of the same resident must not count as a second match
