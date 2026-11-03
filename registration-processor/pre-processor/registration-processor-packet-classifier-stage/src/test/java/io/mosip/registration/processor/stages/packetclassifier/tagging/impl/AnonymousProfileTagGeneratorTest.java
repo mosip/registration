@@ -121,7 +121,7 @@ public class AnonymousProfileTagGeneratorTest {
 				eq(MappingJsonConstants.INDIVIDUAL_BIOMETRICS), eq("NEW"),
 				eq(ProviderStageName.CLASSIFICATION))).thenReturn(biometricRecord);
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(eq(biometricRecord), any(), any(),
-				any(), anyString(), anyString())).thenReturn(PROFILE_JSON);
+				any(), anyString(), anyString(), any())).thenReturn(PROFILE_JSON);
 
 		Map<String, FieldDTO> idObjectFieldDTOMap = new HashMap<>();
 		idObjectFieldDTOMap.put("dateOfBirth", new FieldDTO("string", "1998/01/01"));
@@ -139,7 +139,7 @@ public class AnonymousProfileTagGeneratorTest {
 				eq(MappingJsonConstants.INDIVIDUAL_BIOMETRICS), eq("NEW"),
 				eq(ProviderStageName.CLASSIFICATION));
 		verify(anonymousProfileService, times(1)).buildJsonStringFromPacketInfo(eq(biometricRecord),
-				any(), any(), eq(metaInfoMap), anyString(), anyString());
+				any(), any(), eq(metaInfoMap), anyString(), anyString(), eq("wf-1"));
 	}
 
 	@Test
@@ -147,7 +147,7 @@ public class AnonymousProfileTagGeneratorTest {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
 				.thenReturn(new BiometricRecord());
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
-				anyString(), anyString())).thenThrow(new RuntimeException("profile failed"));
+				anyString(), anyString(), any())).thenThrow(new RuntimeException("profile failed"));
 
 		Map<String, String> tags = anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
 				new HashMap<>(), new HashMap<>(), 0);
@@ -166,7 +166,7 @@ public class AnonymousProfileTagGeneratorTest {
 
 		assertTrue(tags.isEmpty());
 		verify(anonymousProfileService, never()).buildJsonStringFromPacketInfo(any(), any(), any(), any(),
-				anyString(), anyString());
+				anyString(), anyString(), any());
 	}
 
 	@Test
@@ -174,7 +174,7 @@ public class AnonymousProfileTagGeneratorTest {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
 				.thenReturn(new BiometricRecord());
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
-				anyString(), anyString())).thenReturn(null);
+				anyString(), anyString(), any())).thenReturn(null);
 
 		assertTrue(anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
 				new HashMap<>(), new HashMap<>(), 0).isEmpty());
@@ -185,7 +185,7 @@ public class AnonymousProfileTagGeneratorTest {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
 				.thenReturn(new BiometricRecord());
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
-				anyString(), anyString())).thenReturn("");
+				anyString(), anyString(), any())).thenReturn("");
 
 		assertTrue(anonymousProfileTagGenerator.generateTags("wf-1", "1234", "NEW",
 				new HashMap<>(), new HashMap<>(), 0).isEmpty());
@@ -197,7 +197,7 @@ public class AnonymousProfileTagGeneratorTest {
 		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
 				.thenReturn(biometricRecord);
 		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
-				anyString(), anyString())).thenReturn(PROFILE_JSON);
+				anyString(), anyString(), any())).thenReturn(PROFILE_JSON);
 
 		Map<String, FieldDTO> idObjectFieldDTOMap = new HashMap<>();
 		idObjectFieldDTOMap.put("dateOfBirth", new FieldDTO(null, "1998/01/01"));
@@ -208,7 +208,7 @@ public class AnonymousProfileTagGeneratorTest {
 
 		assertEquals(PROFILE_JSON, tags.get(TAG_NAME));
 		verify(anonymousProfileService).buildJsonStringFromPacketInfo(eq(biometricRecord), any(), any(),
-				any(), anyString(), anyString());
+				any(), anyString(), anyString(), any());
 	}
 
 	@Test
@@ -228,6 +228,25 @@ public class AnonymousProfileTagGeneratorTest {
 				"preferredLang", "zone", "postalCode"));
 		assertEquals(expected, new HashSet<>(requiredIdObjectFieldNames));
 		assertEquals(expected.size(), requiredIdObjectFieldNames.size());
+	}
+
+	/**
+	 * The workflowInstanceId must reach the service - it is the key the supervisor
+	 * decision and comment are looked up by, and without it both stay null. That
+	 * enrichment itself is covered by AnonymousProfileServiceImplTest.
+	 */
+	@Test
+	public void should_passWorkflowInstanceIdToService_when_generatingTags() throws Exception {
+		when(priorityBasedPacketManagerService.getBiometrics(any(), any(), any(), any()))
+				.thenReturn(new BiometricRecord());
+		when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString(), any())).thenReturn(PROFILE_JSON);
+
+		anonymousProfileTagGenerator.generateTags("8e34c5d5-2ba1-4d69-9e60-31b0a1d1c1d0", "1234", "NEW",
+				new HashMap<>(), new HashMap<>(), 0);
+
+		verify(anonymousProfileService).buildJsonStringFromPacketInfo(any(), any(), any(), any(),
+				anyString(), anyString(), eq("8e34c5d5-2ba1-4d69-9e60-31b0a1d1c1d0"));
 	}
 
 	private void putMapping(JSONObject mappingJSON, String mappingKey, String actualFieldName) {

@@ -25,4 +25,7 @@ public class AnonymousProfileDTO {
 	private List<String> assisted;
 	private String enrollmentCenterId;
 	private String status;
+	private String supervisorId;
+	private String supervisorDecision;
+	private String supervisorComment;
 }

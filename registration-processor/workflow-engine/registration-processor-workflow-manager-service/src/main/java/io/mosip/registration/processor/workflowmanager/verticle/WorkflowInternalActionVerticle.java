@@ -390,8 +390,12 @@ public class WorkflowInternalActionVerticle extends MosipVerticleAPIManager {
 			String statusCode = registrationStatusDto != null
 					? registrationStatusDto.getStatusCode() : "";
 
+			// workflowInstanceId lets the service add the supervisor decision and comment,
+			// which live in registration_list rather than the packet - so a profile built
+			// through this fallback carries the same fields as one built from the tag.
 			String json = anonymousProfileService.buildJsonStringFromPacketInfo(
-					biometricRecord, fieldMap, fieldTypeMap, metaInfoMap, statusCode, stageName);
+					biometricRecord, fieldMap, fieldTypeMap, metaInfoMap, statusCode, stageName,
+					workflowInternalActionDTO.getWorkflowInstanceId());
 			anonymousProfileService.saveAnonymousProfile(registrationId, stageName, json);
 
 		} catch (InterruptedException e) {

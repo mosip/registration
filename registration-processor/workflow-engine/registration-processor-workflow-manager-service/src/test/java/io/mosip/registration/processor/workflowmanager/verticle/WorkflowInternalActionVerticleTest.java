@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -787,6 +788,7 @@ public class WorkflowInternalActionVerticleTest {
 		workflowInternalActionDTO.setReg_type("NEW");
 		workflowInternalActionDTO.setIsValid(true);
 		workflowInternalActionDTO.setActionCode(WorkflowInternalActionCode.ANONYMOUS_PROFILE.toString());
+		workflowInternalActionDTO.setWorkflowInstanceId("8e34c5d5-2ba1-4d69-9e60-31b0a1d1c1d0");
 
 		Mockito.when(packetManagerService.getTags(anyString(), any())).thenReturn(null);
 		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey(anyString(), anyString(), anyString(), any()))
@@ -839,7 +841,7 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
-				anyString())).thenReturn("jsonProfile");
+				anyString(), any())).thenReturn("jsonProfile");
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
@@ -849,6 +851,10 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.verify(priorityBasedPacketManagerService, Mockito.atLeastOnce()).getMetaInfo(anyString(), anyString(), any());
 		Mockito.verify(anonymousProfileService, Mockito.times(1)).saveAnonymousProfile(
 				"10006100390000920200603070407", "PacketClassifierStage", "jsonProfile");
+		// without the workflowInstanceId the rebuilt profile would silently lose the
+		// supervisor decision and comment that the tag path carries
+		Mockito.verify(anonymousProfileService).buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
+				anyString(), eq(workflowInternalActionDTO.getWorkflowInstanceId()));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -914,7 +920,7 @@ public class WorkflowInternalActionVerticleTest {
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(anonymousProfileService.buildJsonStringFromPacketInfo(any(), any(), any(), any(), anyString(),
-				anyString())).thenReturn("jsonProfile");
+				anyString(), any())).thenReturn("jsonProfile");
 		Mockito.doNothing().when(anonymousProfileService).saveAnonymousProfile(anyString(), anyString(), anyString());
 
 		MessageDTO object = workflowInternalActionVerticle.process(workflowInternalActionDTO);
