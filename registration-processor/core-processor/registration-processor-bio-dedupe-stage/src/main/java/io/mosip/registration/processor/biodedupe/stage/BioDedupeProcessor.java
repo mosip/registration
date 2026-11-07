@@ -478,15 +478,14 @@ public class BioDedupeProcessor {
 
 		// Check for update packet with no packetUIN from ABIS
 		if (isUpdatePacket && !biometricMatchedForPacketUIN && matchedRegIds.isEmpty()) {
-			// Post-ABIS: read the packet UIN from the ID Repo draft, not Packet Manager.
-			String packetUin = utility.getUinFromDraft(registrationStatusDto.getRegistrationId());
-			boolean wasApplicantInfant = utility.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(),
-					packetUin);
+			boolean wasApplicantInfant = utility.wasInfantWhenLastPacketProcessed(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
+					ProviderStageName.BIO_DEDUPE);
 			regProcLogger.info("Was applicant infant? {}", wasApplicantInfant);
 
 			if (!wasApplicantInfant) {
 				// Not infant: check if all biometrics had exceptions
-				if (!utility.allBiometricHaveExceptionForUin(registrationStatusDto.getRegistrationId(), packetUin)) {
+				if (!utility.allBiometricHaveException(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType(),
+						ProviderStageName.BIO_DEDUPE)) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							registrationStatusDto.getRegistrationId(), BioDedupeConstants.NO_BIOMETRIC_MATCH_FOUND);
 

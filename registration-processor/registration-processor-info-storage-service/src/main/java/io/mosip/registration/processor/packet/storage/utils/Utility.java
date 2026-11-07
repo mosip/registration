@@ -291,20 +291,11 @@ public class Utility {
 	 * @throws PacketManagerException
 	 */
 	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
-			JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
-		String packetUin = getUIn(registrationId, registrationType, stageName);
-		return wasInfantWhenLastPacketProcessed(registrationId, packetUin);
-	}
-
-	/**
-	 * Same check as above, but the caller already knows the packet UIN (for example
-	 * from the ID Repo draft), so Packet Manager is not called.
-	 */
-	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String packetUin) throws ApisResourceAccessException, IOException,
-			JsonProcessingException, PacketManagerException {
+		String packetUin = getUinFromDraft(registrationId);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -953,34 +944,17 @@ public class Utility {
 	 * @throws BiometricClassificationException
 	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
-		String uin;
 		try {
-			uin = getUIn(rid, registrationType, stageName);
-		} catch (Exception e) {
-			throw biometricInfoNotFound(rid, e);
-		}
-		return allBiometricHaveExceptionForUin(rid, uin);
-	}
-
-	/**
-	 * Same check as above, but the caller already knows the packet UIN (for example
-	 * from the ID Repo draft), so Packet Manager is not called.
-	 */
-	public boolean allBiometricHaveExceptionForUin(String rid, String uin) throws BiometricClassificationException {
-		try {
+			String uin = getUinFromDraft(rid);
 			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (Exception e) {
-			throw biometricInfoNotFound(rid, e);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"utility::allBiometricHaveException():: Error while classifying biometric exceptions", e);
+			throw new BiometricClassificationException(
+					PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
+					PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 		}
-	}
-
-	private BiometricClassificationException biometricInfoNotFound(String rid, Exception e) {
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
-				"utility::allBiometricHaveException():: Error while classifying biometric exceptions", e);
-		return new BiometricClassificationException(
-				PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
-				PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 	}
 
 	/**
