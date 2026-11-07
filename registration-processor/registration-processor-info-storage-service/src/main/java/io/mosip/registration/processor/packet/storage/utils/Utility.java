@@ -24,7 +24,11 @@ import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
+import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
@@ -70,6 +74,9 @@ public class Utility {
 
 	@Autowired
 	private IdRepoService idRepoService;
+
+	@Autowired
+	private IdrepoDraftService idrepoDraftService;
 
 	@Autowired
 	private Utilities utilities;
@@ -255,6 +262,23 @@ public class Utility {
 
 
 	/**
+	 * Reads the UIN from the ID Repo draft (type=demographics) of the given
+	 * registration. Use this in stages that run after ABIS instead of calling
+	 * Packet Manager.
+	 *
+	 * @return the UIN, or null when the draft has no UIN
+	 */
+	public String getUinFromDraft(String registrationId) throws ApisResourceAccessException, IOException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
+		ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
+		if (draft == null || !(draft.getIdentity() instanceof Map)) {
+			return null;
+		}
+		Object uin = ((Map<?, ?>) draft.getIdentity()).get(getMappedFieldName(MappingJsonConstants.UIN));
+		return uin != null ? String.valueOf(uin) : null;
+	}
+
+	/**
 	 * Determines whether the applicant was an infant at the time their last packet was processed in the system
 	 *
 	 * @param registrationId
@@ -267,11 +291,11 @@ public class Utility {
 	 * @throws PacketManagerException
 	 */
 	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
-			JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
-		String packetUin = getUIn(registrationId, registrationType, stageName);
+		String packetUin = getUinFromDraft(registrationId);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -921,7 +945,7 @@ public class Utility {
 	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
 		try {
-			String uin = getUIn(rid, registrationType, stageName);
+			String uin = getUinFromDraft(rid);
 			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (Exception e) {

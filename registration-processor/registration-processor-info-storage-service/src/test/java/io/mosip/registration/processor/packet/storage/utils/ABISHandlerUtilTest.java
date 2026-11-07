@@ -1,6 +1,8 @@
 
 package io.mosip.registration.processor.packet.storage.utils;
 
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
@@ -34,9 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -67,6 +73,9 @@ public class ABISHandlerUtilTest {
 
     @Mock
     private IdRepoService idRepoService;
+
+    @Mock
+    private Utility utility;
 
     List<String> lst=new ArrayList<>();
 
@@ -131,7 +140,19 @@ public class ABISHandlerUtilTest {
     }
 
     @Test
-    public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void testUpdateReadsPacketUinFromDraftNotPacketManager() throws Exception {
+        // the packet UIN comes from the ID Repo draft and equals the UIN of one matched RID
+        when(utility.getUinFromDraft(registrationId)).thenReturn("123456789");
+
+        ProcessedMatchedResult result = abisHandlerUtil.getProcessedMatchedResult(registrationId, "UPDATE", 1, "", ProviderStageName.BIO_DEDUPE);
+
+        assertTrue(result.isBiometricMatchedForPacketUIN());
+        verify(utility, atLeastOnce()).getUinFromDraft(registrationId);
+        verify(utility, never()).getUIn(any(), any(), any());
+    }
+
+    @Test
+    public void testProcesssedWithUniqueUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
         ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId, registrationType, 1, "", ProviderStageName.BIO_DEDUPE);
         // expected to pick 2 rids from processedMatchedIds list because different uin.
         // Total should be 1(inprogress) + 2(processed)
@@ -139,7 +160,7 @@ public class ABISHandlerUtilTest {
     }
 
     @Test
-    public void testProcesssedWithSameUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void testProcesssedWithSameUin() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("987654321");
 
@@ -149,14 +170,14 @@ public class ABISHandlerUtilTest {
     }
 
     @Test
-    public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void testDonotReturnRejected() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
         ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId,registrationType,1,"",ProviderStageName.BIO_DEDUPE);
         // expected to pick only processingandprocessed list i.e 3 records.
         assertEquals(3, processedMatchedResults.getMatchedResults().size());
     }
 
     @Test
-    public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException {
+    public void testReturnAllInprogress() throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException, io.mosip.kernel.core.exception.IOException, IdrepoDraftException, IdrepoDraftReprocessableException {
         when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
         ProcessedMatchedResult processedMatchedResults = abisHandlerUtil.getProcessedMatchedResult(registrationId, registrationType,1, "", ProviderStageName.BIO_DEDUPE);
         // expected not to pick processedMatchedIds list i.e 1 records..
