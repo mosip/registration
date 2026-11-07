@@ -78,6 +78,9 @@ public class UtilityTest {
     private IdRepoService idRepoService;
 
     @Mock
+    private io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService idrepoDraftService;
+
+    @Mock
     private SyncRegistrationRepository syncRegistrationRepository;
 
     @Mock
@@ -1224,4 +1227,36 @@ public class UtilityTest {
         verify(utility, never()).getPacketCreatedDateTimeFromRid(anyString());
     }
 
+
+    private void mockUinMapping() throws IOException {
+        LinkedHashMap<String, Object> uinValue = new LinkedHashMap<>();
+        uinValue.put("value", "UIN");
+        JSONObject identity = new JSONObject();
+        identity.put("uin", uinValue);
+        Mockito.doReturn(identity).when(utilities).getRegistrationProcessorMappingJson("identity");
+    }
+
+    @Test
+    public void testGetUinFromDraft_returnsUin() throws Exception {
+        mockUinMapping();
+        io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft =
+                new io.mosip.registration.processor.packet.manager.dto.ResponseDTO();
+        draft.setIdentity(java.util.Collections.singletonMap("UIN", "1234567890"));
+        when(idrepoDraftService.idrepoGetDraft("rid1", "demographics")).thenReturn(draft);
+
+        assertEquals("1234567890", utility.getUinFromDraft("rid1"));
+    }
+
+    @Test
+    public void testGetUinFromDraft_noUinOrNoDraft_returnsNull() throws Exception {
+        mockUinMapping();
+        io.mosip.registration.processor.packet.manager.dto.ResponseDTO draft =
+                new io.mosip.registration.processor.packet.manager.dto.ResponseDTO();
+        draft.setIdentity(java.util.Collections.singletonMap("name", "x"));
+        when(idrepoDraftService.idrepoGetDraft("rid1", "demographics")).thenReturn(draft);
+        when(idrepoDraftService.idrepoGetDraft("rid2", "demographics")).thenReturn(null);
+
+        assertNull(utility.getUinFromDraft("rid1"));
+        assertNull(utility.getUinFromDraft("rid2"));
+    }
 }

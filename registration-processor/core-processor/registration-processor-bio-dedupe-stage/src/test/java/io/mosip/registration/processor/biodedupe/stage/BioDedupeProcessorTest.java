@@ -818,9 +818,10 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		stubDraftUin();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveExceptionForUin(anyString(), anyString()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -859,9 +860,10 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		stubDraftUin();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveExceptionForUin(anyString(), anyString()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -897,9 +899,10 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		stubDraftUin();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveExceptionForUin(anyString(), anyString()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -912,7 +915,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_Infant_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_Infant_Success() throws Exception {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -935,10 +938,16 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		stubDraftUin();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		// UIN must come from the ID Repo draft, not from Packet Manager
+		Mockito.verify(utility).getUinFromDraft("10049100271000420250319064824");
+		Mockito.verify(utility, Mockito.never()).getUIn(any(), any(), any());
+		Mockito.verify(utility).wasInfantWhenLastPacketProcessed("10049100271000420250319064824", "1234567890");
 
 		assertTrue(messageDto.getIsValid());
 		assertFalse(messageDto.getInternalError());
@@ -1017,7 +1026,8 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		stubDraftUin();
+		when(utility.allBiometricHaveExceptionForUin(anyString(), anyString()))
 				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));
 
 		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
@@ -1163,4 +1173,12 @@ public class BioDedupeProcessorTest {
         assertFalse(result.getIsValid());
     }
 
+
+	private void stubDraftUin() {
+		try {
+			Mockito.lenient().when(utility.getUinFromDraft(anyString())).thenReturn("1234567890");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

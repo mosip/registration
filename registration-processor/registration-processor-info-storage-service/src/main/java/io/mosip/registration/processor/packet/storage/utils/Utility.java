@@ -24,7 +24,11 @@ import io.mosip.registration.processor.core.exception.*;
 import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataRequest;
 import io.mosip.registration.processor.core.idrepo.dto.IdVidMetadataResponse;
+import io.mosip.registration.processor.packet.manager.dto.ResponseDTO;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.storage.utils.StaleCheckResult;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
@@ -70,6 +74,9 @@ public class Utility {
 
 	@Autowired
 	private IdRepoService idRepoService;
+
+	@Autowired
+	private IdrepoDraftService idrepoDraftService;
 
 	@Autowired
 	private Utilities utilities;
@@ -255,6 +262,23 @@ public class Utility {
 
 
 	/**
+	 * Reads the UIN from the ID Repo draft (type=demographics) of the given
+	 * registration. Use this in stages that run after ABIS instead of calling
+	 * Packet Manager.
+	 *
+	 * @return the UIN, or null when the draft has no UIN
+	 */
+	public String getUinFromDraft(String registrationId) throws ApisResourceAccessException, IOException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
+		ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
+		if (draft == null || !(draft.getIdentity() instanceof Map)) {
+			return null;
+		}
+		Object uin = ((Map<?, ?>) draft.getIdentity()).get(getMappedFieldName(MappingJsonConstants.UIN));
+		return uin != null ? String.valueOf(uin) : null;
+	}
+
+	/**
 	 * Determines whether the applicant was an infant at the time their last packet was processed in the system
 	 *
 	 * @param registrationId
@@ -272,6 +296,15 @@ public class Utility {
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
 		String packetUin = getUIn(registrationId, registrationType, stageName);
+		return wasInfantWhenLastPacketProcessed(registrationId, packetUin);
+	}
+
+	/**
+	 * Same check as above, but the caller already knows the packet UIN (for example
+	 * from the ID Repo draft), so Packet Manager is not called.
+	 */
+	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String packetUin) throws ApisResourceAccessException, IOException,
+			JsonProcessingException, PacketManagerException {
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -920,17 +953,34 @@ public class Utility {
 	 * @throws BiometricClassificationException
 	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
+		String uin;
 		try {
-			String uin = getUIn(rid, registrationType, stageName);
+			uin = getUIn(rid, registrationType, stageName);
+		} catch (Exception e) {
+			throw biometricInfoNotFound(rid, e);
+		}
+		return allBiometricHaveExceptionForUin(rid, uin);
+	}
+
+	/**
+	 * Same check as above, but the caller already knows the packet UIN (for example
+	 * from the ID Repo draft), so Packet Manager is not called.
+	 */
+	public boolean allBiometricHaveExceptionForUin(String rid, String uin) throws BiometricClassificationException {
+		try {
 			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (Exception e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
-					"utility::allBiometricHaveException():: Error while classifying biometric exceptions", e);
-			throw new BiometricClassificationException(
-					PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
-					PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
+			throw biometricInfoNotFound(rid, e);
 		}
+	}
+
+	private BiometricClassificationException biometricInfoNotFound(String rid, Exception e) {
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"utility::allBiometricHaveException():: Error while classifying biometric exceptions", e);
+		return new BiometricClassificationException(
+				PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getCode(),
+				PlatformErrorMessages.RPR_BDD_UNABLE_TO_FETCH_BIOMETRIC_INFO.getMessage());
 	}
 
 	/**
