@@ -220,10 +220,12 @@ public class BioDedupeProcessor {
 					postAbisIdentification(registrationStatusDto, object, registrationType);
 				}
 
-			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())
-					&& isValidCbeff(object)) {
+			} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())) {
+				// The CBEFF check reads the packet from Packet Manager, so run it only before ABIS.
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-					lostPacketPreAbisIdentification(registrationStatusDto, object);
+					if (isValidCbeff(object)) {
+						lostPacketPreAbisIdentification(registrationStatusDto, object);
+					}
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					ProcessedMatchedResult processedMatchedResult = abisHandlerUtil
 							.getProcessedMatchedResult(registrationStatusDto.getRegistrationId(),
@@ -255,7 +257,7 @@ public class BioDedupeProcessor {
 					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					description.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
-		} catch (ApisResourceAccessException e) {
+		} catch (ApisResourceAccessException | IdrepoDraftReprocessableException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED + e.getMessage()));
