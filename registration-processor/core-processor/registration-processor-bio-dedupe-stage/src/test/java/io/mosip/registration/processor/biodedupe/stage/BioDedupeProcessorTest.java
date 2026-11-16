@@ -1221,6 +1221,29 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
+	public void should_reprocessPacket_when_updatePostAbisInfantCheckDraftLookupIsRetryable() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertPacketSentForReprocess(messageDto);
+	}
+
+	@Test
+	public void should_reprocessPacket_when_updatePostAbisBiometricExceptionCheckDraftLookupIsRetryable() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any())).thenReturn(false);
+		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertPacketSentForReprocess(messageDto);
+	}
+
+	@Test
 	public void should_failPacket_when_updatePostAbisDraftHasNoUin() throws Exception {
 		setUpUpdatePostAbisPacket();
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
@@ -1231,6 +1254,18 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getInternalError());
 		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
 		assertTrue(registrationStatusDto.getStatusComment().contains("UIN not found in the ID Repo draft"));
+	}
+
+	@Test
+	public void should_failPacket_when_updatePostAbisInfantCheckDraftLookupFails() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-017", "draft lookup failed"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getInternalError());
+		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
 	}
 
 }

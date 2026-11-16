@@ -291,11 +291,11 @@ public class Utility {
 	 * @throws PacketManagerException
 	 */
 	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
-			JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
-		String packetUin = getUIn(registrationId, registrationType, stageName);
+		String packetUin = getUinFromDraft(registrationId);
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -943,11 +943,14 @@ public class Utility {
 	 * @return
 	 * @throws BiometricClassificationException
 	 */
-	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException {
+	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		try {
-			String uin = getUIn(rid, registrationType, stageName);
+			String uin = getUinFromDraft(rid);
 			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
+		} catch (IdrepoDraftException | IdrepoDraftReprocessableException e) {
+			throw e;
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 					"utility::allBiometricHaveException():: Error while classifying biometric exceptions", e);
