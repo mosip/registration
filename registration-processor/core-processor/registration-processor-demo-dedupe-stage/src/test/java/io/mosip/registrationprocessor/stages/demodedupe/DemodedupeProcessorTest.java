@@ -1,5 +1,6 @@
 package io.mosip.registrationprocessor.stages.demodedupe;
 
+import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
@@ -919,6 +920,10 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
 		Mockito.when(registrationStatusMapperUtil
 				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION)).thenReturn("FAILED");
 		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(20);
 		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
 		AbisResponseDto abisResponseDto = new AbisResponseDto();
@@ -942,8 +947,13 @@ public class DemodedupeProcessorTest {
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
 		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
 		assertEquals("REPROCESS", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage()
+				+ "IDR-IDS-003 --> ID Repo temporarily unavailable", registrationStatusDto.getStatusComment());
 	}
 
 	@Test
@@ -955,7 +965,13 @@ public class DemodedupeProcessorTest {
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
 		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
+		assertEquals("FAILED", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_EXCEPTION.getMessage() + "IDR-IDC-017 --> draft lookup failed",
+				registrationStatusDto.getStatusComment());
 	}
 
 }

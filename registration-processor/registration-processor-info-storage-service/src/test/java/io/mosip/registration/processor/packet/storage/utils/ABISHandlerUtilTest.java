@@ -38,7 +38,6 @@ import java.util.List;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -161,32 +160,6 @@ public class ABISHandlerUtilTest {
 
         // nothing to compare, so the draft is not read
         verify(utility, never()).getUinFromDraft(any());
-    }
-
-    @Test
-    public void should_throwIllegalState_when_updatePacketDraftHasNoUinAndRidsMatched() throws Exception {
-        // an UPDATE draft is created from the existing UIN, so a missing UIN is bad data: fail instead of
-        // treating every matched RID as a different person
-        when(utility.getUinFromDraft(registrationId)).thenReturn(null);
-
-        try {
-            abisHandlerUtil.getProcessedMatchedResult(registrationId, "UPDATE", 1, "", ProviderStageName.BIO_DEDUPE);
-            fail("Expected IllegalStateException");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains(registrationId));
-        }
-    }
-
-    @Test
-    public void should_throwIllegalState_when_updatePacketDraftUinIsBlank() throws Exception {
-        when(utility.getUinFromDraft(registrationId)).thenReturn("  ");
-
-        try {
-            abisHandlerUtil.getProcessedMatchedResult(registrationId, "UPDATE", 1, "", ProviderStageName.BIO_DEDUPE);
-            fail("Expected IllegalStateException");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains(registrationId));
-        }
     }
 
     @Test

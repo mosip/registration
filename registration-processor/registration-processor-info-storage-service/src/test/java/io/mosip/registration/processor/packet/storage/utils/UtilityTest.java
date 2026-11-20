@@ -1272,4 +1272,77 @@ public class UtilityTest {
         utility.allBiometricHaveException("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE);
     }
 
+    @Test
+    public void should_returnNull_when_draftIdentityIsNotAMap() throws Exception {
+        ResponseDTO draft = new ResponseDTO();
+        draft.setIdentity("not-a-map");
+        when(idrepoDraftService.idrepoGetDraft(anyString(), anyString())).thenReturn(draft);
+
+        assertNull(utility.getUinFromDraft("rid1"));
+    }
+
+    @Test
+    public void should_skipDraftRead_when_wasInfantReceivesPacketUin() throws Exception {
+        JSONObject identityJson = new JSONObject();
+        identityJson.put("dateOfBirth", "2023/01/01");
+        when(idRepoService.getIdJsonFromIDRepo(eq("1234567890"), any())).thenReturn(identityJson);
+        IdVidMetadataResponse metadata = new IdVidMetadataResponse();
+        metadata.setRid("10049100271000420250319064824");
+        doReturn(metadata).when(utility).getIdVidMetadata(eq("1234567890"), any());
+        doReturn(LocalDate.of(2023, 1, 1)).when(utility).getDateOfBirthFromIdrepo(anyString(), any(JSONObject.class));
+        doReturn(LocalDate.of(2025, 10, 24)).when(utility).computePacketCreatedFromIdentityUpdate(any(IdVidMetadataResponse.class), anyString());
+
+        boolean result = utility.wasInfantWhenLastPacketProcessed("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, "1234567890");
+
+        assertTrue(result);
+        verify(idrepoDraftService, never()).idrepoGetDraft(anyString(), anyString());
+        verify(idRepoService).getIdJsonFromIDRepo(eq("1234567890"), any());
+    }
+
+    @Test
+    public void should_readDraft_when_wasInfantPacketUinIsNull() throws Exception {
+        when(idrepoDraftService.idrepoGetDraft(anyString(), anyString())).thenReturn(null);
+
+        assertFalse(utility.wasInfantWhenLastPacketProcessed("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, null));
+
+        verify(idrepoDraftService).idrepoGetDraft("rid1", "demographics");
+        verify(idRepoService, never()).getIdJsonFromIDRepo(anyString(), any());
+    }
+
+    @Test
+    public void should_readDraft_when_wasInfantPacketUinIsBlank() throws Exception {
+        when(idrepoDraftService.idrepoGetDraft(anyString(), anyString())).thenReturn(null);
+
+        assertFalse(utility.wasInfantWhenLastPacketProcessed("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, "  "));
+
+        verify(idrepoDraftService).idrepoGetDraft("rid1", "demographics");
+        verify(idRepoService, never()).getIdJsonFromIDRepo(anyString(), any());
+    }
+
+    @Test(expected = BiometricClassificationException.class)
+    public void should_skipDraftRead_when_allBiometricHaveExceptionReceivesPacketUin() throws Exception {
+        doReturn(Collections.emptyList()).when(utilities).retrieveIdrepoDocument(anyString());
+        try {
+            utility.allBiometricHaveException("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, "1234567890");
+        } finally {
+            verify(idrepoDraftService, never()).idrepoGetDraft(anyString(), anyString());
+        }
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void should_readDraft_when_allBiometricHaveExceptionPacketUinIsNull() throws Exception {
+        when(idrepoDraftService.idrepoGetDraft("rid1", "demographics"))
+                .thenThrow(new IdrepoDraftException("code", "draft failed"));
+
+        utility.allBiometricHaveException("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, null);
+    }
+
+    @Test(expected = IdrepoDraftException.class)
+    public void should_readDraft_when_allBiometricHaveExceptionPacketUinIsBlank() throws Exception {
+        when(idrepoDraftService.idrepoGetDraft("rid1", "demographics"))
+                .thenThrow(new IdrepoDraftException("code", "draft failed"));
+
+        utility.allBiometricHaveException("rid1", "UPDATE", ProviderStageName.BIO_DEDUPE, "  ");
+    }
+
 }

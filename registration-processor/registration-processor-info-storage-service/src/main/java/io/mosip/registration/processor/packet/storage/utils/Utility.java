@@ -271,7 +271,14 @@ public class Utility {
 	public String getUinFromDraft(String registrationId) throws ApisResourceAccessException, IOException,
 			IdrepoDraftException, IdrepoDraftReprocessableException {
 		ResponseDTO draft = idrepoDraftService.idrepoGetDraft(registrationId, "demographics");
-		if (draft == null || !(draft.getIdentity() instanceof Map)) {
+		if (draft == null) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Utility::getUinFromDraft():: draft is null");
+			return null;
+		}
+		if (!(draft.getIdentity() instanceof Map)) {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "Utility::getUinFromDraft():: draft identity is not a map");
 			return null;
 		}
 		Object uin = ((Map<?, ?>) draft.getIdentity()).get(AbisConstant.UIN);
@@ -292,10 +299,24 @@ public class Utility {
 	 */
 	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
+		return wasInfantWhenLastPacketProcessed(registrationId, registrationType, stageName, null);
+	}
+
+	/**
+	 * Determines whether the applicant was an infant at the time their last packet was processed in the system.
+	 * When {@code packetUin} is null or blank, the UIN is read once from the ID Repo draft.
+	 *
+	 * @param packetUin packet UIN already read by the caller, or null to read it from the draft
+	 */
+	public boolean wasInfantWhenLastPacketProcessed(String registrationId, String registrationType, ProviderStageName stageName,
+			String packetUin) throws ApisResourceAccessException, IOException,
+			JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "utility::wasInfantWhenLastPacketProcessed()::entry");
 
-		String packetUin = getUinFromDraft(registrationId);
+		if (packetUin == null || packetUin.trim().isEmpty()) {
+			packetUin = getUinFromDraft(registrationId);
+		}
 		if (packetUin == null || packetUin.trim().isEmpty()) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(),
@@ -945,11 +966,27 @@ public class Utility {
 	 */
 	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName) throws BiometricClassificationException,
 			IdrepoDraftException, IdrepoDraftReprocessableException {
+		return allBiometricHaveException(rid, registrationType, stageName, null);
+	}
+
+	/**
+	 * Checks whether all biometric segments are marked as exceptions for a registration Id.
+	 * When {@code packetUin} is null or blank, the UIN is read once from the ID Repo draft.
+	 *
+	 * @param packetUin packet UIN already read by the caller, or null to read it from the draft
+	 */
+	public boolean allBiometricHaveException(String rid, String registrationType, ProviderStageName stageName,
+			String packetUin) throws BiometricClassificationException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		try {
-			String uin = getUinFromDraft(rid);
-			BiometricRecord bm = getBiometricRecordfromIdrepo(uin, rid);
+			if (packetUin == null || packetUin.trim().isEmpty()) {
+				packetUin = getUinFromDraft(rid);
+			}
+			BiometricRecord bm = getBiometricRecordfromIdrepo(packetUin, rid);
 			return allBiometricHaveException(bm.getSegments(), rid);
 		} catch (IdrepoDraftException | IdrepoDraftReprocessableException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+					"utility::allBiometricHaveException():: Error while reading the UIN from the ID Repo draft", e);
 			throw e;
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,

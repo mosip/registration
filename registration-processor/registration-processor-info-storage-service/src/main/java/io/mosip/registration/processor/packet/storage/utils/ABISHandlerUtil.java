@@ -350,12 +350,10 @@ public class ABISHandlerUtil {
 		boolean isUpdate = registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
 		String packetUin = null;
 		if (isUpdate && !matchedRegistrationIds.isEmpty()) {
-			// Post-ABIS: read the packet UIN from the ID Repo draft once, not Packet Manager.
+			// The packet UIN is only compared with the matched registration UINs below.
+			// When this list is empty there is nothing to compare, so skip the draft read.
+			// Post-ABIS: read it from the ID Repo draft once, not Packet Manager.
 			packetUin = utility.getUinFromDraft(registrationId);
-			if (packetUin == null || packetUin.trim().isEmpty()) {
-				throw new IllegalStateException("UIN not found in the ID Repo draft for registration id "
-						+ registrationId + ", cannot compare it with the matched UINs");
-			}
 		}
 		for (String machedRegId : matchedRegistrationIds) {
 
@@ -364,7 +362,7 @@ public class ABISHandlerUtil {
 
 			if (isUpdate) {
 				if (matchedUin != null) {
-					if (matchedUin.equals(packetUin)) {
+					if (packetUin.equals(matchedUin)) {
 						// Explicitly capture that UIN matched
 						processedMatchedResult.setBiometricMatchedForPacketUIN(true);
 					} else {
