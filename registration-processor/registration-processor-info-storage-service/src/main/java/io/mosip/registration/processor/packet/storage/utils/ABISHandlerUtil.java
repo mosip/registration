@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -153,7 +155,8 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
 	public ProcessedMatchedResult getProcessedMatchedResult(String registrationId, String registrationType,
-															 int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+															 int iteration, String workflowInstanceId, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getProcessedMatchedResult()::entry");
 
@@ -338,18 +341,26 @@ public class ABISHandlerUtil {
 	 */
 	public ProcessedMatchedResult getProcessedMatchedResult(List<String> matchedRegistrationIds, String registrationId,
 															 String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
-			JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException,
+			IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
 		Set<String> filteredRIds = new HashSet<>();
 		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		boolean isUpdate = registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString());
+		String packetUin = null;
+		if (isUpdate && !matchedRegistrationIds.isEmpty()) {
+			// The packet UIN is only compared with the matched registration UINs below.
+			// When this list is empty there is nothing to compare, so skip the draft read.
+			// Post-ABIS: read it from the ID Repo draft once, not Packet Manager.
+			packetUin = utility.getUinFromDraft(registrationId);
+		}
 		for (String machedRegId : matchedRegistrationIds) {
 
 			String matchedUin = idRepoService.getUinByRid(machedRegId,
 					utilities.getGetRegProcessorDemographicIdentity());
 
-			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				String packetUin = utility.getUIn(registrationId, registrationType, stageName);
+			if (isUpdate) {
 				if (matchedUin != null) {
 					if (packetUin.equals(matchedUin)) {
 						// Explicitly capture that UIN matched

@@ -449,7 +449,7 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testBioDeDupUpdatePacketHandlerProcessingSuccess() throws ApisResourceAccessException, IOException,
-			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -479,7 +479,7 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testBioDeDupUpdatePacketHandlerProcessingFailure() throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
@@ -526,6 +526,22 @@ public class BioDedupeProcessorTest {
 		assertFalse(messageDto.getInternalError());
 		// Draft discard is handled by WorkflowInternalActionVerticle.processCompleteAsRejected()
 		Mockito.verify(idrepoDraftService, Mockito.never()).idrepoDiscardDraft(anyString());
+	}
+
+	@Test
+	public void should_skipCbeffValidation_when_lostPacketIsPostAbis() throws Exception {
+		registrationStatusDto.setRegistrationId("reg1234");
+		registrationStatusDto.setRegistrationType("LOST");
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(new HashSet<>());
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
+
+		bioDedupeProcessor.process(dto, stageName);
+
+		// After ABIS the packet may be gone from storage, so Packet Manager must not be called
+		Mockito.verify(cbeffValidateAndVerificatonService, Mockito.never()).validateBiometrics(any(), any());
 	}
 
 	@Test
@@ -724,12 +740,12 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testLostPacketValidationCbeffNotFound() throws Exception {
+	public void should_failPacket_when_lostPacketIsPreAbisAndCbeffNotFound() throws Exception {
 		Mockito.doThrow(new CbeffNotFoundException("Exception")).when(cbeffValidateAndVerificatonService).validateBiometrics(any(), any());
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
-		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -793,7 +809,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MANUAL_VERIFICATION() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_MANUAL_VERIFICATION() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -818,9 +834,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any(), any()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -834,7 +850,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_REJECTED() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_NotInfant_NotAllBiometricException_REJECTED() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -859,9 +875,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any(), any()))
 				.thenReturn(false);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -874,7 +890,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_NotInfant_AllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_NotInfant_AllBiometricException_MV() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -897,9 +913,9 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
 				.thenReturn(false);
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any(), any()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -912,7 +928,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_NoMatch_Infant_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_NoMatch_Infant_Success() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -935,7 +951,7 @@ public class BioDedupeProcessorTest {
 
 		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
 				.thenReturn(processedMatchedResult);
-		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any()))
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
 				.thenReturn(true);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -947,7 +963,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testUpdate_MatchedIdsNotEmpty_SaveManualAdjudication() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testUpdate_MatchedIdsNotEmpty_SaveManualAdjudication() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 
 		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -985,7 +1001,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testProcess_ThrowsPacketDateComputationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testProcess_ThrowsPacketDateComputationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
 				.thenReturn(registrationStatusDto);
 
@@ -1002,7 +1018,7 @@ public class BioDedupeProcessorTest {
 	}
 
 	@Test
-	public void testProcess_ThrowsBiometricClassificationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException {
+	public void testProcess_ThrowsBiometricClassificationException() throws PacketManagerException, ApisResourceAccessException, IOException, JsonProcessingException, IdrepoDraftException, IdrepoDraftReprocessableException {
 		registrationStatusDto.setRegistrationId("10049100271000420210319064824");
 		registrationStatusDto.setRegistrationType("Update");
 		when(registrationStatusService.getRegistrationStatus(anyString(), anyString(), anyInt(), anyString()))
@@ -1017,7 +1033,7 @@ public class BioDedupeProcessorTest {
 		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
 		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any())).thenReturn(processedMatchedResult);
 
-		when(utility.allBiometricHaveException(anyString(), anyString(), any()))
+		when(utility.allBiometricHaveException(anyString(), anyString(), any(), any()))
 				.thenThrow(new BiometricClassificationException("BDD-ERR", "Biometric classification exception"));
 
 		MessageDTO result = bioDedupeProcessor.process(dto, stageName);
@@ -1162,5 +1178,90 @@ public class BioDedupeProcessorTest {
         assertTrue(result.getInternalError());
         assertFalse(result.getIsValid());
     }
+
+	private void setUpUpdatePostAbisPacket() throws Exception {
+		registrationStatusDto.setRegistrationId("10049100271000420250319064824");
+		registrationStatusDto.setRegistrationType("UPDATE");
+		registrationStatusDto.setIteration(1);
+		registrationStatusDto.setWorkflowInstanceId("wf-1");
+
+		dto = new MessageDTO();
+		dto.setRid("10049100271000420250319064824");
+		dto.setReg_type(SyncTypeDto.UPDATE.toString());
+
+		when(registrationStatusService.getRegistrationStatus(
+				anyString(), anyString(), anyInt(), anyString()))
+				.thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION)).thenReturn("FAILED");
+
+		ProcessedMatchedResult processedMatchedResult = new ProcessedMatchedResult();
+		processedMatchedResult.setMatchedResults(Collections.emptySet());
+		processedMatchedResult.setBiometricMatchedForPacketUIN(false);
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenReturn(processedMatchedResult);
+	}
+
+	private void assertPacketSentForReprocess(MessageDTO messageDto) {
+		assertTrue(messageDto.getInternalError());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+		assertEquals("REPROCESS", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.BIO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+	}
+
+	@Test
+	public void should_reprocessPacket_when_updatePostAbisMatchedResultDraftLookupIsRetryable() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(abisHandlerUtil.getProcessedMatchedResult(anyString(), anyString(), anyInt(), anyString(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertPacketSentForReprocess(messageDto);
+	}
+
+	@Test
+	public void should_reprocessPacket_when_updatePostAbisInfantCheckDraftLookupIsRetryable() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertPacketSentForReprocess(messageDto);
+	}
+
+	@Test
+	public void should_reprocessPacket_when_updatePostAbisBiometricExceptionCheckDraftLookupIsRetryable() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any())).thenReturn(false);
+		when(utility.allBiometricHaveException(anyString(), anyString(), any(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertPacketSentForReprocess(messageDto);
+	}
+
+	@Test
+	public void should_failPacket_when_updatePostAbisInfantCheckDraftLookupFails() throws Exception {
+		setUpUpdatePostAbisPacket();
+		when(utility.wasInfantWhenLastPacketProcessed(anyString(), anyString(), any(), any()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-017", "draft lookup failed"));
+
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getInternalError());
+		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
+		assertEquals("FAILED", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.BIO_DEDUPE_IDREPO_DRAFT_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+	}
 
 }

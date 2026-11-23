@@ -209,6 +209,10 @@ public enum StatusUtil {
 			"Failed to stamp resolved UIN on LOST ID Repository draft"),
 	BIO_DEDUPE_LOST_DRAFT_UIN_STAMP_REPROCESSABLE(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "007",
 			"Failed to stamp resolved UIN on LOST ID Repository draft"),
+	BIO_DEDUPE_IDREPO_DRAFT_EXCEPTION(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "008",
+			"Exception occured updating idrepo draft."),
+	BIO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.BIO_DEDUPE_MODULE_FAILED + "009",
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 
 	// Biometric authentication stage
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001",
@@ -228,6 +232,10 @@ public enum StatusUtil {
 	POTENTIAL_MATCH_FOUND_IN_ABIS(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "001",
 			"Biometric Duplicate was Found in ABIS"),
 	POTENTIAL_MATCH_FOUND(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "002", "Potential Demo Match was Found"),
+	DEMO_DEDUPE_IDREPO_DRAFT_EXCEPTION(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "003",
+			"Exception occured updating idrepo draft."),
+	DEMO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION(StatusConstants.DEMO_DEDUPE_MODULE_FAILED + "004",
+			"Exception occured updating idrepo draft, which can be reprocessed"),
 	DEMO_DEDUPE_SKIPPED(StatusConstants.DEMO_DEDUPE_MODULE_SKIPPED + "003", "Demographic Deduplication Skipped"),
 
 	// Manual verification stage

@@ -1,5 +1,9 @@
 package io.mosip.registrationprocessor.stages.demodedupe;
 
+import io.mosip.registration.processor.core.status.util.StatusUtil;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftReprocessableException;
+import io.mosip.registration.processor.packet.manager.exception.IdrepoDraftException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -907,4 +911,67 @@ public class DemodedupeProcessorTest {
 		assertTrue(messageDto.getInternalError());
 
 	}
+
+	private void setUpPostAbisManualAdjudicationPacket() throws Exception {
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(),any(),any(), any())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
+		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
+		Mockito.when(registrationStatusDao.find(any(),any(),any(),any())).thenReturn(entity);
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_REPROCESSABLE_EXCEPTION)).thenReturn("REPROCESS");
+		Mockito.when(registrationStatusMapperUtil
+				.getStatusCode(RegistrationExceptionTypeCode.IDREPO_DRAFT_EXCEPTION)).thenReturn("FAILED");
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(20);
+		List<AbisResponseDto> abisResponseDtos = new ArrayList<>();
+		AbisResponseDto abisResponseDto = new AbisResponseDto();
+		abisResponseDto.setId("100");
+		abisResponseDto.setStatusCode(AbisStatusCode.SUCCESS.toString());
+		abisResponseDto.setLangCode("eng");
+		abisResponseDtos.add(abisResponseDto);
+		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
+		// A non-empty detail list means ABIS found potential matches, so the packet goes to manual adjudication
+		List<AbisResponseDetDto> abisResponseDetDtos = new ArrayList<>();
+		abisResponseDetDtos.add(new AbisResponseDetDto());
+		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
+	}
+
+	@Test
+	public void should_reprocessPacket_when_manualAdjudicationDraftLookupIsRetryable() throws Exception {
+		setUpPostAbisManualAdjudicationPacket();
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
+				.thenThrow(new IdrepoDraftReprocessableException("IDR-IDS-003", "ID Repo temporarily unavailable"));
+
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getInternalError());
+		assertTrue(messageDto.getIsValid());
+		assertEquals(RegistrationStatusCode.PROCESSING.name(), registrationStatusDto.getStatusCode());
+		assertEquals("REPROCESS", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_REPROCESSABLE_EXCEPTION.getMessage()
+				+ "IDR-IDS-003 --> ID Repo temporarily unavailable", registrationStatusDto.getStatusComment());
+	}
+
+	@Test
+	public void should_failPacket_when_manualAdjudicationDraftLookupFails() throws Exception {
+		setUpPostAbisManualAdjudicationPacket();
+		Mockito.when(abisHandlerUtil.getProcessedMatchedResult(any(), any(), anyInt(), any(), any()))
+				.thenThrow(new IdrepoDraftException("IDR-IDC-017", "draft lookup failed"));
+
+		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
+
+		assertTrue(messageDto.getInternalError());
+		assertFalse(messageDto.getIsValid());
+		assertEquals(RegistrationStatusCode.FAILED.name(), registrationStatusDto.getStatusCode());
+		assertEquals("FAILED", registrationStatusDto.getLatestTransactionStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_EXCEPTION.getCode(),
+				registrationStatusDto.getSubStatusCode());
+		assertEquals(StatusUtil.DEMO_DEDUPE_IDREPO_DRAFT_EXCEPTION.getMessage() + "IDR-IDC-017 --> draft lookup failed",
+				registrationStatusDto.getStatusComment());
+	}
+
 }
