@@ -32,6 +32,7 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdrepoDraftService;
 import io.mosip.registration.processor.packet.manager.idreposervice.impl.IdRepoServiceImpl;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -109,6 +110,11 @@ public class PacketStorageBeanConfig {
 	@Bean
 	public IdRepoService getIdRepoService() {
 		return new IdRepoServiceImpl();
+	}
+
+	@Bean
+	public IdrepoDraftService idrepoDraftService() {
+		return new IdrepoDraftService();
 	}
 
 	@Bean
