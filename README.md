@@ -1,5 +1,5 @@
-[![Maven Package upon a push](https://github.com/mosip/registration/actions/workflows/push-trigger.yml/badge.svg?branch=release-1.3.x)](https://github.com/mosip/registration/actions/workflows/push-trigger.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=release-1.3.x&project=mosip_registration&metric=alert_status)](https://sonarcloud.io/dashboard?branch=release-1.3.x&id=mosip_registration)
+[![Maven Package upon a push](https://github.com/mosip/registration/actions/workflows/push-trigger.yml/badge.svg?branch=release-1.4.x)](https://github.com/mosip/registration/actions/workflows/push-trigger.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=release-1.4.x&project=mosip_registration&metric=alert_status)](https://sonarcloud.io/dashboard?branch=release-1.4.x&id=mosip_registration)
 
 # Registration Processor
 
@@ -121,10 +121,10 @@ Before you begin, ensure you have the following installed:
 
 ### Configuration
 
-Registration processor module uses the following configuration files that are accessible in this [repository](https://github.com/mosip/mosip-config/tree/master).
+Registration processor module uses the following configuration files that are accessible in this [repository](https://github.com/mosip/mosip-config/tree/release-1.4.x).
 Please refer to the required released tagged version for configuration.
-- [application-default.properties](https://github.com/mosip/mosip-config/blob/master/application-default.properties) : Contains common configurations which are required across MOSIP modules.
-- [registration-processor-default.properties](https://github.com/mosip/mosip-config/blob/master/registration-processor-default.properties) : Contains configurations required or to be overridden for Registration Processor module.
+- [application-default.properties](https://github.com/mosip/mosip-config/blob/release-1.4.x/application-default.properties) : Contains common configurations which are required across MOSIP modules.
+- [registration-processor-default.properties](https://github.com/mosip/mosip-config/blob/release-1.4.x/registration-processor-default.properties) : Contains configurations required or to be overridden for Registration Processor module.
 
 ### Local Setup (for Development or Contribution)
 
