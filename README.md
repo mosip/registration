@@ -121,10 +121,10 @@ Before you begin, ensure you have the following installed:
 
 ### Configuration
 
-Registration processor module uses the following configuration files that are accessible in this [repository](https://github.com/mosip/mosip-config/tree/release-1.4.x).
+Registration processor module uses the following configuration files that are accessible in this [repository](https://github.com/mosip/mosip-config/tree/master).
 Please refer to the required released tagged version for configuration.
-- [application-default.properties](https://github.com/mosip/mosip-config/blob/release-1.4.x/application-default.properties) : Contains common configurations which are required across MOSIP modules.
-- [registration-processor-default.properties](https://github.com/mosip/mosip-config/blob/release-1.4.x/registration-processor-default.properties) : Contains configurations required or to be overridden for Registration Processor module.
+- [application-default.properties](https://github.com/mosip/mosip-config/blob/master/application-default.properties) : Contains common configurations which are required across MOSIP modules.
+- [registration-processor-default.properties](https://github.com/mosip/mosip-config/blob/master/registration-processor-default.properties) : Contains configurations required or to be overridden for Registration Processor module.
 
 ### Local Setup (for Development or Contribution)
 
