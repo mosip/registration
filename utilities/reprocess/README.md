@@ -66,7 +66,7 @@ $ ./reprocess.py --db --dry-run
 | `delay` | `1` | Seconds between two registrations. Lower to go faster, raise to reduce load. |
 | `timeout` | `60` | HTTP timeout per call, in seconds. |
 | `db_connect_timeout` | `30` | Seconds to wait for a database connection (`--db`). A new connection is opened for each batch. |
-| `max_retries` | `3` | Retries for requests that did not reach the server and for HTTP 500/503. See **Error handling**. |
+| `max_retries` | `3` | Retries for requests that did not reach the server. See **Error handling**. |
 | `backoff` | `[5, 10, 20]` | Seconds to wait before retry 1, 2, 3. |
 | `max_consecutive_failures` | `10` | Stop the run after this many failures in a row. |
 | `failed_file`, `remaining_file` | `./failed.txt`, `./remaining.txt` | Output files. A timestamp is added to each name per run. |
@@ -160,8 +160,7 @@ Example `registrations.txt`:
 | Securezone says the packet was not forwarded (e.g. "has not been uploaded to file System") | Marked failed. Run continues. |
 | HTTP 4xx (other than 401) | Marked failed. Run continues. |
 | HTTP 401 (token expired) | Logs in again and retries once. If the login fails, the run stops. |
-| HTTP 500, 503 | Retried `max_retries` times with `backoff`. Then marked failed. Run continues. |
-| HTTP 502, 504 (gateway), read timeout, connection reset | **Not resent**: securezone may already have forwarded the packet. Marked failed with `Network or gateway error (...). Check DB status and retry.` Run continues. See **Checking the status before a retry**. |
+| HTTP 5xx (from the gateway; securezone answers its own errors with HTTP 200), read timeout, connection reset | **Not resent**: securezone may already have forwarded the packet. Marked failed with `Network or gateway error (...). Check DB status and retry.` Run continues. See **Checking the status before a retry**. |
 | Malformed line or row (not exactly 5 fields, a required value missing, `iteration` not a number) | Marked failed. Run continues. |
 | Network error before the request is sent (connect timeout, connection refused, DNS) | Retried `max_retries` times with `backoff`. Then **the run stops**. |
 | SSL error | **The run stops.** See **Certificate verification failure**. |
@@ -179,7 +178,7 @@ from regprc.registration
 where workflow_instance_id = '<workflow_instance_id>';
 ```
 - `latest_trn_type_code` = `SECUREZONE_NOTIFICATION` and `latest_trn_status_code` = `SUCCESS`, updated at the time of the run: the packet was forwarded. Do not retry it.
-- Otherwise: retry it with `--file` or `--registration`.
+- Otherwise, if at least 5 minutes have passed since the error: retry it with `--file` or `--registration`.
 
 ## Troubleshooting
 ### TLS/SSL handshake failure

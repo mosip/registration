@@ -11,10 +11,9 @@ FAILED = 'FAILED'
 # Securezone returns HTTP 200 for both outcomes. Only this text means the packet was accepted.
 FORWARDED_TEXT = 'has been forwarded to next stage'
 
-# Gateway errors (502 Bad Gateway: connection to securezone failed; 504 Gateway Timeout: securezone
-# did not answer in time). Securezone may still have forwarded the packet, so it is not resent.
-GATEWAY_ERRORS = (502, 504)
-
+# Securezone answers its own errors with HTTP 200, so any 5xx comes from the gateway in front of it
+# (e.g. pod restarted or connection reset). Securezone may still have forwarded the packet, so a 5xx
+# is not resent.
 UNCERTAIN_MSG = 'Network or gateway error (%s). Check DB status and retry.'
 
 
@@ -101,10 +100,9 @@ class MosipSession:
           - SSL error: FatalError (run stops). Retrying does not help.
           - Request not sent (connect timeout, connection refused, DNS): retried max_retries times,
             then FatalError (run stops).
-          - Request may have been processed (read timeout, connection reset, HTTP 502/504):
+          - Request may have been processed (read timeout, connection reset, HTTP 5xx):
             not resent. FAILED, to be retried after checking the status in the database.
           - HTTP 401: one re-authentication and retry. Re-authentication failure raises FatalError.
-          - Other HTTP 5xx (500, 503): retried max_retries times, then FAILED.
           - Any other HTTP status, or a response without the "forwarded" text: FAILED.
         '''
         rid, process, workflow_instance_id, iteration, source = registration
@@ -143,15 +141,8 @@ class MosipSession:
                 reauthenticated = True
                 continue
 
-            if r.status_code in GATEWAY_ERRORS:
-                return FAILED, UNCERTAIN_MSG % ('HTTP %d' % r.status_code)
-
             if r.status_code >= 500:
-                if attempt >= self.max_retries:
-                    return FAILED, 'HTTP %d after %d retries: %s' % (r.status_code, attempt, r.text[:500])
-                self._wait(attempt)
-                attempt += 1
-                continue
+                return FAILED, UNCERTAIN_MSG % ('HTTP %d' % r.status_code)
 
             if r.status_code != 200:
                 return FAILED, 'HTTP %d: %s' % (r.status_code, r.text[:500])

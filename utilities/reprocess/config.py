@@ -50,9 +50,9 @@ delay = 1
 # HTTP timeout (seconds) for each API call
 timeout = 60
 
-# Retries for requests that did not reach the server (connect timeout, connection refused, DNS)
-# and for HTTP 500/503, and the wait (seconds) before each retry. Read timeouts, connection
-# resets and HTTP 502/504 are never retried: the request may have been processed.
+# Retries for requests that did not reach the server (connect timeout, connection refused, DNS),
+# and the wait (seconds) before each retry. Read timeouts, connection resets and HTTP 5xx are
+# never retried: the request may have been processed.
 # backoff needs at least one value. If there are more retries than values, the last value is reused.
 max_retries = 3
 backoff = [5, 10, 20]
