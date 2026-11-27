@@ -36,6 +36,7 @@ class Stats:
         self.success = 0
         self.failed = 0
         self.batches = 0
+        self.consecutive_failures = 0  # Across batches, reset only by a success
 
     def __str__(self):
         return 'batches=%d picked=%d success=%d failed=%d' % (self.batches, self.picked, self.success, self.failed)
@@ -133,7 +134,6 @@ def process_batch(session, items, delay, stats, out, write_remaining_on_stop):
     Per-registration failures are recorded and the run continues.
     FatalError (network, authentication, too many consecutive failures) stops the run.
     '''
-    consecutive_failures = 0
     total = len(items)
     for i, item in enumerate(items):
         stats.picked += 1
@@ -151,16 +151,16 @@ def process_batch(session, items, delay, stats, out, write_remaining_on_stop):
 
         if status == SUCCESS:
             stats.success += 1
-            consecutive_failures = 0
+            stats.consecutive_failures = 0
         else:
             stats.failed += 1
-            consecutive_failures += 1
+            stats.consecutive_failures += 1
             out.add_failed(item, message)
-            if consecutive_failures >= conf.max_consecutive_failures:
+            if stats.consecutive_failures >= conf.max_consecutive_failures:
                 if write_remaining_on_stop:
                     out.write_remaining(items[i + 1:])
                 raise FatalError('%d consecutive registrations failed. Check the server and the last errors.'
-                                 % consecutive_failures)
+                                 % stats.consecutive_failures)
 
         if i < total - 1:
             time.sleep(delay)
@@ -231,7 +231,11 @@ def run_list(items, args, stats, out):
     if args.dry_run:
         dry_run(items)
         return
-    session = new_session()
+    try:
+        session = new_session()
+    except FatalError:
+        out.write_remaining(items)
+        raise
     stats.batches += 1
     process_batch(session, items, conf.delay, stats, out, write_remaining_on_stop=True)
 

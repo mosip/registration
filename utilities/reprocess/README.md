@@ -231,6 +231,8 @@ RUN STOPPED: Authentication failed. Network error: ... CERTIFICATE_VERIFY_FAILED
 1. Confirm that the server URL is the expected one.
 2. Run with `--disable_ssl_verify`, or set `ssl_verify = False` in `config.py`.
 
+Prefer trusting the deployment CA (`REQUESTS_CA_BUNDLE=/path/to/ca.pem`) over disabling verification.
+
 ### Login rejected
 **Symptom:** the run stops at login with an HTTP error, for example:
 ```
@@ -249,7 +251,7 @@ RUN STOPPED: Authentication failed. HTTP 403 ...
 | Code | Meaning | What to do |
 |---|---|---|
 | `0` | Every registration was forwarded, or there was nothing to process. | Nothing. |
-| `1` | Run stopped: network error, authentication failure, too many consecutive failures, invalid arguments or unexpected error. | Read the `RUN STOPPED` line in the log and fix the cause. Then rerun: with `--db`, the same command (unsent rows are still returned by the query); with `--file`, use `--file remaining_<ts>.txt`. |
+| `1` | Run stopped: network error, authentication failure, too many consecutive failures, invalid arguments or unexpected error. | Read the `RUN STOPPED` line in the log and fix the cause. Then rerun: with `--db`, the same command (unsent rows are still returned by the query); with `--file`, use `--file remaining_<ts>.txt`. Also retry `failed_<ts>.txt` if it exists: `remaining_<ts>.txt` does not include registrations that already failed. |
 | `2` | Run finished, but some registrations failed. | Check `failed_<ts>.txt` (each line is preceded by the reason) and rerun with `--file failed_<ts>.txt` once fixed. |
 
 ## Output

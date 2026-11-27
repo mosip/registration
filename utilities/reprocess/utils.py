@@ -18,15 +18,12 @@ class FatalError(Exception):
 
 def read_token(response):
     '''
-    Read the Authorization token from the Set-Cookie header of an authentication response.
+    Read the Authorization cookie from an authentication response, whatever the order of its cookies.
     Raises FatalError when there is no token, because nothing can be sent without one.
     '''
-    set_cookie = response.headers.get('Set-Cookie')
-    if set_cookie:
-        for cookie in set_cookie.split(';'):
-            parts = cookie.strip().split('=', 1)
-            if len(parts) == 2 and parts[0] == 'Authorization':
-                return parts[1]
+    token = response.cookies.get('Authorization')
+    if token:
+        return token
 
     raise FatalError('Authentication failed. HTTP %s. Response: %s' % (response.status_code, response.text[:500]))
 
